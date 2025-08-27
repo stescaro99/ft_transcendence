@@ -75,6 +75,15 @@ export default {
         "search_new_friend": "Rechercher de Nouveaux Amis",
         "search_place_holder": "Entrez le nom d'utilisateur...",
         "search": "Rechercher",
-        "friend_request": "Demandes d'Amitié"
+        "friend_request": "Demandes d'Amitié",
+        "no_friend_requests": "Aucune demande d'amitié",
+        "online": "En ligne",
+        "offline": "Hors ligne",
+        "accept": "Accepter",
+        "enter_username": "Entrez un nom d'utilisateur",
+        "user_not_found": "Utilisateur non trouvé",
+        "searching_user": "Recherche d'utilisateur...",
+        "add_friend": "Ajouter Ami",
+        "error_adding_friend": "Erreur lors de l'ajout d'ami"
     }
 }

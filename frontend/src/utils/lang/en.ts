@@ -75,6 +75,15 @@ export default {
         "search_new_friend": "Search New Friends",
         "search_place_holder": "Enter username...",
         "search": "Search",
-        "friend_request": "Friend Requests"
+        "friend_request": "Friend Requests",
+        "no_friend_requests": "No friend requests",
+        "online": "Online",
+        "offline": "Offline",
+        "accept": "Accept",
+        "enter_username": "Enter a username",
+        "user_not_found": "User not found",
+        "searching_user": "Searching user...",
+        "add_friend": "Add Friend",
+        "error_adding_friend": "Error adding friend"
     }
 }

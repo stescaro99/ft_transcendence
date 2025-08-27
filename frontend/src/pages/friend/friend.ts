@@ -7,6 +7,7 @@ import { TranslationService } from '../../service/translation.service';
 export class friendPage {
 
     private currentLang: string;
+    private translationService: TranslationService;
     private userService: UserService = new UserService();
     private user!: User;
     private profile: Pick<User, 'nickname' | 'image_url' | 'online'> = {
@@ -40,8 +41,8 @@ export class friendPage {
     private render() {
         const appDiv = document.getElementById('app');
         if (appDiv) {
-            const translation = new TranslationService(this.currentLang);
-            const translatedHtml = translation.translateTemplate(friendHtml);
+            this.translationService = new TranslationService(this.currentLang);
+            const translatedHtml = this.translationService.translateTemplate(friendHtml);
             appDiv.innerHTML = translatedHtml;
         }
 
@@ -50,6 +51,13 @@ export class friendPage {
             this.loadFriends();
 			this.renderFriendRequests();
         }, 50);
+    }
+
+    // Method to translate dynamically added content
+    private translateDynamicContent(element: HTMLElement) {
+        const html = element.innerHTML;
+        const translatedHtml = this.translationService.translateTemplate(html);
+        element.innerHTML = translatedHtml;
     }
 
     private loadFriends() {
@@ -89,7 +97,8 @@ export class friendPage {
         requestList.innerHTML = '';
         
         if (this.friendRequest.length === 0) {
-            requestList.innerHTML = '<div class="text-gray-400 text-center">Nessuna richiesta di amicizia</div>';
+            requestList.innerHTML = '<div class="text-gray-400 text-center">{{friend.no_friend_requests}}</div>';
+            this.translateDynamicContent(requestList);
             return;
         }
         
@@ -104,16 +113,17 @@ export class friendPage {
                     <span class="text-white">${request.nickname}</span>
                     <br>
                     <span class="text-sm ${request.online ? 'text-green-400' : 'text-gray-400'}">
-                        ${request.online ? 'Online' : 'Offline'}
+                        ${request.online ? '{{friend.online}}' : '{{friend.offline}}'}
                     </span>
                 </div>
                 <div class="flex gap-2">
                     <button class="accept-btn bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600" 
                             data-nickname="${request.nickname}">
-                        Accetta
+                        {{friend.accept}}
                     </button>
                 </div>
             `;
+            this.translateDynamicContent(requestItem);
             requestList.appendChild(requestItem);
         });
         
@@ -180,7 +190,7 @@ export class friendPage {
         
         if (!searchValue) {
             console.warn('⚠️ Search input is empty');
-            this.showErrorMessage('Inserisci un nome utente');
+            this.showErrorMessage(this.translationService.translateTemplate('{{friend.enter_username}}'));
             return;
         }
         
@@ -199,14 +209,15 @@ export class friendPage {
             })
             .catch((error) => {
                 console.error('❌ Error fetching user data:', error);
-                this.showErrorMessage('Utente non trovato');
+                this.showErrorMessage(this.translationService.translateTemplate('{{friend.user_not_found}}'));
             });
     }
 
     private showLoadingState() {
         const resultDiv = document.getElementById('result');
         if (resultDiv) {
-            resultDiv.innerHTML = '<div class="text-cyan-400 mt-4">Cercando utente...</div>';
+            resultDiv.innerHTML = '<div class="text-cyan-400 mt-4">{{friend.searching_user}}</div>';
+            this.translateDynamicContent(resultDiv);
         }
     }
 
@@ -222,14 +233,17 @@ export class friendPage {
                         <span class="text-white text-lg">${this.profile.nickname}</span>
                         <br>
                         <span class="text-sm ${this.profile.online ? 'text-green-400' : 'text-gray-400'}">
-                            ${this.profile.online ? 'Online' : 'Offline'}
+                            ${this.profile.online ? '{{friend.online}}' : '{{friend.offline}}'}
                         </span>
                     </div>
                     <button id="addFriendBtn" class="bg-cyan-400 text-black px-4 py-2 rounded hover:bg-cyan-300">
-                        Aggiungi Amico
+                        {{friend.add_friend}}
                     </button>
                 </div>
             `;
+
+            // Translate the dynamic content
+            this.translateDynamicContent(resultDiv);
             
             // Aggiungi event listener per il pulsante "Aggiungi Amico"
             const addFriendBtn = document.getElementById('addFriendBtn');
@@ -256,7 +270,7 @@ export class friendPage {
 			})
 			.catch((error) => {
 				console.error('❌ Error adding friend:', error);
-				this.showErrorMessage('Errore nell\'aggiunta dell\'amico');
+				this.showErrorMessage(this.translationService.translateTemplate('{{friend.error_adding_friend}}'));
 			});
     }
 
@@ -273,9 +287,10 @@ export class friendPage {
                 	</a>
                     <span class="text-white flex-1">${friend.nickname}</span>
                     <span class="text-sm ${friend.online ? 'text-green-400' : 'text-gray-400'}">
-                        ${friend.online ? 'Online' : 'Offline'}
+                        ${friend.online ? '{{friend.online}}' : '{{friend.offline}}'}
                     </span>
                 `;
+                this.translateDynamicContent(friendItem);
                 friendsList.appendChild(friendItem);
             });
         }
