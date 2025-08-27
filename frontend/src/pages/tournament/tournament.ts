@@ -6,6 +6,7 @@ import './tournament.css';
 export class TournamentPage {
     private tournament: Tournament = new Tournament();
     private currentLang: string;
+    private translationService: TranslationService;
 
     private setTheme(theme: string) {
 		const element = document.querySelector('[data-theme]') as HTMLElement;
@@ -17,10 +18,28 @@ export class TournamentPage {
 		const appDiv = document.getElementById('app');
         
 		if (appDiv) {
-            const translation = new TranslationService(this.currentLang);
-            const translatedHtml = translation.translateTemplate(tournamentHtml);
+            this.translationService = new TranslationService(this.currentLang);
+            const translatedHtml = this.translationService.translateTemplate(tournamentHtml);
             appDiv.innerHTML = translatedHtml;
         }
+    }
+
+    // Method to translate dynamically added content
+    private translateDynamicContent(element: HTMLElement) {
+        const html = element.innerHTML;
+        const translatedHtml = this.translationService.translateTemplate(html);
+        element.innerHTML = translatedHtml;
+
+        // Handle placeholder templates for input elements
+        const inputs = element.querySelectorAll('input[placeholder-template]');
+        inputs.forEach((input: HTMLInputElement) => {
+            const placeholderTemplate = input.getAttribute('placeholder-template');
+            if (placeholderTemplate) {
+                const translatedPlaceholder = this.translationService.translateTemplate(placeholderTemplate);
+                input.placeholder = translatedPlaceholder;
+                input.removeAttribute('placeholder-template');
+            }
+        });
     }
 
 	private addEventListeners() {
@@ -48,7 +67,7 @@ export class TournamentPage {
             // Aggiungi un titolo
             const title = document.createElement('h3');
             title.className = 'text-cyan-400 text-2xl font-black mb-6 text-center drop-shadow-lg';
-            title.textContent = 'Partecipanti al torneo:';
+            title.innerHTML = '{{tournament.tournament_participants}}';
             title.style.textShadow = '0 0 10px rgba(34, 211, 238, 0.8)';
             tournamentName.appendChild(title);
 
@@ -62,7 +81,7 @@ export class TournamentPage {
 
             const firstLabel = document.createElement('label');
             firstLabel.className = 'block text-cyan-400 text-lg font-bold mb-2';
-            firstLabel.textContent = '👑 Giocatore 1 (Tu):';
+            firstLabel.innerHTML = '👑 {{tournament.player_you}}';
             firstLabel.setAttribute('for', 'player1');
             firstLabel.style.textShadow = '0 0 5px rgba(34, 211, 238, 0.6)';
 
@@ -85,7 +104,7 @@ export class TournamentPage {
 
                 const label = document.createElement('label');
                 label.className = 'block text-purple-400 text-lg font-bold mb-2';
-                label.textContent = `🎮 Giocatore ${i}:`;
+                label.innerHTML = `🎮 {{tournament.player_name}} ${i}:`;
                 label.setAttribute('for', `player${i}`);
                 label.style.textShadow = '0 0 5px rgba(168, 85, 247, 0.6)';
 
@@ -94,7 +113,7 @@ export class TournamentPage {
                 input.id = `player${i}`;
                 input.name = `player${i}`;
                 input.className = 'w-full px-4 py-3 text-white bg-gray-900/80 border-2 border-purple-400 rounded-lg focus:outline-none focus:border-pink-400 focus:shadow-[0_0_15px_rgba(168,85,247,0.5)] backdrop-blur-sm transition-all duration-300';
-                input.placeholder = `Nome del giocatore ${i}`;
+                input.setAttribute('placeholder-template', `{{tournament.player_name_placeholder}} ${i}`);
                 input.style.boxShadow = '0 0 10px rgba(168, 85, 247, 0.3)';
 
                 inputWrapper.appendChild(label);
@@ -107,10 +126,13 @@ export class TournamentPage {
             // Aggiungi un pulsante per iniziare il torneo
             const startButton = document.createElement('button');
             startButton.className = 'bg-gradient-to-r from-pink-500 to-cyan-500 hover:from-pink-600 hover:to-cyan-600 text-white font-black py-4 px-8 rounded-lg mt-6 w-full shadow-[0_0_20px_rgba(236,72,153,0.5)] hover:shadow-[0_0_30px_rgba(236,72,153,0.8)] transform hover:scale-105 transition-all duration-300';
-            startButton.textContent = '🚀 INIZIA TORNEO';
+            startButton.innerHTML = '🚀 {{tournament.start_tournament}}';
             startButton.style.textShadow = '0 0 5px rgba(0, 0, 0, 0.5)';
             startButton.addEventListener('click', () => this.startTournament(totalPlayers));
             tournamentName.appendChild(startButton);
+
+            // Translate all the dynamic content
+            this.translateDynamicContent(tournamentName);
         }
     }
 
@@ -176,13 +198,17 @@ export class TournamentPage {
         const totalRounds = Math.ceil(Math.log2(totalPlayers));
         const roundsFromEnd = totalRounds - roundNumber;
 
+        let key: string;
         switch (roundsFromEnd) {
-            case 1: return "Finale";
-            case 2: return "Semifinale";
-            case 3: return "Quarti di Finale";
-            case 4: return "Ottavi di Finale";
-            default: return `Round ${roundNumber + 1}`;
+            case 1: key = "tournament.finale"; break;
+            case 2: key = "tournament.semifinale"; break;
+            case 3: key = "tournament.quarti_finale"; break;
+            case 4: key = "tournament.ottavi_finale"; break;
+            default: key = "tournament.round"; break;
         }
+
+        const template = roundsFromEnd <= 4 ? `{{${key}}}` : `{{${key}}} ${roundNumber + 1}`;
+        return this.translationService.translateTemplate(template);
     }
 
     private startNextGame() {
@@ -277,15 +303,15 @@ export class TournamentPage {
                 
                 <div class="relative z-10 bg-black/60 backdrop-blur-sm border-2 border-cyan-400/50 rounded-2xl p-8 shadow-[0_0_30px_rgba(34,211,238,0.3)]">
                     <h2 class="text-cyan-400 text-3xl font-black mb-8 drop-shadow-lg" style="text-shadow: 0 0 10px rgba(34, 211, 238, 0.8)">
-                        🏆 ${completedRound.roundName} - Risultati
+                        🏆 ${completedRound.roundName} - {{tournament.round_results}}
                     </h2>
                     <div class="space-y-4 mb-8">
                         ${completedRound.results.map((result, index) => `
                             <div class="bg-gray-900/80 border border-purple-400/50 p-4 rounded-lg shadow-[0_0_15px_rgba(168,85,247,0.3)] backdrop-blur-sm">
-                                <h3 class="text-purple-400 font-bold mb-2">⚔️ Partita ${index + 1}</h3>
+                                <h3 class="text-purple-400 font-bold mb-2">⚔️ {{tournament.match}} ${index + 1}</h3>
                                 <p class="text-gray-300 mb-2">${result.game[0]} vs ${result.game[1]}</p>
                                 <p class="text-green-400 font-bold text-lg" style="text-shadow: 0 0 5px rgba(34, 197, 94, 0.8)">
-                                    👑 Vincitore: ${result.winner}
+                                    👑 {{tournament.winner}}: ${result.winner}
                                 </p>
                             </div>
                         `).join('')}
@@ -293,7 +319,7 @@ export class TournamentPage {
                     
                     <div class="bg-gradient-to-r from-blue-900/80 to-purple-900/80 border-2 border-blue-400/50 p-6 rounded-lg mb-8 shadow-[0_0_20px_rgba(59,130,246,0.4)] backdrop-blur-sm">
                         <h3 class="text-blue-400 text-xl font-bold mb-4" style="text-shadow: 0 0 8px rgba(59, 130, 246, 0.8)">
-                            ⭐ Qualificati per ${nextRoundName}:
+                            ⭐ {{tournament.qualified_for}} ${nextRoundName}:
                         </h3>
                         <div class="flex flex-wrap justify-center gap-3">
                             ${winners.map(winner => `
@@ -305,11 +331,14 @@ export class TournamentPage {
                     </div>
                     
                     <button id="continueBtn" class="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-black py-4 px-8 rounded-lg shadow-[0_0_20px_rgba(34,211,238,0.5)] hover:shadow-[0_0_30px_rgba(34,211,238,0.8)] transform hover:scale-105 transition-all duration-300">
-                        ${winners.length === 2 ? '🏁 VAI ALLA FINALE' : '⚡ CONTINUA TORNEO'}
+                        ${winners.length === 2 ? '🏁 {{tournament.go_to_final}}' : '⚡ {{tournament.continue_tournament}}'}
                     </button>
                 </div>
             </div>
         `;
+
+        // Translate the dynamic content
+        this.translateDynamicContent(tournamentName);
         
         // Aggiungi listener per continuare
         const continueBtn = document.getElementById('continueBtn');
@@ -368,14 +397,14 @@ private showTournamentResults() {
                 
                 <div class="relative z-10 bg-black/70 backdrop-blur-sm border-2 border-yellow-400/60 rounded-3xl p-8 shadow-[0_0_50px_rgba(234,179,8,0.4)]">
                     <h1 class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 text-5xl font-black mb-6 animate-pulse drop-shadow-2xl">
-                        🏆 CAMPIONE DEL TORNEO 🏆
+                        🏆 {{tournament.tournament_champion}} 🏆
                     </h1>
                     <div class="bg-gradient-to-r from-yellow-500 to-orange-500 text-black text-4xl font-black p-8 rounded-xl mb-8 shadow-[0_0_30px_rgba(234,179,8,0.6)] transform hover:scale-105 transition-all duration-300">
                         👑 ${this.tournament.winner_nickname} 👑
                     </div>
                     
                     <h2 class="text-cyan-400 text-2xl font-black mb-8" style="text-shadow: 0 0 10px rgba(34, 211, 238, 0.8)">
-                        📊 Riepilogo Completo del Torneo
+                        📊 {{tournament.tournament_summary}}
                     </h2>
                     
                     ${this.tournament.rounds.map(round => `
@@ -395,11 +424,14 @@ private showTournamentResults() {
                     `).join('')}
                     
                     <button id="newTournamentBtn" class="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-black py-4 px-8 rounded-lg mt-8 shadow-[0_0_25px_rgba(236,72,153,0.5)] hover:shadow-[0_0_40px_rgba(236,72,153,0.8)] transform hover:scale-105 transition-all duration-300">
-                        🎮 NUOVO TORNEO
+                        🎮 {{tournament.new_tournament}}
                     </button>
                 </div>
             </div>
         `;
+
+        // Translate the dynamic content
+        this.translateDynamicContent(tournamentName);
         
         // Aggiungi listener per nuovo torneo
         const newTournamentBtn = document.getElementById('newTournamentBtn');

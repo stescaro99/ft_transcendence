@@ -49,7 +49,26 @@ export default {
     },
     tournament: {
         "tournament": "Tournament",
-        "player": "Player"
+        "player": "Player",
+        "tournament_participants": "Tournament Participants:",
+        "player_you": "Player 1 (You):",
+        "player_name": "Player",
+        "player_name_placeholder": "Player name",
+        "start_tournament": "START TOURNAMENT",
+        "finale": "Final",
+        "semifinale": "Semifinal",
+        "quarti_finale": "Quarter Final",
+        "ottavi_finale": "Round of 16",
+        "round": "Round",
+        "round_results": "Round Results",
+        "match": "Match",
+        "winner": "Winner",
+        "qualified_for": "Qualified for",
+        "continue_tournament": "CONTINUE TOURNAMENT",
+        "go_to_final": "GO TO FINAL",
+        "tournament_champion": "TOURNAMENT CHAMPION",
+        "tournament_summary": "Complete Tournament Summary",
+        "new_tournament": "NEW TOURNAMENT"
     },
     friend: {
         "your_friend": "Your Friends",

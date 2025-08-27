@@ -49,7 +49,26 @@ export default {
     },
     tournament: {
         "tournament": "Tournoi",
-        "player": "Joueur"
+        "player": "Joueur",
+        "tournament_participants": "Participants au Tournoi:",
+        "player_you": "Joueur 1 (Vous):",
+        "player_name": "Joueur",
+        "player_name_placeholder": "Nom du joueur",
+        "start_tournament": "COMMENCER LE TOURNOI",
+        "finale": "Finale",
+        "semifinale": "Demi-finale",
+        "quarti_finale": "Quart de finale",
+        "ottavi_finale": "Huitième de finale",
+        "round": "Manche",
+        "round_results": "Résultats de la Manche",
+        "match": "Match",
+        "winner": "Gagnant",
+        "qualified_for": "Qualifiés pour",
+        "continue_tournament": "CONTINUER LE TOURNOI",
+        "go_to_final": "ALLER EN FINALE",
+        "tournament_champion": "CHAMPION DU TOURNOI",
+        "tournament_summary": "Résumé Complet du Tournoi",
+        "new_tournament": "NOUVEAU TOURNOI"
     },
     friend: {
         "your_friend": "Vos Amis",
