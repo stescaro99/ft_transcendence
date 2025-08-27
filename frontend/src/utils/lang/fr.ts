@@ -50,5 +50,12 @@ export default {
     tournament: {
         "tournament": "Tournoi",
         "player": "Joueur"
+    },
+    friend: {
+        "your_friend": "Vos Amis",
+        "search_new_friend": "Rechercher de Nouveaux Amis",
+        "search_place_holder": "Entrez le nom d'utilisateur...",
+        "search": "Rechercher",
+        "friend_request": "Demandes d'Amitié"
     }
 }

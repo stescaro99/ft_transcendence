@@ -1,17 +1,20 @@
 <div class="bg-black flex flex-col gap-6 p-6 items-center w-full mx-auto min-h-screen">
-	<span>{{your friend :}}</span>
+
+	<span>{{friend.your_friend}}</span>
 	<div id="friendsList" class="flex flex-col items-center w-[70%] max-w-2xl border-2 border-cyan-400 shadow-[0_0_12px_#22d3ee] rounded-lg p-6">
 	</div>
+
 	<div id="newfriend" class="text-white">
-		<span>{{search new friend}}</span>
+		<span>{{friend.search_new_friend}}</span>
 		<div class="search-container">
-			<input type="text" id="searchInput" placeholder="Cerca utente...">
-			<button id="searchButton">Cerca</button>
+			<input type="text" id="searchInput" placeholder="{{friend.search_place_holder}}">
+			<button id="searchButton">{{friend.search}}</button>
 		</div>
 		<div id="result"></div>
 	</div>
-	<div id="request">
-		<span>{{friend request}}</span>
+
+	<div id="request" class="text-white">
+		<span>{{friend.friend_request}}</span>
 		<div id="requestList" class="flex flex-col items-center w-[70%] max-w-2xl border-2 border-cyan-400 shadow-[0_0_12px_#22d3ee] rounded-lg p-6">
 		</div>
 	</div>
