@@ -7,11 +7,12 @@ import fastifyStatic from '@fastify/static';
 import fastifyCors from '@fastify/cors';
 import fastifyOauth2 from '@fastify/oauth2';
 import fastifyCookie from '@fastify/cookie';
+import swagger from '@fastify/swagger';
+import swaggerUI from '@fastify/swagger-ui';
 
-//dotenv.config({ path: path.join(__dirname, '../.env') });
-dotenv.config(); //con docker non serve specificare il path, prende automaticamente il file .env nella root del progetto
-
-const dbDir = path.join(__dirname, 'db');
+dotenv.config();
+const projectRoot = process.cwd();
+const dbDir = path.join(projectRoot, 'db');
 const dbPath = path.join(dbDir, 'database.db');
 
 if (!fs.existsSync(dbDir)) {
@@ -19,9 +20,6 @@ if (!fs.existsSync(dbDir)) {
 }
 
 const dbExists = fs.existsSync(dbPath);
-
-import swagger from '@fastify/swagger';
-import swaggerUI from '@fastify/swagger-ui';
 
 // Carica i certificati SSL
 const certPath = process.env.SSL_CERT_PATH || path.join(__dirname, 'cert', 'cert.pem');
@@ -148,11 +146,15 @@ const start = async (sequelize: any) => {
 	await import('./models/tournament');
 	// ...altri modelli se servono
 
-	await sequelize.sync({ force: !dbExists, alter: dbExists });
+	// ATTENZIONE: l'uso di { alter: true } con SQLite può creare tabelle di backup
+	// (es: users_backup) e fallire con UNIQUE constraint se rilanci più volte.
+	// Strategia semplice: se il DB non esiste -> force (reset iniziale), altrimenti sync "soft".
 	if (!dbExists) {
-		console.log('Database created successfully.');
+		await sequelize.sync({ force: true });
+		console.log('Database created (force sync).');
 	} else {
-		console.log('Database already exists, no changes made.');
+		await sequelize.sync(); // nessun alter automatico su SQLite per evitare duplicati
+		console.log('Database present, skipped destructive/alter sync.');
 	}
 	await start(sequelize);
 })();

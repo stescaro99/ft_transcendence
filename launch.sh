@@ -33,14 +33,16 @@ fi
 
 echo "✅ Certificati SSL trovati"
 
-# Aggiungi gli host al file hosts se non esistono già
-if ! grep -q "transcendence.be\|transcendence.fe" /etc/hosts; then
-    echo "📝 Aggiungendo entries al file hosts..."
-    echo "$HOST_ID transcendence.be transcendence.fe" | sudo tee -a /etc/hosts
-    echo "✅ Host entries aggiunti"
-else
-    echo "✅ Host entries già presenti"
-fi
+# Gestione entries nel file /etc/hosts (rimuovi SEMPRE righe con entrambi i domini e riscrivi)
+
+# Filtra tutte le righe che contengono entrambi i domini (in qualunque ordine) e riscrive
+TMP_FILE=$(mktemp)
+awk '!( ($0 ~ /transcendence\.be/) && ($0 ~ /transcendence\.fe/) )' /etc/hosts > "$TMP_FILE"
+echo "$HOST_ID transcendence.be transcendence.fe" >> "$TMP_FILE"
+sudo cp "$TMP_FILE" /etc/hosts
+rm -f "$TMP_FILE"
+
+echo "✅ /etc/hosts aggiornato con: $HOST_ID transcendence.be transcendence.fe"
 
 echo ""
 echo "🐳 Avviando i container Docker..."
