@@ -71,6 +71,7 @@ export default {
         "new_tournament": "NEW TOURNAMENT"
     },
     friend: {
+        "h1": "Friendships",
         "your_friend": "Your Friends",
         "search_new_friend": "Search New Friends",
         "search_place_holder": "Enter username...",

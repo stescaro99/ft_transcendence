@@ -9,7 +9,7 @@
 }
 
 .profile-container {
-    @apply text-white w-[80%] p-4 rounded-2xl
+    @apply text-white w-full p-4 rounded-2xl
             border-1 border-[var(--primary)];
 }
 
@@ -22,11 +22,11 @@
 }
 
 .stats-div {
-    @apply p-3
+    @apply p-3;
 }
 
 .stats-container { 
-    @apply text-white p-4 rounded-2xl
+    @apply text-white p-4 rounded-2xl !w-full !max-w-none
             border-1 border-[var(--primary)];
 }
 

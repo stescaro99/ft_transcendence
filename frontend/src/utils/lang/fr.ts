@@ -71,11 +71,12 @@ export default {
         "new_tournament": "NOUVEAU TOURNOI"
     },
     friend: {
+        "h1": "Amities",
         "your_friend": "Vos Amis",
         "search_new_friend": "Rechercher de Nouveaux Amis",
         "search_place_holder": "Entrez le nom d'utilisateur...",
         "search": "Rechercher",
-        "friend_request": "Demandes d'Amitié",
+        "friend_request": "Demandes d'Amitie",
         "no_friend_requests": "Aucune demande d'amitié",
         "online": "En ligne",
         "offline": "Hors ligne",
