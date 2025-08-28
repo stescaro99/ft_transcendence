@@ -90,7 +90,9 @@ export class TournamentPage {
             firstInput.id = 'player1';
             firstInput.name = 'player1';
             firstInput.className = 'w-full px-4 py-3 text-gray-800 bg-gray-200/90 border-2 border-cyan-400 rounded-lg cursor-not-allowed shadow-[0_0_10px_rgba(34,211,238,0.3)] backdrop-blur-sm';
-            firstInput.value = localStorage.getItem('nickname') || 'Player 1';
+            const loggedNickname = localStorage.getItem('nickname') || 'Player 1';
+            firstInput.value = loggedNickname;
+            firstInput.setAttribute('value', loggedNickname); // preserva valore durante innerHTML rewrite
             firstInput.readOnly = true;
 
             firstPlayerWrapper.appendChild(firstLabel);
@@ -125,14 +127,28 @@ export class TournamentPage {
 
             // Aggiungi un pulsante per iniziare il torneo
             const startButton = document.createElement('button');
+            startButton.id = 'startTournamentBtn';
             startButton.className = 'bg-gradient-to-r from-pink-500 to-cyan-500 hover:from-pink-600 hover:to-cyan-600 text-white font-black py-4 px-8 rounded-lg mt-6 w-full shadow-[0_0_20px_rgba(236,72,153,0.5)] hover:shadow-[0_0_30px_rgba(236,72,153,0.8)] transform hover:scale-105 transition-all duration-300';
             startButton.innerHTML = '🚀 {{tournament.start_tournament}}';
             startButton.style.textShadow = '0 0 5px rgba(0, 0, 0, 0.5)';
-            startButton.addEventListener('click', () => this.startTournament(totalPlayers));
             tournamentName.appendChild(startButton);
 
-            // Translate all the dynamic content
+            // Traduzione (resetta gli event listener!)
             this.translateDynamicContent(tournamentName);
+
+            // Reimposta nickname dopo traduzione (innerHTML ricreato)
+            const persistedP1 = document.getElementById('player1') as HTMLInputElement | null;
+            if (persistedP1) {
+                const nn = localStorage.getItem('nickname') || 'Player 1';
+                persistedP1.value = nn;
+                persistedP1.readOnly = true;
+            }
+
+            // Ri‑aggiunge listener dopo la traduzione
+            const rebound = document.getElementById('startTournamentBtn');
+            if (rebound) {
+                rebound.addEventListener('click', () => this.startTournament(totalPlayers));
+            }
         }
     }
 
@@ -165,8 +181,8 @@ export class TournamentPage {
 
         localStorage.setItem('activeTournament', JSON.stringify(this.tournament));
         
-        // Avvia la prima partita
-        this.startNextGame();
+    // Mostra intro del primo round (non avvia subito la partita)
+    this.showRoundIntro(this.tournament.rounds[this.tournament.currentRound]);
     }
 
     private createRound(players: string[], roundNumber: number) {
@@ -235,6 +251,91 @@ export class TournamentPage {
             // Round completato
             this.completeCurrentRound();
         }
+    }
+
+    // Schermata di introduzione per il primo match di ogni round
+    private showRoundIntro(round: TournamentRound | undefined) {
+        if (!round) return;
+        const container = document.getElementById('tournamentName');
+        if (!container) return;
+
+        // Evita doppia intro se il round è già iniziato
+        if ((this.tournament.currentGameIndex || 0) > 0) return;
+
+        const isFirstRound = this.tournament.currentRound === 0;
+        const title = round.roundName; // già tradotto
+        const subtitle = this.currentLang === 'en'
+            ? (isFirstRound ? 'Get ready for the tournament!' : 'Get ready for the next round!')
+            : (isFirstRound ? 'Preparati per il torneo!' : 'Preparati per il prossimo round!');
+        const startBtnLabel = this.currentLang === 'en'
+            ? '⚔️ Start Matches'
+            : '⚔️ Via alle partite';
+
+        // Costruisci la piramide (bracket) con alla BASE le prime partite (round iniziale)
+        const bracketHtml = this.buildBracketPyramid();
+
+        container.innerHTML = `
+            <div class="text-center relative">
+                <div class="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-purple-500/10 to-pink-500/10 rounded-2xl blur-xl"></div>
+                <div class="relative z-10 bg-black/60 backdrop-blur-sm border-2 border-cyan-400/50 rounded-2xl p-8 shadow-[0_0_30px_rgba(34,211,238,0.3)]">
+                    <h2 class="text-cyan-400 text-3xl font-black mb-4 drop-shadow-lg" style="text-shadow: 0 0 10px rgba(34, 211, 238, 0.8)">🏁 ${title}</h2>
+                    <p class="text-gray-300 mb-8">${subtitle}</p>
+                    <div class="mb-10">${bracketHtml}</div>
+                    <button id="startRoundBtn" class="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-black py-4 px-8 rounded-lg shadow-[0_0_20px_rgba(34,211,238,0.5)] hover:shadow-[0_0_30px_rgba(34,211,238,0.8)] transform hover:scale-105 transition-all duration-300">${startBtnLabel}</button>
+                </div>
+            </div>`;
+
+        const startBtn = document.getElementById('startRoundBtn');
+        if (startBtn) {
+            startBtn.addEventListener('click', () => this.startNextGame());
+        }
+    }
+
+    // Genera HTML della piramide dei round (base = primo round)
+    private buildBracketPyramid(): string {
+        const totalPlayers = this.tournament.number_of_players || this.tournament.players.length;
+        if (!totalPlayers) return '';
+        const totalRounds = Math.ceil(Math.log2(totalPlayers));
+
+        // Assicura che l'array rounds abbia placeholder fino al totale previsto
+        const roundsData: (TournamentRound | null)[] = [];
+        for (let r = 0; r < totalRounds; r++) {
+            roundsData[r] = this.tournament.rounds[r] || null;
+        }
+
+        // Costruisci righe dal basso (round 0) verso l'alto (finale)
+        const rows = roundsData.map((round, rIndex) => {
+            const matchesExpected = Math.max(1, totalPlayers / Math.pow(2, rIndex + 1));
+            const actualGames = round?.games || [];
+            const isCompleted = !!round?.completed;
+            const label = round ? round.roundName : this.getRoundName(rIndex, totalPlayers);
+
+            const matchesHtml: string[] = [];
+            for (let m = 0; m < matchesExpected; m++) {
+                const game = actualGames[m];
+                const left = game ? game[0] : '?';
+                const right = game ? game[1] : '?';
+                const playedResult = round?.results?.find(res => res.game[0] === left && res.game[1] === right);
+                const winner = playedResult?.winner;
+                matchesHtml.push(`
+                    <div class="bracket-match relative bg-gray-900/70 border border-purple-400/40 rounded-lg px-3 py-2 flex flex-col items-center justify-center shadow-[0_0_10px_rgba(168,85,247,0.25)] min-w-[120px]">
+                        <div class="text-[10px] text-cyan-300 mb-1">${label}</div>
+                        <div class="text-xs text-gray-200 flex items-center gap-1">
+                            <span class="font-semibold">${left}</span>
+                            <span class="text-pink-400 font-black">vs</span>
+                            <span class="font-semibold">${right}</span>
+                        </div>
+                        ${winner ? `<div class=\"mt-1 text-[11px] text-green-400 font-bold\">👑 ${winner}</div>` : ''}
+                    </div>`);
+            }
+
+            return `
+                <div class="pyramid-row flex justify-center gap-4" data-round="${rIndex}" style="order:${rIndex};">
+                    ${matchesHtml.join('')}
+                </div>`;
+        });
+
+        return `<div class="tournament-pyramid flex flex-col-reverse gap-6 items-stretch">${rows.join('')}</div>`;
     }
 
     public onGameFinished(winner: string) {
@@ -366,17 +467,12 @@ export class TournamentPage {
         // Salva lo stato aggiornato
         localStorage.setItem('activeTournament', JSON.stringify(this.tournament));
         
-        // Avvia la prima partita del nuovo round
-        this.startNextGame();
+    // Mostra intro del nuovo round
+    this.showRoundIntro(this.tournament.rounds[this.tournament.currentRound]);
     }
 
 private showTournamentResults() {
-    // Pulisci il localStorage del torneo
-    localStorage.removeItem('activeTournament');
-    localStorage.removeItem('tournamentMode');
-    localStorage.removeItem('currentGameIndex');
-    localStorage.removeItem('currentRound');
-    
+    // Mantieni i dati finché l'utente non decide di iniziare un nuovo torneo
     // Mostra i risultati finali nella UI
     const tournamentName = document.getElementById('tournamentName');
     if (tournamentName) {
@@ -437,7 +533,11 @@ private showTournamentResults() {
         const newTournamentBtn = document.getElementById('newTournamentBtn');
         if (newTournamentBtn) {
             newTournamentBtn.addEventListener('click', () => {
-                // Reset completo del torneo
+                // Ora pulisco i dati e riparto
+                localStorage.removeItem('activeTournament');
+                localStorage.removeItem('tournamentMode');
+                localStorage.removeItem('currentGameIndex');
+                localStorage.removeItem('currentRound');
                 this.tournament = new Tournament();
                 window.location.hash = '#/tournament';
             });
