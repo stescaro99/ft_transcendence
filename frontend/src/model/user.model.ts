@@ -13,4 +13,5 @@ export class User {
 	friends?: string[];
 	fr_request?: string[];
 	online?: boolean;
+	tfa_code?: string | null = null;
 }

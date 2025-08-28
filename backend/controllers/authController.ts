@@ -20,18 +20,25 @@ export async function generate2FA(request: FastifyRequest, reply: FastifyReply) 
 	}
 	try {
 		const issuer = process.env.TFA_ISSUER || 'ft_transcendence';
-		const secret = speakeasy.generateSecret({ name: user.nickname, issuer });
-		user.tfa_code = secret.base32;
-		await user.save();
-
+		let secretBase32: string;
+		let reused = false;
+		if (user.tfa_code) {
+			secretBase32 = user.tfa_code;
+			reused = true;
+		} else {
+			const secret = speakeasy.generateSecret({ name: user.nickname, issuer });
+			secretBase32 = secret.base32;
+			user.tfa_code = secretBase32;
+			await user.save();
+		}
 		const label = encodeURIComponent(`${issuer}:${user.nickname}`);
-		const base32 = secret.base32;
-		const otpauth_url = `otpauth://totp/${label}?secret=${base32}&issuer=${issuer}`;
+		const otpauth_url = `otpauth://totp/${label}?secret=${secretBase32}&issuer=${issuer}`;
 		const qrCode = await qrcode.toDataURL(otpauth_url);
 
 		reply.code(200).send({
-			message: '2FA setup required. Scan the QR code with Google Authenticator.',
+			message: reused ? '2FA already configured. Reusing existing secret.' : '2FA setup required. Scan the QR code with Google Authenticator.',
 			qrCode,
+			alreadyConfigured: reused,
 		});
 	}
 	catch (error) {
@@ -81,12 +88,10 @@ export async function login(request: FastifyRequest, reply: FastifyReply) {
 			reply.code(401).send({ error: 'Invalid credentials' });
 			return;
 		}
-		//ultima modifica
 		if (user.online) {
 			reply.code(400).send({ error: 'User already logged in' });
 			return;
 		}
-		//fine ultima modifica
 		if (!user.tfa_code) {
 			reply.code(403).send({ error: '2FA not enabled. Complete 2FA setup.' });
 			return;

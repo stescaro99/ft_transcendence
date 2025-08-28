@@ -40,6 +40,7 @@ export class ProfilePage {
 				this.user.name = userData.name || '';
 				this.user.surname = userData.surname || '';
 				this.user.nickname = userData.nickname;
+				this.user.tfa_code = userData.tfa_code || null;
 				this.user.email = userData.email;
 				this.user.image_url = userData.image_url;
 				this.user.language = userData.language || this.user.language || 'en';

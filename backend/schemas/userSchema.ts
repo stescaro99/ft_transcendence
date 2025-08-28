@@ -11,6 +11,7 @@ export const userSchema = {
 		language: { type: 'string' },
 		image_url: { type: 'string' },
 		online: { type: 'boolean' },
+		tfa_code: { type: 'string' },
 		last_seen: { type: 'string', format: 'date-time' },
 		current_room: { type: 'string' },
 		friends: {
