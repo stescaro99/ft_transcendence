@@ -81,14 +81,17 @@ export async function login(request: FastifyRequest, reply: FastifyReply) {
 			reply.code(401).send({ error: 'Invalid credentials' });
 			return;
 		}
+		//ultima modifica
+		if (user.online) {
+			reply.code(400).send({ error: 'User already logged in' });
+			return;
+		}
+		//fine ultima modifica
 		if (!user.tfa_code) {
 			reply.code(403).send({ error: '2FA not enabled. Complete 2FA setup.' });
 			return;
 		}
-	user.online = true;
-	user.last_seen = new Date();
-	await user.save();
-	reply.code(200).send({ require2FA: true, message: '2FA required' });
+		reply.code(200).send({ require2FA: true, message: '2FA required' });
 	}
 	catch (error) {
 		reply.code(500).send({ error: 'Failed to login', details: error });

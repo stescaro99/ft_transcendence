@@ -4,17 +4,19 @@ import { User } from '../../model/user.model';
 import { UserService } from '../../service/user.service';
 import { TranslationService } from '../../service/translation.service';
 import { HomeScreen } from '../../service/homeScreen.service';
+import { environment } from '../../environments/environment';
 import './home.css';
 
 export class HomePage {
 	async updateOnlineUsers() {
 		try {
-			const response = await fetch('https://transcendence.be:9443/getOnlineUsers');
+			const token = localStorage.getItem('token');
+			if (!token) return;
+			const response = await fetch(`${environment.apiUrl}/online_users`, {
+				headers: { 'Authorization': `Bearer ${token}` }
+			});
 			if (!response.ok) throw new Error('Errore nel recupero utenti online');
 			const data = await response.json();
-			// Aggiorna la visualizzazione degli utenti online qui
-			// Esempio: console.log('Utenti online:', data.online_users);
-			// Puoi aggiornare lo stato o la UI come preferisci
 		} catch (error) {
 			console.error('Errore updateOnlineUsers:', error);
 		}

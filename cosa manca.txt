@@ -1,5 +1,6 @@
 -STANDARD USER MANAGEMENT:
     -manca lo storico delle partite
+    -utenti registrati con google non devono poter cambiare email e password.
 
 -ONLINE MULTIPLAYER:
     -mancano le funzioni che aggiornano punteggi e stats
@@ -8,6 +9,9 @@
 -STATS DASHBOARD:
     -manca la pagina per vedere le statistiche del singolo match
 
+-AMICIZIE:
+    -quando accetto la richiesta d'amicizia ne appare un'altra uguale sotto e non sparisce. (se ricarico la pagina invece va tutto bene)
+
 -GRAFICA
     -Pagina amicizia
         -"{{search new friend}}"
@@ -15,11 +19,6 @@
 
     -Pagina gioco nel torneo
         -se nel nome c'e' uno spazio appare %20 al posto dello spazio e poi %2520 in finale
-
--BACKEND
-    -aggiungere amicizia anche dal lato dell'altro che invia la richiesta
-    -riguardare upload image (cambiare in path relativo da gestire nel frontend togli transcendence.fr:8443 dal link immagini)
-    -non permettere login se utente gia' online
 
 -CUSTOMIZATION: (non necessario per 125%)
     -deve essere possibile giocare senza power up
