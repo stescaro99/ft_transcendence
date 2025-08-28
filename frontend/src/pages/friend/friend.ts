@@ -10,10 +10,11 @@ export class friendPage {
     private translationService: TranslationService;
     private userService: UserService = new UserService();
     private user!: User;
-    private profile: Pick<User, 'nickname' | 'image_url' | 'online'> = {
+    private profile: (Pick<User, 'nickname' | 'image_url' | 'online'> & { outgoingRequest?: boolean }) = {
         nickname: '',
         image_url: '',
-        online: false
+        online: false,
+        outgoingRequest: false
     };
     private friends: Pick<User, 'nickname' | 'image_url' | 'online'>[] = [];
 	private friendRequest: Pick<User, 'nickname' | 'image_url' | 'online'>[] = [];
@@ -23,7 +24,6 @@ export class friendPage {
         this.initializeUser();
         this.render();
         
-        // Aspetta che il DOM sia renderizzato prima di aggiungere gli event listeners
         setTimeout(() => {
             this.addEventListeners();
         }, 100);
@@ -46,14 +46,12 @@ export class friendPage {
             appDiv.innerHTML = translatedHtml;
         }
 
-        // Aspetta che l'HTML sia renderizzato prima di caricare gli amici
         setTimeout(() => {
             this.loadFriends();
 			this.renderFriendRequests();
         }, 50);
     }
 
-    // Method to translate dynamically added content
     private translateDynamicContent(element: HTMLElement) {
         const html = element.innerHTML;
         const translatedHtml = this.translationService.translateTemplate(html);
@@ -61,34 +59,41 @@ export class friendPage {
     }
 
     private loadFriends() {
+        this.friends = [];
+        this.friendRequest = [];
+        const friendPromises: Promise<void>[] = [];
         for (const friend of this.user.friends || []) {
-            this.userService.takeUserFromApi(friend)
-                .then((friendData) => {
-                    this.friends.push({
-                        nickname: friendData.nickname,
-                        image_url: friendData.image_url || './src/utils/default.png',
-                        online: friendData.online || false
-                    });
-                    this.renderFriends();
-                })
-                .catch((error) => {
-                    console.error('Error fetching friend data:', error);
-                });
+            friendPromises.push(
+                this.userService.takeUserFromApi(friend)
+                    .then(friendData => {
+                        this.friends.push({
+                            nickname: friendData.nickname,
+                            image_url: friendData.image_url || './src/utils/default.png',
+                            online: friendData.online || false
+                        });
+                    })
+                    .catch(err => console.error('Error fetching friend data:', err))
+            );
         }
-		for (const request of this.user.fr_request || []) {
-			this.userService.takeUserFromApi(request)
-				.then((requestData) => {
-					this.friendRequest.push({
-						nickname: requestData.nickname,
-						image_url: requestData.image_url || './src/utils/default.png',
-						online: requestData.online || false
-					});
-					this.renderFriendRequests();
-				})
-				.catch((error) => {
-					console.error('Error fetching friend request data:', error);
-				});
-		}
+        const requestPromises: Promise<void>[] = [];
+        for (const request of this.user.fr_request || []) {
+            requestPromises.push(
+                this.userService.takeUserFromApi(request)
+                    .then(requestData => {
+                        this.friendRequest.push({
+                            nickname: requestData.nickname,
+                            image_url: requestData.image_url || './src/utils/default.png',
+                            online: requestData.online || false
+                        });
+                    })
+                    .catch(err => console.error('Error fetching friend request data:', err))
+            );
+        }
+        Promise.all([...friendPromises, ...requestPromises])
+            .finally(() => {
+                this.renderFriends();
+                this.renderFriendRequests();
+            });
     }
 
 	private renderFriendRequests() {
@@ -132,18 +137,25 @@ export class friendPage {
 }
 
 	private addRequestEventListeners() {
-    // Event listeners per i pulsanti "Accetta"
 		const acceptButtons = document.querySelectorAll('.accept-btn');
 		acceptButtons.forEach(button => {
 			button.addEventListener('click', (event) => {
 				const nickname = (event.target as HTMLElement).getAttribute('data-nickname');
 				if (nickname) {
-					this.userService.addFriend(this.user.nickname ,nickname);
-                     this.render()
+                    this.acceptFriendRequest(nickname);
 				}
 			});
 		});
 	}
+
+    private async acceptFriendRequest(nickname: string) {
+        try {
+            await this.userService.addFriend(this.user.nickname, nickname);
+            await this.refreshUserAndLists();
+        } catch (e) {
+            console.error('Errore accettando richiesta:', e);
+        }
+    }
 
     private addEventListeners() {
         console.log('🔍 Adding event listeners...');
@@ -197,13 +209,14 @@ export class friendPage {
         console.log('🔍 Searching for user:', searchValue);
         this.showLoadingState();
         
-        this.userService.takeUserFromApi(searchValue)
-            .then((userData) => {
+    this.userService.takeUserFromApi(searchValue)
+        .then((userData) => {
                 console.log('✅ User found:', userData);
                 this.profile = {
                     nickname: userData.nickname,
                     image_url: userData.image_url || './src/utils/default.png',
-                    online: userData.online || false
+            online: userData.online || false,
+            outgoingRequest: Array.isArray(userData.fr_request) ? userData.fr_request.includes(this.user.nickname) : false
                 };
                 this.renderSearchResult();
             })
@@ -224,6 +237,8 @@ export class friendPage {
     private renderSearchResult() {
         const resultDiv = document.getElementById('result');
         if (resultDiv) {
+            const isAlreadyFriend = (this.user.friends || []).includes(this.profile.nickname);
+            const isOutgoingPending = !!this.profile.outgoingRequest && !isAlreadyFriend;
             resultDiv.innerHTML = `
                 <div class="search-result border border-cyan-400 rounded p-4 mt-4 flex items-center gap-4">
                     <a href="#/profile?nickname=${this.profile.nickname}" class="hover:opacity-80 transition-opacity">
@@ -236,20 +251,32 @@ export class friendPage {
                             ${this.profile.online ? '{{friend.online}}' : '{{friend.offline}}'}
                         </span>
                     </div>
+                    ${isOutgoingPending ? '' : `
                     <button id="addFriendBtn" class="bg-cyan-400 text-black px-4 py-2 rounded hover:bg-cyan-300">
-                        {{friend.add_friend}}
-                    </button>
+                        ${isAlreadyFriend ? '{{friend.remove_friend}}' : '{{friend.add_friend}}'}
+                    </button>`}
                 </div>
             `;
 
-            // Translate the dynamic content
             this.translateDynamicContent(resultDiv);
             
-            // Aggiungi event listener per il pulsante "Aggiungi Amico"
             const addFriendBtn = document.getElementById('addFriendBtn');
             if (addFriendBtn) {
-                addFriendBtn.addEventListener('click', () => {
-                    this.addFriend(this.profile.nickname);
+                addFriendBtn.addEventListener('click', async () => {
+                    const already = (this.user.friends || []).includes(this.profile.nickname);
+                    addFriendBtn.setAttribute('disabled', 'true');
+                    try {
+                        if (already) {
+                            await this.removeFriend(this.profile.nickname);
+                            this.profile.outgoingRequest = false;
+                        } else {
+                            await this.addFriendAsync(this.profile.nickname);
+                            this.profile.outgoingRequest = true;
+                        }
+                        await this.refreshUserAndLists();
+                        this.renderSearchResult();
+                    } catch(e) { console.error(e); }
+                    finally { addFriendBtn.removeAttribute('disabled'); }
                 });
             }
         }
@@ -264,14 +291,31 @@ export class friendPage {
 
     private addFriend(nickname: string) {
         this.userService.addFriend(this.user.nickname, nickname)
-			.then((response) => {
-				console.log('✅ Friend added:', response);
-                 this.render()
-			})
-			.catch((error) => {
-				console.error('❌ Error adding friend:', error);
-				this.showErrorMessage(this.translationService.translateTemplate('{{friend.error_adding_friend}}'));
-			});
+            .then(async (response) => {
+                console.log('✅ Friend added:', response);
+                await this.refreshUserAndLists();
+            })
+            .catch((error) => {
+                console.error('❌ Error adding friend:', error);
+                this.showErrorMessage(this.translationService.translateTemplate('{{friend.error_adding_friend}}'));
+            });
+    }
+
+    private async addFriendAsync(nickname: string) {
+        await this.userService.addFriend(this.user.nickname, nickname);
+    }
+
+    private async removeFriend(nickname: string) {
+        await this.userService.addFriend(this.user.nickname, nickname);
+    }
+
+    private async refreshUserAndLists() {
+        try {
+            this.user = await this.userService.takeUserFromApi(localStorage.getItem('nickname') || '');
+            this.loadFriends();
+        } catch (e) {
+            console.error('Errore aggiornando liste amici:', e);
+        }
     }
 
     private renderFriends() {

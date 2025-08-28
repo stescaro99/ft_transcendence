@@ -6,9 +6,6 @@
 -STATS DASHBOARD:
     -manca la pagina per vedere le statistiche del singolo match
 
--AMICIZIE:
-    -quando accetto la richiesta d'amicizia ne appare un'altra uguale sotto e non sparisce. (se ricarico la pagina invece va tutto bene)
-
 -GRAFICA
     -Pagina amicizia
 
