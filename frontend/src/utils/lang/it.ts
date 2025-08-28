@@ -71,6 +71,7 @@ export default {
         "new_tournament": "NUOVO TORNEO"
     },
     friend: {
+        "h1": "Amicizie",
         "your_friend": "I Tuoi Amici",
         "search_new_friend": "Cerca Nuovi Amici",
         "search_place_holder": "Inserisci nome utente...",
