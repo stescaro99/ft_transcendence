@@ -3,9 +3,6 @@
     -utenti registrati con google non devono poter cambiare email e password.
     -dopo aver fatto logout e' necessario ricaricare la pagina perche login funzioni
 
--ONLINE MULTIPLAYER:
-    -mancano le funzioni che aggiornano punteggi e stats
-
 -STATS DASHBOARD:
     -manca la pagina per vedere le statistiche del singolo match
 
@@ -14,7 +11,6 @@
 
 -GRAFICA
     -Pagina amicizia
-        -Pagina avvio multiplayer online
 
     -Pagina gioco nel torneo
         -se nel nome c'e' uno spazio appare %20 al posto dello spazio e poi %2520 in finale
