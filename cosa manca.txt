@@ -1,10 +1,10 @@
 -STANDARD USER MANAGEMENT:
     -manca lo storico delle partite
     -utenti registrati con google non devono poter cambiare email e password.
+    -dopo aver fatto logout e' necessario ricaricare la pagina perche login funzioni
 
 -ONLINE MULTIPLAYER:
     -mancano le funzioni che aggiornano punteggi e stats
-    -manca la chiusura della partita
 
 -STATS DASHBOARD:
     -manca la pagina per vedere le statistiche del singolo match
