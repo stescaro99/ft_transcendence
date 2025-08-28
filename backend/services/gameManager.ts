@@ -5,6 +5,7 @@ import { GameValidator } from './game/validator';
 import { GameLoop } from './game/gameLoop';
 import { HeartbeatManager } from './game/heartbeat';
 import Game from '../models/game';
+import { saveGameAndStats } from './game/gameResult';
 
 class GameManager {
   public roomManager: RoomManager;
@@ -323,34 +324,17 @@ class GameManager {
 
     this.broadcastToRoom(roomId, gameResult);
     
-    this.saveGameResultToDatabase(room, winner, winnerNicknames, loserNicknames, true);
+    saveGameAndStats(room, {
+      winnerSide: winner,
+      winnerNicknames,
+      loserNicknames,
+      reason: 'playerDisconnection',
+      isDisconnectionWin: true
+    }).catch(err => console.error('[GameManager] Error saving disconnection result:', err));
     console.log(`Game ended in room ${roomId} due to disconnection. Winner: ${winner}`, gameResult);
   }
 
-  private async saveGameResultToDatabase(
-    room: GameRoom, 
-    winner: 'left' | 'right', 
-    winnerNicknames: string[], 
-    loserNicknames: string[],
-    isDisconnectionWin: boolean = false
-  ): Promise<void> {
-    try {
-      const allPlayers = [...winnerNicknames, ...loserNicknames];
-      const finalScores = [room.gameState.scoreLeft, room.gameState.scoreRight];
-      
-      await (Game as any).create({
-        players: allPlayers,
-        scores: finalScores,
-        winner_nickname: winnerNicknames.join(', '),
-        game_status: 'finished',
-        date: new Date()
-      });
-      
-      console.log(`Game result saved to database for room ${room.id} - Disconnection win: ${isDisconnectionWin}`);
-    } catch (error) {
-      console.error('Error saving game result to database:', error);
-    }
-  }
+  // saveGameResultToDatabase rimosso (logica centralizzata in saveGameAndStats)
 
   private getPlayerSide(room: GameRoom, player: Player): string {
     const playerIndex = room.players.indexOf(player);

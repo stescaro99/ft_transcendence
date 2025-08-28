@@ -4,6 +4,7 @@ export class MultiplayerService {
 	public socket: WebSocket | null = null;
 	private gameUpdateCallback: ((state: GameState) => void) | null = null;
 	private gameStartCallback: ((state: any) => void) | null = null;
+	private gameEndedCallback: ((data: any) => void) | null = null;
 	private waitingCallback: ((data: any) => void) | null = null;
 	private currentRoomId: string | null = null;
 	private heartbeatInterval: number | null = null; 
@@ -65,6 +66,11 @@ export class MultiplayerService {
 			if (data.type === "gameStarted") {
 				console.log("[MultiplayerService] Gioco iniziato!");
 				this.gameStartCallback?.(data.gameState);
+			}
+
+			if (data.type === 'gameEnded') {
+				console.log('[MultiplayerService] Game ended:', data);
+				this.gameEndedCallback?.(data);
 			}
 		};
 
@@ -166,6 +172,10 @@ export class MultiplayerService {
 
 	onGameStart(cb: (state: any) => void) {
 		this.gameStartCallback = cb;
+	}
+
+	onGameEnded(cb: (data: any) => void) {
+		this.gameEndedCallback = cb;
 	}
 
 	onWaitingForPlayers(cb: (data: any) => void) {

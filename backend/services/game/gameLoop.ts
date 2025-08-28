@@ -1,6 +1,7 @@
 import { GameRoom, GAME_CONSTANTS } from './types';
 import { GamePhysics } from './physics';
 import Game from '../../models/game';
+import { saveGameAndStats } from './gameResult';
 
 export class GameLoop {
   private static activeLoops: Map<string, boolean> = new Map();
@@ -83,8 +84,8 @@ export class GameLoop {
 
     broadcastCallback(roomId, gameResult);
     
-    // Salva il risultato nel database
-    this.saveGameResultToDatabase(room, winner);
+  // Salva il risultato nel database e aggiorna le stats
+  this.saveGameResultToDatabase(room, winner).catch(err => console.error('Save game error:', err));
     
     console.log(`Game ended in room ${roomId}:`, gameResult);
   }
@@ -99,41 +100,15 @@ export class GameLoop {
   }
 
   private static async saveGameResultToDatabase(room: GameRoom, winner: 'left' | 'right'): Promise<void> {
-    try {
-      const leftPlayers = room.players.filter((_, index) => {
-        if (room.type === 'two') {
-          return index === 0;
-        } else {
-          return index < 2;
-        }
-      });
-      
-      const rightPlayers = room.players.filter((_, index) => {
-        if (room.type === 'two') {
-          return index === 1;
-        } else {
-          return index >= 2;
-        }
-      });
-      
-      const winnerNicknames = winner === 'left' ? 
-        leftPlayers.map(p => p.nickname) : 
-        rightPlayers.map(p => p.nickname);
-      
-      const allPlayers = room.players.map(p => p.nickname);
-      const finalScores = [room.gameState.scoreLeft, room.gameState.scoreRight];
-      
-      await (Game as any).create({
-        players: allPlayers,
-        scores: finalScores,
-        winner_nickname: winnerNicknames.join(', '),
-        game_status: 'finished',
-        date: new Date()
-      });
-      
-      console.log(`Game result saved to database for room ${room.id} (normal end)`);
-    } catch (error) {
-      console.error('Error saving game result to database:', error);
-    }
+    const leftPlayers = room.players.filter((_, index) => room.type === 'two' ? index === 0 : index < 2);
+    const rightPlayers = room.players.filter((_, index) => room.type === 'two' ? index === 1 : index >= 2);
+    const winnerNicknames = winner === 'left' ? leftPlayers.map(p => p.nickname) : rightPlayers.map(p => p.nickname);
+    const loserNicknames = winner === 'left' ? rightPlayers.map(p => p.nickname) : leftPlayers.map(p => p.nickname);
+    await saveGameAndStats(room, {
+      winnerSide: winner,
+      winnerNicknames,
+      loserNicknames,
+      reason: 'normalEnd'
+    });
   }
 }

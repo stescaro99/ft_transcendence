@@ -140,26 +140,27 @@ export async function GoogleOAuthCallback(request: FastifyRequest, reply: Fastif
 			user = await User.create({
 				name: userInfo.name,
 				surname: userInfo.family_name,
-				password: '', // Password is not used for OAuth users
+				password: '',
 				nickname: userInfo.name || userInfo.email.split('@')[0] || `${userInfo.name}_${Date.now()}`,
 				email: userInfo.email,
 				image_url: userInfo.picture,
-				tfa_code: null, // 2FA not set up for OAuth users
+				tfa_code: null,
 				online: true,
 				last_seen: new Date(),
 			});
-
-			// Ensure stats exist for new OAuth user
 			const stats1 = await Stats.create({ nickname: user.nickname });
 			const stats2 = await Stats.create({ nickname: user.nickname });
 			await (user as any).setStats([stats1, stats2]);
 			await user.reload({ include: [{ model: Stats, as: 'stats' }] });
 		}
+		else if (user.online) {
+			reply.code(400).send({ error: 'User already logged in' });
+			return;
+		}
 		else {
 			user.online = true;
 			user.last_seen = new Date();
 			await user.save();
-			// If user exists but has no stats, create them
 			const hasStats = Array.isArray((user as any).stats) && (user as any).stats.length >= 1;
 			if (!hasStats) {
 				const existing = await Stats.findAll({ where: { nickname: user.nickname } });

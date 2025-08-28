@@ -16,7 +16,6 @@
     -Pagina amicizia
         -"{{search new friend}}"
         -Pagina avvio multiplayer online
-
     -Pagina gioco nel torneo
         -se nel nome c'e' uno spazio appare %20 al posto dello spazio e poi %2520 in finale
 
