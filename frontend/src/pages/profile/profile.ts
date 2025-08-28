@@ -42,6 +42,10 @@ export class ProfilePage {
 				this.user.nickname = userData.nickname;
 				this.user.email = userData.email;
 				this.user.image_url = userData.image_url;
+				this.user.language = userData.language || this.user.language || 'en';
+				if (this.user.language && this.currentLang !== this.user.language) {
+					this.currentLang = this.user.language;
+				}
 				this.user.stats = userData.stats[0];
 				this.user.id = userData.id;
 				this.stats = this.user.stats || new Stats();

@@ -1,4 +1,5 @@
 import './style.css';
+import { environment } from './environments/environment';
 import { HomePage } from './pages/home/home';
 import { IdentificationPage } from './pages/identification/identification';
 import { StatsPage } from './pages/stats/stats';
@@ -28,8 +29,24 @@ export let currentLang = (() => {
   console.log('🌐 Lingua di default: it');
   return 'it';
 })();
+export const LANG_CHANGED_EVENT = 'lang:changed';
+function emitLangChanged() {
+  window.dispatchEvent(new CustomEvent(LANG_CHANGED_EVENT, { detail: { lang: currentLang } }));
+}
 export function setLang(lang: string) {
-  currentLang = lang;
+  if (currentLang !== lang) {
+    currentLang = lang;
+    // Persist immediatamente
+    try {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        const u = JSON.parse(userStr);
+        u.language = lang;
+        localStorage.setItem('user', JSON.stringify(u));
+      }
+    } catch {}
+    emitLangChanged();
+  }
 }
 const appDiv = document.getElementById('app')!;
 const params = new URLSearchParams(window.location.search);
@@ -164,6 +181,39 @@ const routes: Record<string, () => string> = {
   }
 };
 
+let userLangHydrated = false;
+async function hydrateUserLanguageOnce() {
+  if (userLangHydrated) return;
+  userLangHydrated = true;
+  try {
+    const userStr = localStorage.getItem('user');
+    const token = localStorage.getItem('token');
+    const nickname = localStorage.getItem('nickname');
+    if (!nickname || !token) return;
+    let storedLang: string | undefined;
+    if (userStr) { try { storedLang = JSON.parse(userStr).language; } catch {} }
+    const resp = await fetch(`${environment.apiUrl}/get_user?nickname=${encodeURIComponent(nickname)}`, { headers: { Authorization: `Bearer ${token}` }});
+    if (resp.ok) {
+      const userData = await resp.json();
+      const backendLang = (userData.language && ['en','it','fr'].includes(userData.language)) ? userData.language : 'it';
+      if (backendLang !== currentLang) {
+        currentLang = backendLang;
+        try {
+          const u = userStr ? JSON.parse(userStr) : { nickname };
+          u.language = backendLang;
+          localStorage.setItem('user', JSON.stringify(u));
+        } catch {}
+        emitLangChanged();
+      }
+    } else {
+      if (storedLang && ['en','it','fr'].includes(storedLang) && storedLang !== currentLang) {
+        currentLang = storedLang;
+        emitLangChanged();
+      }
+    }
+  } catch (e) { console.warn('Language hydration failed:', e); }
+}
+
 function router() {
   const hash = location.hash.slice(1) || '/';
   const path = hash.split('?')[0]; 
@@ -174,7 +224,6 @@ function router() {
       navigationStack.push(currentRoute);
       console.log('Navigation stack updated:', navigationStack);
     }
-  // Gestisci la visibilità della navbar
   const navbar = document.getElementById('navbar');
   if (navbar) {
     if (localStorage.getItem('user')) {
@@ -238,7 +287,8 @@ else if (token && nickname)
   const userToStore = {
     token: token,
     nickname: nickname,
-    language: 'English',
+    // Non conosciamo ancora la lingua reale -> lasciamo vuoto per forzare hydration
+    language: '',
     image_url: '',
     online: false,
     last_seen: '',
@@ -264,9 +314,10 @@ else if (token && nickname)
   console.log('Authentication completed, navigating to home');
   
   // Forza il routing dopo un breve delay per assicurarsi che tutto sia impostato
-  setTimeout(() => {
+  setTimeout(async () => {
+    await hydrateUserLanguageOnce();
     router();
-  }, 100);
+  }, 50);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -294,4 +345,13 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.addEventListener('hashchange', router);
-window.addEventListener('load', router);
+
+// Bootstrap: attende DOM, poi assicura lingua e poi prima render
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', async () => {
+    await hydrateUserLanguageOnce();
+    router();
+  });
+} else {
+  (async () => { await hydrateUserLanguageOnce(); router(); })();
+}

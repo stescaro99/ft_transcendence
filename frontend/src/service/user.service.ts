@@ -39,6 +39,7 @@ export class UserService {
 				this.user.nickname = userData.nickname;
 				this.user.email = userData.email;
 				this.user.image_url = userData.image_url;
+				this.user.language = userData.language || this.user.language || 'en';
 				this.user.stats = userData.stats;
 				this.user.id = userData.id;
 				return this.user;
