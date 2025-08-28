@@ -147,16 +147,16 @@ const routes: Record<string, () => string> = {
         if (urlParams.includes('player1=') || urlParams.includes('player2=')) {
             // Nuovo formato: /game?players=2&player1=Mario&player2=Luigi&tournament=true
             const params = new URLSearchParams(urlParams);
-            player1 = params.get('player1') || player1;
-            player2 = params.get('player2') || player2;
+            player1 = decodeURIComponent(params.get('player1') || player1);
+            player2 = decodeURIComponent(params.get('player2') || player2);
             
             console.log('Using query parameters format:', { player1, player2 });
         } else {
             // Formato precedente: /game?Mario_Luigi
             const players = urlParams.split('_');
             if (players.length >= 2) {
-                player1 = players[0];
-                player2 = players[1];
+                player1 = decodeURIComponent(players[0]);
+                player2 = decodeURIComponent(players[1]);
             }
             
             console.log('Using underscore format:', { player1, player2 });
@@ -236,9 +236,13 @@ function router() {
   const render = routes[path];
 
   if (render) {
-    const content = render(); 
-    if (content) {
-      appDiv.innerHTML = content;
+    if (path === '/tournament') {
+      render();
+    } else {
+      const content = render();
+      if (content) {
+        appDiv.innerHTML = content;
+      }
     }
   } else {
     appDiv.innerHTML = `<h1>404</h1><p>Pagina non trovata</p>`;
