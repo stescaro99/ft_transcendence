@@ -129,13 +129,15 @@ export class ProfilePage {
 					if (surnamediv) {
 						surnamediv.innerHTML= `<input type="text" class="bg-c-400 rounded-2xl text-center" id="profile_surname_input" value="${this.user.surname}">`;
 					}
-					const emaildiv = document.getElementById('profile_email_div');
-					if (emaildiv) {
-						emaildiv.innerHTML= `<input type="email" class="bg-c-400 rounded-2xl text-center" id="profile_email_input" value="${this.user.email}">`;
-					}
-					const passworddiv = document.getElementById('password_div');
-					if (passworddiv) {
-						passworddiv.innerHTML = `<input type="password" class="bg-c-400 rounded-2xl text-center" id="profile_password_input" placeholder="{{new_password}}">`;
+					if (this.user.tfa_code !== null) {
+						const emaildiv = document.getElementById('profile_email_div');
+						if (emaildiv) {
+							emaildiv.innerHTML= `<input type="email" class="bg-c-400 rounded-2xl text-center" id="profile_email_input" value="${this.user.email}">`;
+						}
+						const passworddiv = document.getElementById('password_div');
+						if (passworddiv) {
+							passworddiv.innerHTML = `<input type="password" class="bg-c-400 rounded-2xl text-center" id="profile_password_input" placeholder="{{new_password}}">`;
+						}
 					}
 				} else {
 					this.editMode = false;

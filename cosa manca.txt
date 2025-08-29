@@ -9,9 +9,6 @@
 -GRAFICA
     -Pagina amicizia
 
-    -Pagina gioco nel torneo
-        -se nel nome c'e' uno spazio appare %20 al posto dello spazio e poi %2520 in finale
-
 -CUSTOMIZATION: (non necessario per 125%)
     -deve essere possibile giocare senza power up
     -le impostazioni scelte da un utente devono essere ricordate

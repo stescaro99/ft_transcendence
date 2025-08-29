@@ -85,7 +85,7 @@ export default {
         "user_not_found": "Utente non trovato",
         "searching_user": "Cercando utente...",
         "add_friend": "Aggiungi Amico",
-    "remove_friend": "Rimuovi Amico",
+        "remove_friend": "Rimuovi Amico",
         "error_adding_friend": "Errore nell'aggiunta dell'amico"
     }
 }
