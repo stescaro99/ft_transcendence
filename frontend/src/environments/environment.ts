@@ -1,9 +1,9 @@
 const getApiUrl = (): string => {
-  // Se la chiamata è per Google OAuth, usa transcendence.be
+  /*// Se la chiamata è per Google OAuth, usa transcendence.be
   if (typeof window !== 'undefined' && window.location.pathname.includes('google')) {
     return 'https://transcendence.be:9443/api';
   }
-  // Altrimenti usa HOST_ID
+  // Altrimenti usa HOST_ID*/
   const hostId = getHostId();
   return `https://${hostId}:9443/api`;
 };
