@@ -60,7 +60,7 @@ export class AuthenticationService {
 	}
 	loginUserWithGoogleToApi(): Promise<any> {
 		return new Promise((resolve, reject) => {
-			const authUrl = `${this.apiUrl}/google_login`;
+			const authUrl = 'https://transcendence.be:9443/api/google_login';
 			console.log('Redirecting to Google auth URL:', authUrl);
 			// Salva lo stato prima del redirect
 			localStorage.setItem('googleAuthPending', 'true');

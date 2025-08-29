@@ -15,13 +15,15 @@
         <div class="mt-2 text-sm text-yellow-200">
           <p>Stai accedendo tramite IP. Per utilizzare tutte le funzionalità, configura il file hosts:</p>
           <div class="mt-2 p-2 bg-black bg-opacity-50 rounded font-mono text-xs">
-            <span id="hostConfigCommand">echo "192.168.1.61 transcendence.be transcendence.fe" | sudo tee -a /etc/hosts</span>
+            <span id="hostConfigCommand"></span>
           </div>
+          <p class="mt-2 text-xs">
+            <strong>⚠️ Attenzione! È necessario che non ci siano altri indirizzi IP con lo stesso dominio nel file /etc/hosts.</strong>
+          </p>
           <p class="mt-2 text-xs">
             <strong>Limitazioni senza configurazione:</strong><br>
             • Google OAuth potrebbe non funzionare<br>
-            • Alcune funzionalità potrebbero essere limitate<br>
-            • Problemi di CORS possibili
+            • Le immagini caricate potrebbero non essere visualizzate correttamente<br>
           </p>
           <button id="dismissHostWarning" class="mt-2 text-yellow-400 hover:text-yellow-300 text-xs underline">
             Nascondi avviso
@@ -59,3 +61,10 @@
   </div>
 
 </div>
+<script>
+  const hostConfigCommand = document.getElementById('hostConfigCommand');
+  if (hostConfigCommand) {
+    const ip = window.location.hostname;
+    hostConfigCommand.textContent = `echo "${ip} transcendence.be transcendence.fe" | sudo tee -a /etc/hosts`;
+  }
+</script>
