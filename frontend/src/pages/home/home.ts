@@ -55,7 +55,7 @@ export class HomePage {
 				const nickname = localStorage.getItem('nickname');
 				if (nickname) {
 					try {
-						await fetch('https://transcendence.be:9443/api/force_offline', {
+						await fetch(environment.apiUrl + '/force_offline', {
 							method: 'POST',
 							headers: { 'Content-Type': 'application/json' },
 							body: JSON.stringify({ nickname })

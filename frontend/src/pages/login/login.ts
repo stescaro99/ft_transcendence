@@ -1,6 +1,7 @@
 import { UserService } from '../../service/user.service';
 import { AuthenticationService } from '../../service/authentication.service';
 import { TranslationService } from '../../service/translation.service';
+import { environment } from '../../environments/environment';
 import '../../style.css';
 import './login.css';
 import loginHtml from './login.html?raw';
@@ -153,7 +154,7 @@ export class LogInPage{
 				const nickname = localStorage.getItem('nickname');
 				if (nickname) {
 					try {
-						await fetch('https://transcendence.be:9443/api/force_offline', {
+						await fetch(environment.apiUrl + '/force_offline', {
 							method: 'POST',
 							headers: { 'Content-Type': 'application/json' },
 							body: JSON.stringify({ nickname })
