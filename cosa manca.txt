@@ -1,13 +1,9 @@
 -STANDARD USER MANAGEMENT:
     -manca lo storico delle partite
-    -utenti registrati con google non devono poter cambiare email e password.
     -dopo aver fatto logout e' necessario ricaricare la pagina perche login funzioni
 
 -STATS DASHBOARD:
     -manca la pagina per vedere le statistiche del singolo match
-
--GRAFICA
-    -Pagina amicizia
 
 -CUSTOMIZATION: (non necessario per 125%)
     -deve essere possibile giocare senza power up
