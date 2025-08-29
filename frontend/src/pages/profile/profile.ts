@@ -402,14 +402,23 @@ export class ProfilePage {
 	}
 
 	private setProfileImage() {
-    const profileImage = document.getElementById('profile_image') as HTMLImageElement;
-    if (profileImage && this.user.image_url) {
-			profileImage.src = this.user.image_url;
-			profileImage.onerror = () => {
-				// Fallback se l'immagine non carica
+	const profileImage = document.getElementById('profile_image') as HTMLImageElement;
+	if (profileImage && this.user.image_url) {
+		profileImage.src = this.user.image_url;
+		profileImage.onerror = () => {
+			// Se l'URL contiene transcendence.be, prova con host_id
+			if (profileImage.src.includes('transcendence.be')) {
+				const hostId = (typeof window !== 'undefined' && (window as any).__HOST_ID__) ? (window as any).__HOST_ID__ : 'localhost';
+				profileImage.src = profileImage.src.replace('transcendence.be', hostId);
+				// Dopo il primo errore, se fallisce di nuovo, mostra default
+				profileImage.onerror = () => {
+					profileImage.src = './src/utils/default.png';
+				};
+			} else {
 				profileImage.src = './src/utils/default.png';
-			};
-		}
+			}
+		};
+	}
 	}
 
 	// Setta il tema della pagina / colore della navbar
