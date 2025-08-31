@@ -6,6 +6,7 @@ import './profile.css';
 import { setLang } from '../..';
 import { UserService } from '../../service/user.service';
 import { AuthenticationService } from '../../service/authentication.service';
+import { Game } from '../../model/game.model';
 
 export class ProfilePage {
 	private stats: Stats = new Stats();
@@ -42,6 +43,7 @@ export class ProfilePage {
 				this.user.nickname = userData.nickname;
 				this.user.tfa_code = userData.tfa_code || null;
 				this.user.email = userData.email;
+				this.user.stats.games = userData.stats[0]?.games || [];
 				this.user.image_url = userData.image_url;
 				this.user.language = userData.language || this.user.language || 'en';
 				if (this.user.language && this.currentLang !== this.user.language) {
@@ -153,6 +155,94 @@ export class ProfilePage {
 
 			});
 		}
+		const historyBtn = document.getElementById('showHistory');
+		const customModal = document.getElementById('customModal');
+		const closeMOdalBtn = document.getElementById('closeModalBtn');
+		const modalContent = document.getElementById('modalContent');
+		if (historyBtn && customModal && closeMOdalBtn && modalContent) {
+			historyBtn.addEventListener('click', () => {
+				console.log('games', this.user.stats.games);
+				this.showgameHistory(this.user.stats.games || [], modalContent);
+				customModal.classList.remove("hidden");
+			});
+		}
+		if (historyBtn && customModal && closeMOdalBtn && modalContent){
+			closeMOdalBtn.addEventListener("click", () => {
+				customModal.classList.add("hidden");
+			});
+		}
+		if (historyBtn && customModal && closeMOdalBtn && modalContent){
+			customModal.addEventListener("click", (e) => {
+				if (e.target === customModal) {
+					customModal.classList.add("hidden");
+				}
+			});
+		}
+	}
+
+	private async showgameHistory(games: Game[], modalContent: HTMLElement) {
+		if (games.length === 0 ) {
+			modalContent.innerHTML = '<p>No game history available.</p>';
+			return;
+		}
+		modalContent.innerHTML = "";
+		let us: Pick <User, 'nickname'|'image_url'>[] = [];
+
+		
+		const ul = document.createElement("ul");
+		ul.className = "list-none list-inside text-left space-y-1";
+		
+		for(const game of games) {
+			if (!game.players) return;
+			const playerPromises = game.players.map(async (p: string) => {
+				try {
+					const userData = await this.userService.takeUserFromApi(p);
+					return { nickname: userData.nickname, image_url: userData.image_url };
+				} catch {
+					return { nickname: 'guest', image_url: 'https://transcendence.fe:8443/user.jpg' };
+				}
+			});
+			const us = await Promise.all(playerPromises);
+			console.log('game', game);
+			const half = Math.ceil(us.length / 2);
+			const team1:  Pick <User, 'nickname'|'image_url'>[] = us.slice(0, half);
+			const team2:  Pick <User, 'nickname'|'image_url'>[] = us.slice(half);
+
+			const li = document.createElement("li");
+			li.className = "p-2 border-b"; 
+			li.innerHTML = `
+			<div class="flex items-center space-x-2 mb-1">${game.date}</div>
+			<div class="flex items-center justify-between mb-1">
+				<!-- Team 1 -->
+				<div class="flex flex-col items-center space-x-2">
+					${team1.map(p => `
+						<img src="${p.image_url}" alt="${p.nickname}" class="w-8 h-8 rounded-full border">
+						<span class="text-sm font-medium">${p.nickname}</span>
+					`).join('')}
+					<strong class="text-lg mt-1">${game.scores ? game.scores[0] : '0'}</strong>
+				</div>
+
+				<!-- VS -->
+				<div class="mx-4 font-bold text-red-600">VS</div>
+
+				<!-- Team 2 -->
+				<div class="flex flex-col items-center space-x-2">
+					${team2.map(p => `
+						<img src="${p.image_url}" alt="${p.nickname}" class="w-8 h-8 rounded-full border">
+						<span class="text-sm font-medium">${p.nickname}</span>
+					`).join('')}
+					<strong class="text-lg mt-1">${game.scores ? game.scores[1] : '0'}</strong>
+					</div>
+	
+				</div>
+				<div class="text-xs text-gray-500 flex item-center mb-1">
+					<strong>Winner:</strong> ${game.winner_nickname || 'N/A'}
+				</div>
+			
+			`;
+			ul.appendChild(li);
+		};
+		modalContent.appendChild(ul);
 	}
 
 	private handleImageEdit() {
@@ -412,10 +502,10 @@ export class ProfilePage {
 				profileImage.src = profileImage.src.replace('transcendence.be', hostId);
 				// Dopo il primo errore, se fallisce di nuovo, mostra default
 				profileImage.onerror = () => {
-					profileImage.src = './src/utils/default.png';
+					profileImage.src = 'https://transcendence.fe:8443/user.jpg';
 				};
 			} else {
-				profileImage.src = './src/utils/default.png';
+				profileImage.src = 'https://transcendence.fe:8443/user.jpg';
 			}
 		};
 	}
