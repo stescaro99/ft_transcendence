@@ -1,9 +1,7 @@
--STANDARD USER MANAGEMENT:
-    -manca lo storico delle partite
-    -dopo aver fatto logout e' necessario ricaricare la pagina perche login funzioni
+-dopo aver fatto logout e' necessario ricaricare la pagina perche login funzioni
 
--STATS DASHBOARD:
-    -manca la pagina per vedere le statistiche del singolo match
+TESTING GENERALE
+
 
 -CUSTOMIZATION: (non necessario per 125%)
     -deve essere possibile giocare senza power up
