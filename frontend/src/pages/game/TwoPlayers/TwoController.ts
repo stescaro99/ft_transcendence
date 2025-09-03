@@ -108,25 +108,29 @@ const keys: { [key: string]: boolean } = {};
 let keyboardSetup = false;
 
 // === Eventi tastiera ===
-function setupKeyboard(game: GameState)
+function setupKeyboard()
 {
   if (keyboardSetup) return;
-  
+
   document.addEventListener("keydown", (e) => {
-	keys[e.key] = true;
-	updatePaddleMovement(game);
+    keys[e.key] = true;
+    // Use the current global game state so listeners remain valid after navigation
+    const currentGame = (window as any).game as GameState | null;
+    if (currentGame) updatePaddleMovement(currentGame);
   });
 
   document.addEventListener("keyup", (e) => {
-	keys[e.key] = false;
-	updatePaddleMovement(game);
+    keys[e.key] = false;
+    const currentGame = (window as any).game as GameState | null;
+    if (currentGame) updatePaddleMovement(currentGame);
   });
   
   keyboardSetup = true;
 }
 
-function updatePaddleMovement(game: GameState)
+function updatePaddleMovement(game: GameState | null)
 {
+  if (!game) return;
   if (keys["w"] && keys["s"]) {
 	game.leftPaddle[0].dy = 0;
   } else if (keys["w"]) {
@@ -194,8 +198,8 @@ export async function TwoGameLoop(paddleColor1: string, paddleColor2: string, fr
   // Crea stato di gioco solo la prima volta
   
   if (!(window as any).game || (window as any).game.canvas !== canvas) {
-	(window as any).game = createInitialGameState(canvas);
-	setupKeyboard((window as any).game);
+    (window as any).game = createInitialGameState(canvas);
+    setupKeyboard();
 	predictedY = predictBallY((window as any).game.ball, (window as any).game.rightPaddle[0].x, canvas);
 	gameCreated = false;
 	gameRoom.game_id = undefined;

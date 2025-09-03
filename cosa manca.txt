@@ -1,7 +1,5 @@
--dopo aver fatto logout e' necessario ricaricare la pagina perche login funzioni
-
--TORNEI
-    -se avvio una partita del torneo e, senza finirla, provo ad avviarne una normale non posso muovermi
+-LOGIN
+    -dopo aver fatto logout e' necessario ricaricare la pagina perche login funzioni
 
 -FRONTEND
     -tutte le pagine devono usare CSS Tailwind (partite)

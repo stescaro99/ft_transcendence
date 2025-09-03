@@ -115,24 +115,27 @@ const keys: { [key: string]: boolean } = {};
 let keyboardSetup = false; // Flag per evitare duplicazioni degli event listener
 
 // === Eventi tastiera ===
-function setupKeyboard(game: GameState) {
+function setupKeyboard()
+{
+	if (keyboardSetup) return;
 
-  if (keyboardSetup) return;
-  
-  document.addEventListener("keydown", (e) => {
-	keys[e.key] = true;
-	updatePaddleMovement(game);
-  });
+	document.addEventListener("keydown", (e) => {
+		keys[e.key] = true;
+		const currentGame = (window as any).game4 as GameState | null;
+		if (currentGame) updatePaddleMovement(currentGame);
+	});
 
-  document.addEventListener("keyup", (e) => {
-	keys[e.key] = false;
-	updatePaddleMovement(game);
-  });
-  
-  keyboardSetup = true;
+	document.addEventListener("keyup", (e) => {
+		keys[e.key] = false;
+		const currentGame = (window as any).game4 as GameState | null;
+		if (currentGame) updatePaddleMovement(currentGame);
+	});
+
+	keyboardSetup = true;
 }
 
-function updatePaddleMovement(game: GameState) {
+function updatePaddleMovement(game: GameState | null) {
+	if (!game) return;
   // Player 1 (leftPaddle[0]) - W/S keys
   if (keys["w"] && keys["s"]) {
 	game.leftPaddle[0].dy = 0;
@@ -236,9 +239,9 @@ export async function FourGameLoop(TeamLeft: string, TeamRight: string, fromPage
   const { canvas, ctx } = getCanvasAndCtx();
 
   // Crea stato di gioco solo la prima volta
-  if (!(window as any).game4 || (window as any).game4.canvas !== canvas) {
-	(window as any).game4 = createInitialGameState(canvas);
-	setupKeyboard((window as any).game4);
+	if (!(window as any).game4 || (window as any).game4.canvas !== canvas) {
+		(window as any).game4 = createInitialGameState(canvas);
+		setupKeyboard();
 	predictedY = [
 	  null,
 	  predictBallY((window as any).game4.ball, (window as any).game4.leftPaddle[1].x, canvas),
