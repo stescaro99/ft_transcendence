@@ -216,8 +216,8 @@ export class GamePage {
 		clearInterval(interval);
 		if (x === 2) {
 		  TwoGameLoop(this.Team1Color, this.Team2Color, this.fromPage, this.players);
-		} else if (x === 4) {
-		  FourGameLoop(this.Team1Color, this.Team2Color, this.fromPage);
+				} else if (x === 4) {
+					FourGameLoop(this.Team1Color, this.Team2Color, this.fromPage, this.players);
 		}
 	  }
 	  countdown--;

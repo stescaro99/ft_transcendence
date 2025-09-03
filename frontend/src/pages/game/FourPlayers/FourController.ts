@@ -220,21 +220,25 @@ const originalResetAfterPoint = (window as any).resetAfterPoint;
 (window as any).resetAfterPoint = async function(x: number, game: GameState) {
 	if (x < game.canvas.width / 2) {
 		// Segna la destra
-		game.scoreRight++;
-		gameRoom.scores = [game.scoreLeft, game.scoreRight++];
-		if (typeof gameRoom.game_id === "number")
-			this.gameService.updateGame(gameRoom.game_id, "2_scores", game.scoreRight.toString());
+		game.scoreRight = game.scoreRight + 1;
+		gameRoom.scores = [game.scoreLeft, game.scoreRight];
+		if (typeof gameRoom.game_id === "number") {
+			this.gameService.updateGame(gameRoom.game_id, "2_scores", game.scoreRight.toString())
+				.catch((e: any) => console.error('Failed updating right score during reset:', e));
+		}
 	} else {
 		// Segna la sinistra
-		game.scoreLeft++;
-		gameRoom.scores = [game.scoreLeft++, game.scoreRight];
-		if (typeof gameRoom.game_id === "number")
-			this.gameService.updateGame(gameRoom.game_id, "1_scores", game.scoreLeft.toString());
+		game.scoreLeft = game.scoreLeft + 1;
+		gameRoom.scores = [game.scoreLeft, game.scoreRight];
+		if (typeof gameRoom.game_id === "number") {
+			this.gameService.updateGame(gameRoom.game_id, "1_scores", game.scoreLeft.toString())
+				.catch((e: any) => console.error('Failed updating left score during reset:', e));
+		}
 	}
   if (originalResetAfterPoint) originalResetAfterPoint(x, game);
 };
 
-export async function FourGameLoop(TeamLeft: string, TeamRight: string, fromPage: string)
+export async function FourGameLoop(TeamLeft: string, TeamRight: string, fromPage: string, players?: string[])
 {
   const { canvas, ctx } = getCanvasAndCtx();
 
@@ -259,9 +263,18 @@ export async function FourGameLoop(TeamLeft: string, TeamRight: string, fromPage
 	randomizePowerUp(game);
 
 
-	try {
-	gameService.addGame([user.nickname, 'guest', 'guest2', 'guest3']
-	).then((response) => {
+		try {
+		// Determina i nickname reali da inviare: preferisci l'array players passato, altrimenti usa fallback
+		const playersToSend = (players && players.length >= 4)
+			? players.slice(0, 4)
+			: [
+					user.nickname || (localStorage.getItem('nickname') || ''),
+					'guest',
+					'guest2',
+					'guest3'
+				];
+
+		gameService.addGame(playersToSend).then((response) => {
 		console.log("Game created on backend:", response);
 		console.log("response.game:", response.game);
 		console.log("response.game.game_id:", response.game.game_id);
@@ -305,31 +318,30 @@ export async function FourGameLoop(TeamLeft: string, TeamRight: string, fromPage
         game.rightPaddle[1].nickname   // idx = 3 (Team 2 - Player 2)
       ];
       
-      players.forEach((nickname, idx) => {
-        let result = 0;
-        
-        if (game.scoreLeft === game.scoreRight) {
-          result = 1; // pareggio per tutti
-        } else if (
-          // Team 1 vince (idx 0 e 1 sono Team 1)
-          (game.scoreLeft > game.scoreRight && (idx === 0 || idx === 1)) ||
-          // Team 2 vince (idx 2 e 3 sono Team 2)  
-          (game.scoreRight > game.scoreLeft && (idx === 2 || idx === 3))
-        ) {
-          result = 2; // vittoria
-        } else {
-          result = 0; // sconfitta
-        }
-        
-		const firstPlayerRealNick = localStorage.getItem('nickname') || "player1";
-        // Aggiorna stats solo per il giocatore principale (user.nickname)
-        if (idx === 0) {
-			console.log(`DEBUG: ${firstPlayerRealNick}`);
-          gameService.upDateStat(firstPlayerRealNick, gameRoom.game_id!, result)
-            .then(() => console.log(`DEBUG: Successfully updated stats for ${firstPlayerRealNick} with result:`, result))
-            .catch((error) => console.error(`DEBUG: Failed to update stats for ${firstPlayerRealNick}:`, error));
-        }
-      });
+			players.forEach((nickname, idx) => {
+				let result = 0;
+
+				if (game.scoreLeft === game.scoreRight) {
+					result = 1; // pareggio per tutti
+				} else if (
+					// Team 1 vince (idx 0 e 1 sono Team 1)
+					(game.scoreLeft > game.scoreRight && (idx === 0 || idx === 1)) ||
+					// Team 2 vince (idx 2 e 3 sono Team 2)  
+					(game.scoreRight > game.scoreLeft && (idx === 2 || idx === 3))
+				) {
+					result = 2; // vittoria
+				} else {
+					result = 0; // sconfitta
+				}
+
+				// Aggiorna le statistiche solo se il nickname del giocatore corrisponde all'utente loggato
+				const loggedNick = localStorage.getItem('nickname');
+				if (loggedNick && nickname === loggedNick) {
+					gameService.upDateStat(nickname, gameRoom.game_id!, result)
+						.then(() => console.log(`DEBUG: Successfully updated stats for ${nickname} with result:`, result))
+						.catch((error) => console.error(`DEBUG: Failed to update stats for ${nickname}:`, error));
+				}
+			});
 
       // Determina il vincitore per il database
       let winnerNickname = "";

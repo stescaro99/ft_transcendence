@@ -174,19 +174,25 @@ let gameCreated = false;
 // Sovrascrivi la funzione resetAfterPoint (o chiamala dove aggiorni i punteggi)
 const originalResetAfterPoint = (window as any).resetAfterPoint;
 (window as any).resetAfterPoint = async function(x: number, game: GameState) {
-	if (x < game.canvas.width / 2) {
-		// Segna la destra
-		game.scoreRight++;
-		gameRoom.scores = [game.scoreLeft, game.scoreRight++];
-		if (typeof gameRoom.game_id === "number")
-			this.gameService.updateGame(gameRoom.game_id, "2_scores", game.scoreRight.toString());
-	} else {
-		// Segna la sinistra
-		game.scoreLeft++;
-		gameRoom.scores = [game.scoreLeft++, game.scoreRight];
-		if (typeof gameRoom.game_id === "number")
-			this.gameService.updateGame(gameRoom.game_id, "1_scores", game.scoreLeft.toString());
-	}
+  if (x < game.canvas.width / 2) {
+    // Segna la destra
+    game.scoreRight = game.scoreRight + 1;
+    // Aggiorna lo stato locale del gameRoom in modo coerente
+    gameRoom.scores = [game.scoreLeft, game.scoreRight];
+    if (typeof gameRoom.game_id === "number") {
+      // Invia scoreRight attuale al backend
+      this.gameService.updateGame(gameRoom.game_id, "2_scores", game.scoreRight.toString())
+        .catch((e: any) => console.error('Failed updating right score during reset:', e));
+    }
+  } else {
+    // Segna la sinistra
+    game.scoreLeft = game.scoreLeft + 1;
+    gameRoom.scores = [game.scoreLeft, game.scoreRight];
+    if (typeof gameRoom.game_id === "number") {
+      this.gameService.updateGame(gameRoom.game_id, "1_scores", game.scoreLeft.toString())
+        .catch((e: any) => console.error('Failed updating left score during reset:', e));
+    }
+  }
 	if (originalResetAfterPoint) originalResetAfterPoint(x, game);
 };
 let lastLogTime = 0;
@@ -222,9 +228,13 @@ export async function TwoGameLoop(paddleColor1: string, paddleColor2: string, fr
   {
 	randomizePowerUp(game);
 
-	try {
-	gameService.addGame([user.nickname, 'guest']
-	).then((response) => {
+    try {
+    // Usa l'array players passato alla funzione; se mancante costruisci un fallback dagli storage
+    const playersToSend = (players && players.length >= 2)
+      ? players.slice(0, 2)
+      : [user.nickname || (localStorage.getItem('nickname') || ''), 'guest'];
+
+    gameService.addGame(playersToSend).then((response) => {
 		console.log("Game created on backend:", response);
 		console.log("response.game:", response.game);
 		console.log("response.game.game_id:", response.game.game_id);
@@ -283,12 +293,12 @@ export async function TwoGameLoop(paddleColor1: string, paddleColor2: string, fr
 			result = 0; // sconfitta per questo giocatore
 		}
 
-		const usernick = localStorage.getItem('nickname');
-		if (nickname === usernick) {
-			gameService.upDateStat(nickname, gameRoom.game_id!, result)
-				.then(() => console.log(`DEBUG: Successfully updated stats for ${nickname} with result:`, result))
-				.catch((error) => console.error(`DEBUG: Failed to update stats for ${nickname}:`, error));
-			}
+    const loggedNick = localStorage.getItem('nickname');
+    if (loggedNick && nickname === loggedNick) {
+      gameService.upDateStat(nickname, gameRoom.game_id!, result)
+        .then(() => console.log(`DEBUG: Successfully updated stats for ${nickname} with result:`, result))
+        .catch((error) => console.error(`DEBUG: Failed to update stats for ${nickname}:`, error));
+    }
 		});
 
 		// Determina il vincitore e aggiorna una volta sola

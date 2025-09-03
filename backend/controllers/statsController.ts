@@ -45,6 +45,14 @@ export async function updateStats(request: FastifyRequest, reply: FastifyReply) 
 		if (!game) {
 			return reply.code(404).send({ message: 'Game not found' });
 		}
+
+		// Verifica che il nickname sia effettivamente un partecipante della partita
+		const playerIndex = Array.isArray(game.players) ? game.players.indexOf(nickname) : -1;
+		if (playerIndex < 0) {
+			return reply.code(400).send({ message: 'Nickname is not a participant of this game' });
+		}
+
+		// Associa la partita alle statistiche dell'utente solamente se è effettivamente partecipante
 		await userStat.addGame(game);
 		userStat.number_of_games = (userStat.number_of_games || 0) + 1;
 		switch (result) {
@@ -64,8 +72,7 @@ export async function updateStats(request: FastifyRequest, reply: FastifyReply) 
 			default:
 				return reply.code(400).send({ message: 'Invalid result value' });
 		}
-		const playerIndex = game.players?.indexOf(nickname);
-		if (playerIndex !== undefined && playerIndex >= 0 && Array.isArray(game.scores)) {
+		if (Array.isArray(game.scores)) {
 			userStat.number_of_points = (userStat.number_of_points || 0) + (game.scores[playerIndex] || 0);
 		} else {
 			userStat.number_of_points = (userStat.number_of_points || 0);
