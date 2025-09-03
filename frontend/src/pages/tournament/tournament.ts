@@ -586,11 +586,31 @@ private checkTournamentContinuation() {
         // Carica automaticamente i campi per 4 giocatori (valore di default)
         setTimeout(() => {
             const tournamentList = document.getElementById('tournamentList') as HTMLSelectElement;
-            if (tournamentList && !localStorage.getItem('activeTournament')) {
-                // Solo se non c'è un torneo attivo, carica i campi di default
-                const defaultPlayers = parseInt(tournamentList.value) || 4;
-                this.generatePlayerInputs(defaultPlayers);
-                console.log(`Auto-loaded input fields for ${defaultPlayers} players`);
+            if (tournamentList) {
+                // Determina se esiste un torneo attivo in esecuzione
+                const active = localStorage.getItem('activeTournament');
+                let shouldAutoLoad = false;
+                if (!active) {
+                    shouldAutoLoad = true;
+                } else {
+                    try {
+                        const parsed = JSON.parse(active);
+                        const cg = parsed.currentGameIndex || 0;
+                        const cr = parsed.currentRound || 0;
+                        // Se non ci sono round o siamo all'inizio (non avviato), permetti l'auto-load
+                        if (!parsed.rounds || parsed.rounds.length === 0 || (cg === 0 && cr === 0)) {
+                            shouldAutoLoad = true;
+                        }
+                    } catch (e) {
+                        shouldAutoLoad = true;
+                    }
+                }
+
+                if (shouldAutoLoad) {
+                    const defaultPlayers = parseInt(tournamentList.value) || 4;
+                    this.generatePlayerInputs(defaultPlayers);
+                    console.log(`Auto-loaded input fields for ${defaultPlayers} players`);
+                }
             }
         }, 100); // Piccolo delay per assicurarsi che il DOM sia pronto
     }

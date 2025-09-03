@@ -90,6 +90,10 @@ export class HomePage {
 		if (playButton) {
 			playButton.addEventListener('click', () => {
 				console.log('playButton clicked, onlineStatus:', this.onlineStatus);
+				// Ensure tournament mode is disabled when starting a normal game
+				localStorage.removeItem('tournamentMode');
+				localStorage.removeItem('currentGameIndex');
+				localStorage.removeItem('currentRound');
 				if (!this.onlineStatus)
 					window.location.hash = `#/game?players=2`;
 				else
@@ -102,6 +106,10 @@ export class HomePage {
 		if (playButton4) {
 			playButton4.addEventListener('click', () => {
 				console.log('playButton4 clicked, onlineStatus:', this.onlineStatus);
+				// Ensure tournament mode is disabled when starting a normal game
+				localStorage.removeItem('tournamentMode');
+				localStorage.removeItem('currentGameIndex');
+				localStorage.removeItem('currentRound');
 				if (!this.onlineStatus)
 					window.location.hash = `#/game?players=4`;
 				else

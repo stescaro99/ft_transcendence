@@ -1,8 +1,13 @@
 -dopo aver fatto logout e' necessario ricaricare la pagina perche login funzioni
 
+-TORNEI
+    -se avvio una partita del torneo e, senza finirla, provo ad avviarne una normale non posso muovermi
+
+-FRONTEND
+    -tutte le pagine devono usare CSS Tailwind (partite)
+
+-CUSTOMIZATION:
+    -deve essere possibile giocare senza power up in ogni modalita' di gioco
+
+
 TESTING GENERALE
-
-
--CUSTOMIZATION: (non necessario per 125%)
-    -deve essere possibile giocare senza power up
-    -le impostazioni scelte da un utente devono essere ricordate
