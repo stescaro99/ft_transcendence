@@ -2,7 +2,7 @@
     -dopo aver fatto logout e' necessario ricaricare la pagina perche login funzioni
 
 -FRONTEND
-    -tutte le pagine devono usare CSS Tailwind (partite)
+    -tutte le pagine devono usare CSS Tailwind (game.css e' in CSS puro)
 
 -CUSTOMIZATION:
     -deve essere possibile giocare senza power up in ogni modalita' di gioco
