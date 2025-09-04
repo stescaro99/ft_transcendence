@@ -348,6 +348,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+window.addEventListener('popstate', () => {
+  function clearPage() {
+    const appDiv = document.getElementById('app');
+    if (appDiv) appDiv.innerHTML = '';
+  }
+  console.log('Pagina cambiata!');
+});
+
 window.addEventListener('hashchange', router);
 
 // Bootstrap: attende DOM, poi assicura lingua e poi prima render

@@ -272,18 +272,21 @@ export class TournamentPage {
             : '⚔️ Via alle partite';
 
         // Costruisci la piramide (bracket) con alla BASE le prime partite (round iniziale)
-        const bracketHtml = this.buildBracketPyramid();
+    const bracketHtml = this.buildBracketPyramid();
+    const totalPlayers = this.tournament.number_of_players || this.tournament.players.length;
+    const sizeClasses = totalPlayers >= 16 ? 'max-w-7xl w-[95vw] p-10' : 'max-w-4xl w-full p-8';
 
-        container.innerHTML = `
-            <div class="text-center relative">
-                <div class="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-purple-500/10 to-pink-500/10 rounded-2xl blur-xl"></div>
-                <div class="relative z-10 bg-black/60 backdrop-blur-sm border-2 border-cyan-400/50 rounded-2xl p-8 shadow-[0_0_30px_rgba(34,211,238,0.3)]">
-                    <h2 class="text-cyan-400 text-3xl font-black mb-4 drop-shadow-lg" style="text-shadow: 0 0 10px rgba(34, 211, 238, 0.8)">🏁 ${title}</h2>
-                    <p class="text-gray-300 mb-8">${subtitle}</p>
-                    <div class="mb-10">${bracketHtml}</div>
-                    <button id="startRoundBtn" class="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-black py-4 px-8 rounded-lg shadow-[0_0_20px_rgba(34,211,238,0.5)] hover:shadow-[0_0_30px_rgba(34,211,238,0.8)] transform hover:scale-105 transition-all duration-300">${startBtnLabel}</button>
-                </div>
-            </div>`;
+            // Bracket a larghezza piena: sovrascrive completamente l'area (niente residui input)
+            container.innerHTML = `
+                <div class="relative w-full flex justify-center">
+                    <div class="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-purple-500/10 to-pink-500/10 rounded-2xl blur-xl"></div>
+                    <div class="relative z-10 ${sizeClasses} mx-auto bg-black/60 backdrop-blur-sm border border-cyan-400/40 rounded-2xl shadow-[0_0_40px_rgba(34,211,238,0.35)] flex flex-col items-center">
+                        <h2 class="text-cyan-400 text-3xl font-black mt-2 mb-4 drop-shadow-lg">🏁 ${title}</h2>
+                        <p class="text-gray-300 mb-6 text-sm md:text-base">${subtitle}</p>
+                        <div class="w-full mb-6 overflow-x-auto pb-4 scrollbar-thin">${bracketHtml}</div>
+                        <button id="startRoundBtn" class="mt-auto mb-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-black py-3 px-8 rounded-lg shadow-[0_0_20px_rgba(34,211,238,0.5)] hover:shadow-[0_0_30px_rgba(34,211,238,0.8)] transform hover:scale-105 transition-all duration-300">${startBtnLabel}</button>
+                    </div>
+                </div>`;
 
         const startBtn = document.getElementById('startRoundBtn');
         if (startBtn) {
@@ -402,7 +405,7 @@ export class TournamentPage {
                 <!-- Effetto glow di sfondo -->
                 <div class="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-purple-500/10 to-pink-500/10 rounded-2xl blur-xl"></div>
                 
-                <div class="relative z-10 bg-black/60 backdrop-blur-sm border-2 border-cyan-400/50 rounded-2xl p-8 shadow-[0_0_30px_rgba(34,211,238,0.3)]">
+                <div class="relative z-10 bg-black/60 backdrop-blur-sm border-2 border-cyan-400/50 rounded-2xl p-60% shadow-[0_0_30px_rgba(34,211,238,0.3)]">
                     <h2 class="text-cyan-400 text-3xl font-black mb-8 drop-shadow-lg" style="text-shadow: 0 0 10px rgba(34, 211, 238, 0.8)">
                         🏆 ${completedRound.roundName} - {{tournament.round_results}}
                     </h2>

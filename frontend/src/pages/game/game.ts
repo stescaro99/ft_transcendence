@@ -112,6 +112,10 @@ export class GamePage {
 		const play_two = document.getElementById("play2");
 		if (play_two) {
 			play_two.textContent = this.players[1];
+			if (this.players[1].split(" ")[0] !== "Player"){
+				const botBtn = document.getElementById("addBotBtn0");
+				if (botBtn) botBtn.classList.add(' pointer-events-none');
+			}
 			console.log("Updated play_two to:", this.players[1]);
 		} else {
 			console.log("play_two element not found or user has no nickname");

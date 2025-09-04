@@ -479,8 +479,18 @@ export class ProfilePage {
 	private showValueStats(property: string) {
 		const element = document.getElementById(property);
 		if (element) {
-			element.textContent = this.stats[property as keyof Stats]?.toString() || '0';
+			element.textContent = this.formatToTwoDecimals( this.stats[property as keyof Stats]?.toString() || '0');
 		}
+	}
+
+	private formatToTwoDecimals(value: string): string {
+		const num = Number(value);
+		if (isNaN(num)) 
+			return value;
+		if (num % 1 !== 0) {
+   			return num.toFixed(2);
+		}
+		return num.toString();
 	}
 
 	private showValueProfile(property: string) {
