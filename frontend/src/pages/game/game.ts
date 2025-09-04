@@ -255,14 +255,7 @@ export class GamePage {
 	  const team2Player2 = document.getElementById("team2Player2");
 
 	  if (team1Player1) {
-		team1Player1.textContent = getBotActive(0) ? "BOT" : "Player 1";
-		if (getBotActive(0)) {
-		  team1Player1.classList.add("text-green-500");
-		  team1Player1.classList.remove("text-cyan-400");
-		} else {
-		  team1Player1.classList.add("text-cyan-400");
-		  team1Player1.classList.remove("text-green-500");
-		}
+		team1Player1.textContent = localStorage.getItem('nickname') || "Player 1";
 	  }
 	  
 	  if (team1Player2) {
