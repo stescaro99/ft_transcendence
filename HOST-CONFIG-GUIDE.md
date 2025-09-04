@@ -200,7 +200,7 @@ docker-compose logs backend | grep "host-config"
 
 ## 🚀 Possibili Miglioramenti Futuri
 
-1. **Persistenza**: Salvare la preferenza utente nel localStorage
+1. **Persistenza**: Salvare la preferenza utente nel sessionStorage
 2. **Analytics**: Tracciare quanti utenti usano IP vs domini
 3. **Auto-setup**: Script che modifica automaticamente hosts (con privilegi)
 4. **QR Code**: Generare QR code con il comando per mobile

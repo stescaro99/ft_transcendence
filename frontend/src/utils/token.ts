@@ -1,9 +1,9 @@
 /**
- * Utility per recuperare il token JWT dal localStorage
+ * Utility per recuperare il token JWT dal sessionStorage
  * @returns Il token JWT se presente, null altrimenti
  */
 export function getAuthToken(): string | null {
-  const userDataString = localStorage.getItem("user");
+  const userDataString = sessionStorage.getItem("user");
   
   if (!userDataString) {
     return null;
@@ -13,13 +13,13 @@ export function getAuthToken(): string | null {
     const userData = JSON.parse(userDataString);
     return userData.token || null;
   } catch (error) {
-    console.error('Error parsing user data from localStorage:', error);
+    console.error('Error parsing user data from sessionStorage:', error);
     return null;
   }
 }
 
 /**
- * Utility per recuperare il token JWT dal localStorage con controllo di validità
+ * Utility per recuperare il token JWT dal sessionStorage con controllo di validità
  * @returns Il token JWT se presente e valido
  * @throws Error se il token non è presente o non valido
  */

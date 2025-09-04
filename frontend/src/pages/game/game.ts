@@ -27,7 +27,7 @@ export class GamePage {
 	constructor(lang: string, fromPage: string, player1 : string, player2 : string) {
 
 		if (player1 === undefined || player2 === undefined) {
-			player1 = localStorage.getItem('nickname') || "Player 1";
+			player1 = sessionStorage.getItem('nickname') || "Player 1";
 			player2 = "Player 2";
 		}
 		this.players.push(player1, player2);
@@ -255,7 +255,7 @@ export class GamePage {
 	  const team2Player2 = document.getElementById("team2Player2");
 
 	  if (team1Player1) {
-		team1Player1.textContent = localStorage.getItem('nickname') || "Player 1";
+		team1Player1.textContent = sessionStorage.getItem('nickname') || "Player 1";
 	  }
 	  
 	  if (team1Player2) {

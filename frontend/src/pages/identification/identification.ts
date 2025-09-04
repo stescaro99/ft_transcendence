@@ -60,6 +60,12 @@ private handleSubmit(event: Event) {
 						(inputs[idx + 1] as HTMLInputElement).focus();
 					}	
 				});
+				input.addEventListener('keydown', (e) => {
+				const keyboardEvent = e as KeyboardEvent;
+					if (keyboardEvent.key === 'Backspace' && (input as HTMLInputElement).value === '' && idx > 0) {
+						(inputs[idx - 1] as HTMLInputElement).focus();
+					}
+				});
 			});
 			const verifyBtn = document.getElementById('verify2FA');
 			if (verifyBtn) {
@@ -74,9 +80,9 @@ private handleSubmit(event: Event) {
 						console.log('2FA verified successfully:', verifyResponse);
 						console.log('User:', verifyResponse.user);
 						console.log('Token:', verifyResponse.token);
-						localStorage.setItem('user', JSON.stringify(verifyResponse.user));
-						localStorage.setItem('token', verifyResponse.token);
-						localStorage.setItem('nickname', this.user.nickname);
+						sessionStorage.setItem('user', JSON.stringify(verifyResponse.user));
+						sessionStorage.setItem('token', verifyResponse.token);
+						sessionStorage.setItem('nickname', this.user.nickname);
 						window.location.hash = '#/';
 				})
 					.catch((verifyError) => {

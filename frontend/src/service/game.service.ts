@@ -5,7 +5,7 @@ export class GameService {
 
 	// Read token fresh each time to avoid stale value when login happens after construction
 	private getToken(): string {
-		const token = localStorage.getItem('token');
+		const token = sessionStorage.getItem('token');
 		if (!token) {
 			throw new Error('No valid token found');
 		}
@@ -40,7 +40,7 @@ export class GameService {
 			throw new Error("Invalid parameters for updating game");
 		}
 		
-		// Recupera il token dall'oggetto user nel localStorage
+		// Recupera il token dall'oggetto user nel sessionStorage
 		
 		
 		const token = this.getToken();
@@ -72,7 +72,7 @@ export class GameService {
 			throw new Error("Game ID is required for deletion");
 		}
 		
-		// Recupera il token dall'oggetto user nel localStorage
+		// Recupera il token dall'oggetto user nel sessionStorage
 		
 		const token = this.getToken();
 		

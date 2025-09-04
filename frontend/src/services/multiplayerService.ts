@@ -10,9 +10,9 @@ export class MultiplayerService {
 	private heartbeatInterval: number | null = null; 
 
 	private getToken(): string | null {
-		const direct = localStorage.getItem('token');
+		const direct = sessionStorage.getItem('token');
 		if (direct) return direct;
-		const userStr = localStorage.getItem('user');
+		const userStr = sessionStorage.getItem('user');
 		if (userStr) {
 			try {
 				const u = JSON.parse(userStr);

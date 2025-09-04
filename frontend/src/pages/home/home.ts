@@ -10,7 +10,7 @@ import './home.css';
 export class HomePage {
 	async updateOnlineUsers() {
 		try {
-			const token = localStorage.getItem('token');
+			const token = sessionStorage.getItem('token');
 			if (!token) return;
 			const response = await fetch(`${environment.apiUrl}/online_users`, {
 				headers: { 'Authorization': `Bearer ${token}` }
@@ -52,7 +52,7 @@ export class HomePage {
 			logoutButton.addEventListener('click', async () => {
 				await this.userService.logout();
 				// Chiama backend per forzare offline
-				const nickname = localStorage.getItem('nickname');
+				const nickname = sessionStorage.getItem('nickname');
 				if (nickname) {
 					try {
 						await fetch(environment.apiUrl + '/force_offline', {
@@ -62,9 +62,9 @@ export class HomePage {
 						});
 					} catch (e) { console.error('force_offline error:', e); }
 				}
-				localStorage.removeItem('user');
-				localStorage.removeItem('token');
-				localStorage.removeItem('nickname');
+				sessionStorage.removeItem('user');
+				sessionStorage.removeItem('token');
+				sessionStorage.removeItem('nickname');
 				window.location.reload(); // ricarica la pagina per aggiornare la lista utenti online
 			});
 		}
@@ -91,9 +91,9 @@ export class HomePage {
 			playButton.addEventListener('click', () => {
 				console.log('playButton clicked, onlineStatus:', this.onlineStatus);
 				// Ensure tournament mode is disabled when starting a normal game
-				localStorage.removeItem('tournamentMode');
-				localStorage.removeItem('currentGameIndex');
-				localStorage.removeItem('currentRound');
+				sessionStorage.removeItem('tournamentMode');
+				sessionStorage.removeItem('currentGameIndex');
+				sessionStorage.removeItem('currentRound');
 				if (!this.onlineStatus)
 					window.location.hash = `#/game?players=2`;
 				else
@@ -107,9 +107,9 @@ export class HomePage {
 			playButton4.addEventListener('click', () => {
 				console.log('playButton4 clicked, onlineStatus:', this.onlineStatus);
 				// Ensure tournament mode is disabled when starting a normal game
-				localStorage.removeItem('tournamentMode');
-				localStorage.removeItem('currentGameIndex');
-				localStorage.removeItem('currentRound');
+				sessionStorage.removeItem('tournamentMode');
+				sessionStorage.removeItem('currentGameIndex');
+				sessionStorage.removeItem('currentRound');
 				if (!this.onlineStatus)
 					window.location.hash = `#/game?players=4`;
 				else
