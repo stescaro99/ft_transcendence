@@ -11,3 +11,7 @@
 .stats-element {
     @apply p-2
 }
+
+.stats-page h1, .stats-page h3, .stats-element p {
+    font-family: 'Kode Mono', 'Rushblade', monospace;
+}

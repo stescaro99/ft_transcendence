@@ -67,6 +67,11 @@
   font-family: 'Rushblade' !important;
 }
 
+/* VT323 fallback helper */
+.kodemono-font {
+  font-family: 'Kode Mono', 'Rushblade', monospace !important;
+}
+
 /* Colors */
 @theme {
   --color-body: #030712;

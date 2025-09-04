@@ -1,14 +1,14 @@
 export default {
     homepage: {
-        "login": "login",
-        "play": "play",
-        "profile": "profile",
+        "login": "Login",
+        "play": "Play",
+        "profile": "Profile",
         "welcome": "Ready to play!"
     },
     loginpage: {
         "LOGIN": "LOGIN",
-        "login": "login",
-        "login_google": "login with Google",
+        "login": "Login",
+        "login_google": "Login with Google",
         "register": "Register",
     },
     identification: {
@@ -20,7 +20,7 @@ export default {
         "submit": "Submit"
     },
     profilepage: {
-        "profile": "profile",
+        "profile": "Profile",
         "statistics": "Statistics",
         "name": "Name",
         "nickname": "Nickname",

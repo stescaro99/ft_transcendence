@@ -1,15 +1,15 @@
 export default {
     homepage: {
-        "login": "se connecter",
-        "play": "jouer",
-        "profile": "profil",
+        "login": "Se connecter",
+        "play": "Jouer",
+        "profile": "Profil",
         "welcome": "Ready to play!"
     },
     loginpage: {
         "LOGIN": "SE CONNECTER",
-        "login": "se connecter",
-        "login_google": "se connecter avec Google",
-        "register": "s'inscrire",
+        "login": "Se connecter",
+        "login_google": "Se connecter avec Google",
+        "register": "S'inscrire",
     },
     identification: {
         "sign_up": "S'inscrire",

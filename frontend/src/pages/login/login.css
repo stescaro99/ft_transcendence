@@ -1,7 +1,8 @@
 @import "tailwindcss";
 
 .display-neon-green {
-  @apply mt-4 bg-green-300 text-black font-bold px-6 py-3 rounded-md w-full max-w-lg shadow-[0_0_16px_#22ff22,0_0_32px_#22ff22] hover:bg-green-400 hover:shadow-[0_0_32px_#22ff22,0_0_64px_#22ff22] transition font-['Digital'] text-2xl;
+  @apply mt-4 bg-green-300 text-black font-bold px-6 py-3 rounded-md w-full max-w-lg shadow-[0_0_16px_#22ff22,0_0_32px_#22ff22] hover:bg-green-400 hover:shadow-[0_0_32px_#22ff22,0_0_64px_#22ff22] transition text-2xl;
+  font-family: 'Kode Mono', 'Digital', monospace;
 }
 
 .login-container {
@@ -9,11 +10,13 @@
 }
 
 .login-google {
-  @apply bg-red-400 w-[60%] font-bold text-white rounded-md px-6 py-3 self-center shadow-[0_0_16px_#ff2222,0_0_32px_#ff2222] hover:bg-red-400 hover:shadow-[0_0_32px_#ff2222,0_0_64px_#ff2222] transition font-['Digital'] text-2xl;
+  @apply bg-red-400 w-[60%] font-bold text-white rounded-md px-6 py-3 self-center shadow-[0_0_16px_#ff2222,0_0_32px_#ff2222] hover:bg-red-400 hover:shadow-[0_0_32px_#ff2222,0_0_64px_#ff2222] transition text-2xl;
+  font-family: 'Kode Mono', 'Digital', monospace;
 }
 
 .login-btn {
-  @apply text-gray-600 font-bold bg-green-300 rounded-md px-6 py-3 shadow-[0_0_16px_#22ff22,0_0_32px_#22ff22] hover:bg-green-400 hover:shadow-[0_0_32px_#22ff22,0_0_64px_#22ff22] transition font-['Digital'] text-2xl;
+  @apply text-gray-600 font-bold bg-green-300 rounded-md px-6 py-3 shadow-[0_0_16px_#22ff22,0_0_32px_#22ff22] hover:bg-green-400 hover:shadow-[0_0_32px_#22ff22,0_0_64px_#22ff22] transition text-2xl;
+  font-family: 'Kode Mono', 'Digital', monospace;
 }
 
 .login-form {

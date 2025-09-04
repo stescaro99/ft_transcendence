@@ -1,15 +1,15 @@
 export default {
     homepage: {
-        "login": "accedi",
-        "play": "gioca",
-        "profile": "profilo",
+        "login": "Accedi",
+        "play": "Gioca",
+        "profile": "Profilo",
         "welcome": "Ready to play!"
     },
     loginpage: {
         "LOGIN": "ACCEDI",
-        "login": "accedi",
-        "login_google": "accedi con Google",
-        "register": "registrati",
+        "login": "Accedi",
+        "login_google": "Accedi con Google",
+        "register": "Registrati",
     },
     identification: {
         "sign_up": "Registrati",

@@ -14,7 +14,8 @@
 }
 
 .profile-element {
-    @apply p-2 flex justify-between text-2xl font-['digital'];
+    @apply p-2 flex justify-between text-2xl;
+    font-family: 'Kode Mono', 'Digital', monospace;
 }
 
 .circle-image {
@@ -31,7 +32,8 @@
 }
 
 .stats-element {
-    @apply p-2 flex justify-between text-2xl font-['digital'];
+    @apply p-2 flex justify-between text-2xl;
+    font-family: 'Kode Mono', 'Digital', monospace;
 }
 
 .lang-container {
