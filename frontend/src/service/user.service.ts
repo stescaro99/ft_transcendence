@@ -4,7 +4,7 @@ import { environment } from '../environments/environment';
 
 export class UserService {
 	async logout(): Promise<any> {
-		const token = localStorage.getItem('token');
+		const token = sessionStorage.getItem('token');
 		if (!token) return;
 		try {
 			const response = await fetch(`${this.apiUrl}/logout`, {
@@ -27,7 +27,7 @@ export class UserService {
 	private apiUrl = `${environment.apiUrl}`; 
 	
 	async getUser(): Promise<User | null >{
-		const nickname = localStorage.getItem('nickname');
+		const nickname = sessionStorage.getItem('nickname');
 		console.log('getUser called with nickname:', nickname);
 		
 		if (nickname) {
@@ -49,7 +49,7 @@ export class UserService {
     
     return null;
 
-		if (localStorage.getItem('user') || nickname) {
+		if (sessionStorage.getItem('user') || nickname) {
 			if (nickname) {
 				this.takeUserFromApi(nickname)
 				.then((userData) => {
@@ -67,7 +67,7 @@ export class UserService {
 				});
 			}
 		} else {
-			console.warn('[UserService] Nessun dato utente trovato in localStorage');
+			console.warn('[UserService] Nessun dato utente trovato in sessionStorage');
 			return null;
 		}
 		return this.user;
@@ -83,13 +83,13 @@ export class UserService {
 		let token: string | null = null;
 
 		// 1) prova chiave diretta
-		const directToken = localStorage.getItem('token');
-		console.log('[UserService] Token diretto da localStorage:', directToken);
+		const directToken = sessionStorage.getItem('token');
+		console.log('[UserService] Token diretto da sessionStorage:', directToken);
 		if (directToken) {
 			token = directToken;
 		} else {
-			// 2) fallback: estrai da localStorage.user
-			const userDataString = localStorage.getItem('user');
+			// 2) fallback: estrai da sessionStorage.user
+			const userDataString = sessionStorage.getItem('user');
 			console.log('[UserService] userDataString:', userDataString);
 			if (userDataString) {
 				try {
@@ -98,8 +98,8 @@ export class UserService {
 					console.log('[UserService] Token trovato in userData:', token);
 					// Salva anche la chiave diretta per altri servizi (es. MultiplayerService)
 					if (token) {
-						localStorage.setItem('token', token);
-						console.log('[UserService] Token salvato come chiave diretta in localStorage.token');
+						sessionStorage.setItem('token', token);
+						console.log('[UserService] Token salvato come chiave diretta in sessionStorage.token');
 					}
 				} catch (error) {
 					console.error('[UserService] Errore parsing userData:', error);
@@ -191,10 +191,10 @@ export class UserService {
 		const url =`${this.apiUrl}/add_friend`;
 		
 		
-		const divToken = localStorage.getItem('token');
+		const divToken = sessionStorage.getItem('token');
 
 		if (!divToken) 
-			console.log("No token found in localStorage");
+			console.log("No token found in sessionStorage");
 
 		const body = JSON.stringify({
 			user1: user1,

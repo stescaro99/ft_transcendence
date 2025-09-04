@@ -23,28 +23,28 @@ const nickname = params.get('nickname');
 const error = params.get('error');
 let navigationStack: string[] = [];
 
-// Normalizza l'autenticazione nel localStorage per compatibilità
+// Normalizza l'autenticazione nel sessionStorage per compatibilità
 // - Se esiste solo user.token, copia in token
 // - Se manca nickname ma è presente in URL o in user, salvalo
 try {
-  const existingToken = localStorage.getItem('token');
+  const existingToken = sessionStorage.getItem('token');
   if (!existingToken) {
-    const userStr = localStorage.getItem('user');
+    const userStr = sessionStorage.getItem('user');
     if (userStr) {
       try {
         const userObj = JSON.parse(userStr);
         if (userObj && typeof userObj.token === 'string' && userObj.token.length > 0) {
-          localStorage.setItem('token', userObj.token);
+          sessionStorage.setItem('token', userObj.token);
         }
-        if (!localStorage.getItem('nickname')) {
+        if (!sessionStorage.getItem('nickname')) {
           const nickFromUser = typeof userObj?.nickname === 'string' ? userObj.nickname : null;
-          if (nickFromUser) localStorage.setItem('nickname', nickFromUser);
+          if (nickFromUser) sessionStorage.setItem('nickname', nickFromUser);
         }
       } catch {}
     }
   }
-  if (!localStorage.getItem('nickname') && nickname) {
-    localStorage.setItem('nickname', nickname);
+  if (!sessionStorage.getItem('nickname') && nickname) {
+    sessionStorage.setItem('nickname', nickname);
   }
 } catch {}
 
@@ -73,7 +73,7 @@ export function goBack() {
 // Definisci le rotte una volta sola
 const routes: Record<string, () => string> = {
   '/': () => {
-    if (localStorage.getItem('user')) {
+    if (sessionStorage.getItem('user')) {
       new HomePage(currentLang);
       return "";
     } else {
@@ -95,7 +95,7 @@ const routes: Record<string, () => string> = {
   },
   '/profile': () => {
 
-    const nickname = location.hash.split('?')[1]?.split('=')[1] || localStorage.getItem('nickname') || '';
+    const nickname = location.hash.split('?')[1]?.split('=')[1] || sessionStorage.getItem('nickname') || '';
     new ProfilePage(currentLang, nickname);
     return "";
   },
@@ -106,7 +106,7 @@ const routes: Record<string, () => string> = {
     const hash = location.hash.slice(1) || '/';
     const urlParams = hash.split('?')[1]; // Ottieni la parte dopo il '?'
     
-    let player1 = localStorage.getItem('nickname') || 'Player 1';
+    let player1 = sessionStorage.getItem('nickname') || 'Player 1';
     let player2 = 'Player 2';
     
     // Se ci sono parametri nell'URL, estraili
@@ -162,7 +162,7 @@ function router() {
   // Gestisci la visibilità della navbar
   const navbar = document.getElementById('navbar');
   if (navbar) {
-    if (localStorage.getItem('user')) {
+    if (sessionStorage.getItem('user')) {
       navbar.style.display = 'block';
     } else {
       navbar.style.display = 'none';
@@ -186,12 +186,12 @@ if (error) {
   console.log('Google auth error detected:', error);
   
   // Controlla se eravamo in attesa di un'autenticazione Google
-  const wasGoogleAuthPending = localStorage.getItem('googleAuthPending') === 'true';
+  const wasGoogleAuthPending = sessionStorage.getItem('googleAuthPending') === 'true';
   
   if (wasGoogleAuthPending) {
     // Pulisci lo stato di attesa
-    localStorage.removeItem('googleAuthPending');
-    localStorage.removeItem('googleAuthResolve');
+    sessionStorage.removeItem('googleAuthPending');
+    sessionStorage.removeItem('googleAuthResolve');
     
     console.log('Processing Google auth error');
     alert('Google login failed: ' + error);
@@ -205,21 +205,21 @@ else if (token && nickname)
   console.log('Google auth success detected with token and nickname');
   
   // Controlla se eravamo in attesa di un'autenticazione Google
-  const wasGoogleAuthPending = localStorage.getItem('googleAuthPending') === 'true';
+  const wasGoogleAuthPending = sessionStorage.getItem('googleAuthPending') === 'true';
   
   if (wasGoogleAuthPending)
   {
     // Pulisci lo stato di attesa
-    localStorage.removeItem('googleAuthPending');
-    localStorage.removeItem('googleAuthResolve');
+    sessionStorage.removeItem('googleAuthPending');
+    sessionStorage.removeItem('googleAuthResolve');
     
     console.log('Processing Google auth success');
   }
   
-  // Salva i dati nel localStorage
+  // Salva i dati nel sessionStorage
   // Manteniamo compatibilità salvando sia il token diretto sia l'oggetto user completo
-  localStorage.setItem('token', token);
-  localStorage.setItem('user', JSON.stringify({ token, nickname }));
+  sessionStorage.setItem('token', token);
+  sessionStorage.setItem('user', JSON.stringify({ token, nickname }));
   const userToStore = {
     token: token,
     nickname: nickname,
@@ -232,9 +232,9 @@ else if (token && nickname)
     fr_request: [],
   };
 
-  localStorage.setItem('user', JSON.stringify(userToStore));
-  localStorage.setItem('token', token); // opzionale ma comodo
-  localStorage.setItem('nickname', nickname);
+  sessionStorage.setItem('user', JSON.stringify(userToStore));
+  sessionStorage.setItem('token', token); // opzionale ma comodo
+  sessionStorage.setItem('nickname', nickname);
   
   // Mostra la navbar ora che l'utente è autenticato
   const navbar = document.getElementById('navbar');
@@ -258,7 +258,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const powerBtn = document.getElementById('powerBtn');
   if (powerBtn) {
     powerBtn.addEventListener('click', async () => {
-      const nickname = localStorage.getItem('nickname');
+      const nickname = sessionStorage.getItem('nickname');
       if (nickname) {
         try {
           await fetch('https://transcendence.be:9443/api/force_offline', {
@@ -268,9 +268,9 @@ document.addEventListener('DOMContentLoaded', () => {
           });
         } catch (e) { console.error('force_offline error:', e); }
       }
-      localStorage.removeItem('user');
-      localStorage.removeItem('nickname');
-      localStorage.removeItem('token');
+      sessionStorage.removeItem('user');
+      sessionStorage.removeItem('nickname');
+      sessionStorage.removeItem('token');
       const navbar = document.getElementById('navbar');
       if (navbar) navbar.style.display = 'none';
       window.location.hash = '/login';

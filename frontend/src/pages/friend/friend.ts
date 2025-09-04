@@ -30,7 +30,7 @@ export class friendPage {
 
     private async initializeUser() {
         try {
-            this.user = await this.userService.takeUserFromApi(localStorage.getItem('nickname') || '');
+            this.user = await this.userService.takeUserFromApi(sessionStorage.getItem('nickname') || '');
         } catch (error) {
             console.error('Error fetching user data:', error);
             this.user = new User();

@@ -28,7 +28,7 @@ export class LogInPage{
 		const token = urlParams.get('token');
 		if (token) {
 			this.authenticationService.saveGoogleToken(token);
-			console.log('Google token salvato in localStorage.token:', token);
+			console.log('Google token salvato in sessionStorage.token:', token);
 			// Puoi anche fare redirect o altre azioni qui
 		}
 	}
@@ -88,6 +88,12 @@ export class LogInPage{
 							(inputs[idx + 1] as HTMLInputElement).focus();
 						}	
 					});
+					input.addEventListener('keydown', (e) => {
+					const keyboardEvent = e as KeyboardEvent;
+						if (keyboardEvent.key === 'Backspace' && (input as HTMLInputElement).value === '' && idx > 0) {
+							(inputs[idx - 1] as HTMLInputElement).focus();
+						}
+					});
 				});
 				const verifyBtn = document.getElementById('verify2FA');
 				if (verifyBtn) {
@@ -100,9 +106,9 @@ export class LogInPage{
 						this.authenticationService.verifyQrCodeFromApi(this.nickname, code)
 						.then((verifyResponse) => {
 						console.log('2FA verified successfully:', verifyResponse);
-						localStorage.setItem('user', JSON.stringify(verifyResponse.user));
-						localStorage.setItem('token', verifyResponse.token);
-						localStorage.setItem('nickname', this.nickname);
+						sessionStorage.setItem('user', JSON.stringify(verifyResponse.user));
+						sessionStorage.setItem('token', verifyResponse.token);
+						sessionStorage.setItem('nickname', this.nickname);
 						window.location.hash = '/';
 				})
 					.catch((verifyError) => {
@@ -150,7 +156,7 @@ export class LogInPage{
 		if (debugButton) {
 			debugButton.addEventListener('click', async () => {
 				// Chiama backend per forzare offline
-				const nickname = localStorage.getItem('nickname');
+				const nickname = sessionStorage.getItem('nickname');
 				if (nickname) {
 					try {
 						await fetch('https://transcendence.be:9443/api/force_offline', {
@@ -160,11 +166,11 @@ export class LogInPage{
 						});
 					} catch (e) { console.error('force_offline error:', e); }
 				}
-				localStorage.removeItem('user');
-				localStorage.removeItem('token');
-				localStorage.removeItem('nickname');
-				localStorage.setItem('user', 'debug');
-				localStorage.setItem('nickname', 'fgori');
+				sessionStorage.removeItem('user');
+				sessionStorage.removeItem('token');
+				sessionStorage.removeItem('nickname');
+				sessionStorage.setItem('user', 'debug');
+				sessionStorage.setItem('nickname', 'fgori');
 				window.location.hash = '#/';
 			});
 		}

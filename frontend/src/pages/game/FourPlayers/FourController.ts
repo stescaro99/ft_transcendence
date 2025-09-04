@@ -16,19 +16,19 @@ function getCanvasAndCtx() {
   const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
   return { canvas, ctx };
 }
-// Parse user safely from localStorage, fallback to separate 'nickname'
+// Parse user safely from sessionStorage, fallback to separate 'nickname'
 const user: User = (() => {
 	try {
-		const raw = localStorage.getItem('user');
+		const raw = sessionStorage.getItem('user');
 		const parsed = raw ? JSON.parse(raw) : {};
 		if (!parsed.nickname) {
-			const nick = localStorage.getItem('nickname');
+			const nick = sessionStorage.getItem('nickname');
 			if (nick) parsed.nickname = nick;
 		}
 		return parsed as User;
 	} catch {
 		const u = new User();
-		const nick = localStorage.getItem('nickname');
+		const nick = sessionStorage.getItem('nickname');
 		if (nick) u.nickname = nick;
 		return u;
 	}
@@ -37,7 +37,7 @@ let gameRoom : Game = new Game();
 const gameService: GameService = new GameService();
 
 function getPlayerNick(index: number, side: "left" | "right") {
-  return window.localStorage.getItem(`${side}Player${index + 1}`) || `${side === "left" ? "L" : "R"}${index + 1}`;
+  return window.sessionStorage.getItem(`${side}Player${index + 1}`) || `${side === "left" ? "L" : "R"}${index + 1}`;
 }
 
 function createInitialGameState(canvas: HTMLCanvasElement): GameState {
@@ -318,7 +318,7 @@ export async function FourGameLoop(TeamLeft: string, TeamRight: string, fromPage
           result = 0; // sconfitta
         }
         
-		const firstPlayerRealNick = localStorage.getItem('nickname') || "player1";
+		const firstPlayerRealNick = sessionStorage.getItem('nickname') || "player1";
         // Aggiorna stats solo per il giocatore principale (user.nickname)
         if (idx === 0) {
 			console.log(`DEBUG: ${firstPlayerRealNick}`);

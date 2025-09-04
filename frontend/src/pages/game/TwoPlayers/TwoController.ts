@@ -12,19 +12,19 @@ function getCanvasAndCtx() {
   const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
   return { canvas, ctx };
 }
-// Parse user safely from localStorage, fallback to separate 'nickname'
+// Parse user safely from sessionStorage, fallback to separate 'nickname'
 const user: User = (() => {
   try {
-    const raw = localStorage.getItem('user');
+    const raw = sessionStorage.getItem('user');
     const parsed = raw ? JSON.parse(raw) : {};
     if (!parsed.nickname) {
-      const nick = localStorage.getItem('nickname');
+      const nick = sessionStorage.getItem('nickname');
       if (nick) parsed.nickname = nick;
     }
     return parsed as User;
   } catch {
     const u = new User();
-    const nick = localStorage.getItem('nickname');
+    const nick = sessionStorage.getItem('nickname');
     if (nick) u.nickname = nick;
     return u;
   }
@@ -33,7 +33,7 @@ let gameRoom : Game = new Game();
 const gameService: GameService = new GameService();
 
 function getPlayerNick(index: number, side: "left" | "right") {
-  const userStr = localStorage.getItem('user');
+  const userStr = sessionStorage.getItem('user');
   if (userStr) {
     try {
       const user = JSON.parse(userStr);
@@ -45,7 +45,7 @@ function getPlayerNick(index: number, side: "left" | "right") {
     }
   }
   
-  return window.localStorage.getItem(`${side}Player${index + 1}`) || 
+  return window.sessionStorage.getItem(`${side}Player${index + 1}`) || 
          (side === "left" ? "Giocatore 1" : "Giocatore 2");
 }
 
@@ -243,7 +243,7 @@ export async function TwoGameLoop(paddleColor1: string, paddleColor2: string, fr
 
   // Fine partita
 	if (game.scoreLeft >= game.maxScore || game.scoreRight >= game.maxScore) {
-		const isTournamentMode = localStorage.getItem('tournamentMode') === 'true';
+		const isTournamentMode = sessionStorage.getItem('tournamentMode') === 'true';
    
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 		ctx.fillStyle = "white";
@@ -279,7 +279,7 @@ export async function TwoGameLoop(paddleColor1: string, paddleColor2: string, fr
 			result = 0; // sconfitta per questo giocatore
 		}
 
-		const usernick = localStorage.getItem('nickname');
+		const usernick = sessionStorage.getItem('nickname');
 		if (nickname === usernick) {
 			gameService.upDateStat(nickname, gameRoom.game_id!, result)
 				.then(() => console.log(`DEBUG: Successfully updated stats for ${nickname} with result:`, result))
@@ -378,9 +378,9 @@ export async function TwoGameLoop(paddleColor1: string, paddleColor2: string, fr
 
 function handleTournamentGameEnd(winner: string) {
     try {
-        const tournament = JSON.parse(localStorage.getItem('activeTournament') || '{}');
-        const currentIndex = parseInt(localStorage.getItem('currentGameIndex') || '0');
-        const currentRoundNumber = parseInt(localStorage.getItem('currentRound') || '0');
+        const tournament = JSON.parse(sessionStorage.getItem('activeTournament') || '{}');
+        const currentIndex = parseInt(sessionStorage.getItem('currentGameIndex') || '0');
+        const currentRoundNumber = parseInt(sessionStorage.getItem('currentRound') || '0');
         
         console.log(`Tournament game end: Winner=${winner}, Round=${currentRoundNumber}, Game=${currentIndex}`);
         
@@ -407,7 +407,7 @@ function handleTournamentGameEnd(winner: string) {
         tournament.currentGameIndex = currentIndex + 1;
         
         // Salva lo stato aggiornato del torneo
-        localStorage.setItem('activeTournament', JSON.stringify(tournament));
+        sessionStorage.setItem('activeTournament', JSON.stringify(tournament));
         
         console.log(`Tournament: Round ${currentRoundNumber} Game ${currentIndex + 1} completed. Winner: ${winner}`);
         console.log(`Tournament: Round has ${tournament.rounds[currentRoundNumber].results.length}/${tournament.rounds[currentRoundNumber].games.length} games completed`);

@@ -26,7 +26,7 @@ export class OnlineGamePage {
 			
 			// Imposta il nickname DOPO il render
 			const nicknameElement = document.getElementById('nickname');
-			const storedNickname = localStorage.getItem('nickname');
+			const storedNickname = sessionStorage.getItem('nickname');
 			
 			if (nicknameElement && storedNickname) {
 				nicknameElement.textContent = `Nickname: ${storedNickname}`;

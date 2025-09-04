@@ -17,11 +17,11 @@ export class ProfilePage {
 		this.setTheme('blue');
 		
 		console.log('🔍 ProfilePage Debug:');
-		console.log('localStorage user:', localStorage.getItem('user'));
-		console.log('localStorage token:', localStorage.getItem('token'));
-		console.log('localStorage nickname:', localStorage.getItem('nickname'));
+		console.log('sessionStorage user:', sessionStorage.getItem('user'));
+		console.log('sessionStorage token:', sessionStorage.getItem('token'));
+		console.log('sessionStorage nickname:', sessionStorage.getItem('nickname'));
 
-		// const userString = localStorage.getItem('user');
+		// const userString = sessionStorage.getItem('user');
 		// if (userString) {
 		// 	try {
 		// 		const user = JSON.parse(userString);
@@ -51,7 +51,7 @@ export class ProfilePage {
 		// Solo per lavorare sulla pagina user senza dati utente veri, per ucolla. NON CANCELLARE! 
 		this.user.name = 'Test';
 		this.user.surname = 'User';
-		this.user.nickname = localStorage.getItem('nickname') || 'testuser';
+		this.user.nickname = sessionStorage.getItem('nickname') || 'testuser';
 		this.user.email = 'test@example.com';
 		this.user.image_url = './src/utils/default.png';
 		this.stats = new Stats();

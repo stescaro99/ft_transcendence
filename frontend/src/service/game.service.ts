@@ -5,7 +5,7 @@ export class GameService {
 
 	// Read token fresh each time to avoid stale value when login happens after construction
 	private getToken(): string {
-		const token = localStorage.getItem('token');
+		const token = sessionStorage.getItem('token');
 		if (!token) {
 			throw new Error('No valid token found');
 		}

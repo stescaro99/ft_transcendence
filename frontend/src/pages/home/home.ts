@@ -50,7 +50,7 @@ export class HomePage {
 			logoutButton.addEventListener('click', async () => {
 				await this.userService.logout();
 				// Chiama backend per forzare offline
-				const nickname = localStorage.getItem('nickname');
+				const nickname = sessionStorage.getItem('nickname');
 				if (nickname) {
 					try {
 						await fetch('https://transcendence.be:9443/api/force_offline', {
@@ -60,9 +60,9 @@ export class HomePage {
 						});
 					} catch (e) { console.error('force_offline error:', e); }
 				}
-				localStorage.removeItem('user');
-				localStorage.removeItem('token');
-				localStorage.removeItem('nickname');
+				sessionStorage.removeItem('user');
+				sessionStorage.removeItem('token');
+				sessionStorage.removeItem('nickname');
 				window.location.reload(); // ricarica la pagina per aggiornare la lista utenti online
 			});
 		}

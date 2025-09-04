@@ -71,7 +71,7 @@ export class TournamentPage {
             firstInput.id = 'player1';
             firstInput.name = 'player1';
             firstInput.className = 'w-full px-4 py-3 text-gray-800 bg-gray-200/90 border-2 border-cyan-400 rounded-lg cursor-not-allowed shadow-[0_0_10px_rgba(34,211,238,0.3)] backdrop-blur-sm';
-            firstInput.value = localStorage.getItem('nickname') || 'Player 1';
+            firstInput.value = sessionStorage.getItem('nickname') || 'Player 1';
             firstInput.readOnly = true;
 
             firstPlayerWrapper.appendChild(firstLabel);
@@ -141,7 +141,7 @@ export class TournamentPage {
         // Crea il primo round
         this.createRound(playerNames, 0);
 
-        localStorage.setItem('activeTournament', JSON.stringify(this.tournament));
+        sessionStorage.setItem('activeTournament', JSON.stringify(this.tournament));
         
         // Avvia la prima partita
         this.startNextGame();
@@ -199,9 +199,9 @@ export class TournamentPage {
             console.log(`Starting ${currentRound.roundName} - Game ${currentIndex + 1}: ${currentGame[0]} vs ${currentGame[1]}`);
             
             // Salva che siamo in modalità torneo
-            localStorage.setItem('tournamentMode', 'true');
-            localStorage.setItem('currentGameIndex', currentIndex.toString());
-            localStorage.setItem('currentRound', this.tournament.currentRound.toString());
+            sessionStorage.setItem('tournamentMode', 'true');
+            sessionStorage.setItem('currentGameIndex', currentIndex.toString());
+            sessionStorage.setItem('currentRound', this.tournament.currentRound.toString());
             
             // Usa il formato che già funziona nel router
             window.location.hash = `#/game?${encodeURIComponent(currentGame[0])}_${encodeURIComponent(currentGame[1])}`;
@@ -212,9 +212,9 @@ export class TournamentPage {
     }
 
     public onGameFinished(winner: string) {
-        const tournament = JSON.parse(localStorage.getItem('activeTournament') || '{}');
-        const currentIndex = parseInt(localStorage.getItem('currentGameIndex') || '0');
-        const currentRoundNumber = parseInt(localStorage.getItem('currentRound') || '0');
+        const tournament = JSON.parse(sessionStorage.getItem('activeTournament') || '{}');
+        const currentIndex = parseInt(sessionStorage.getItem('currentGameIndex') || '0');
+        const currentRoundNumber = parseInt(sessionStorage.getItem('currentRound') || '0');
         
         // Salva il risultato nel round corrente
         if (!tournament.rounds[currentRoundNumber].results) {
@@ -233,7 +233,7 @@ export class TournamentPage {
         tournament.currentGameIndex = currentIndex + 1;
         
         // Salva lo stato aggiornato
-        localStorage.setItem('activeTournament', JSON.stringify(tournament));
+        sessionStorage.setItem('activeTournament', JSON.stringify(tournament));
         
         console.log(`Round ${currentRoundNumber + 1}: Game ${currentIndex + 1} completed. Winner: ${winner}`);
         
@@ -335,18 +335,18 @@ export class TournamentPage {
         this.createRound(winners, this.tournament.currentRound);
         
         // Salva lo stato aggiornato
-        localStorage.setItem('activeTournament', JSON.stringify(this.tournament));
+        sessionStorage.setItem('activeTournament', JSON.stringify(this.tournament));
         
         // Avvia la prima partita del nuovo round
         this.startNextGame();
     }
 
 private showTournamentResults() {
-    // Pulisci il localStorage del torneo
-    localStorage.removeItem('activeTournament');
-    localStorage.removeItem('tournamentMode');
-    localStorage.removeItem('currentGameIndex');
-    localStorage.removeItem('currentRound');
+    // Pulisci il sessionStorage del torneo
+    sessionStorage.removeItem('activeTournament');
+    sessionStorage.removeItem('tournamentMode');
+    sessionStorage.removeItem('currentGameIndex');
+    sessionStorage.removeItem('currentRound');
     
     // Mostra i risultati finali nella UI
     const tournamentName = document.getElementById('tournamentName');
@@ -419,7 +419,7 @@ private checkTournamentContinuation() {
     const continueParam = params.get('continue');
     
     if (continueParam === 'true') {
-        const tournamentData = localStorage.getItem('activeTournament');
+        const tournamentData = sessionStorage.getItem('activeTournament');
         if (tournamentData) {
             this.tournament = JSON.parse(tournamentData);
             
@@ -454,7 +454,7 @@ private checkTournamentContinuation() {
         // Carica automaticamente i campi per 4 giocatori (valore di default)
         setTimeout(() => {
             const tournamentList = document.getElementById('tournamentList') as HTMLSelectElement;
-            if (tournamentList && !localStorage.getItem('activeTournament')) {
+            if (tournamentList && !sessionStorage.getItem('activeTournament')) {
                 // Solo se non c'è un torneo attivo, carica i campi di default
                 const defaultPlayers = parseInt(tournamentList.value) || 4;
                 this.generatePlayerInputs(defaultPlayers);
