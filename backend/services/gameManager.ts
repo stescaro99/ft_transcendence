@@ -8,7 +8,7 @@ import Game from '../models/game';
 import { saveGameAndStats } from './game/gameResult';
 
 class GameManager {
-  public roomManager: RoomManager;
+  public roomManager: RoomManager = new RoomManager();
   private heartbeatManager: HeartbeatManager;
   private waitingPlayers: Player[] = [];
 
@@ -40,10 +40,10 @@ class GameManager {
     return success;
   }
 
-  findMatch(player: Player, gameType: 'two' | 'four' = 'two'): { roomId: string | null, isRoomFull: boolean }
+  findMatch(player: Player, gameType: 'two' | 'four' = 'two', opts?: { powerUpsEnabled?: boolean }) : { roomId: string | null, isRoomFull: boolean }
   {
     console.log('[GameManager] Finding match for player:', player.nickname, 'gameType:', gameType);
-    const roomId = this.roomManager.findMatch(player, gameType);
+    const roomId = this.roomManager.findMatch(player, gameType, opts);
     console.log('[GameManager] roomManager.findMatch returned:', roomId);
     let isRoomFull = false;
     
@@ -105,6 +105,13 @@ class GameManager {
     console.log('[GameManager] About to call createInitialGameState...');
     room.gameState = this.roomManager.createInitialGameState(room.type);
     console.log('[GameManager] createInitialGameState completed');
+
+    // >>> NEW: Propaga la preferenza power-up della room nello stato iniziale
+    room.gameState.powerUpsEnabled = room.powerUpsEnabled !== false;
+    if (room.gameState.powerUpsEnabled === false && room.gameState.powerUp) {
+      room.gameState.powerUp.active = false;
+    }
+
     this.roomManager.assignPlayersToPositions(room);
     this.broadcastToRoom(roomId, {
       type: 'gameStarted',
@@ -120,14 +127,13 @@ class GameManager {
           myPaddleIndex
       };
 
-      // Invia solo a questo player
       if (player.socket.readyState === 1) {
           player.socket.send(JSON.stringify({
               type: 'gameStarted',
               gameState: initialState
           }));
       }
-  });
+    });
 
     GameLoop.startGameLoop(roomId, room, (roomId, message) => {
       this.broadcastToRoom(roomId, message);

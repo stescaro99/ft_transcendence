@@ -7,12 +7,13 @@ import { FourRemoteController } from "./FourRemoteController";
 import multiplayerService from '../../services/multiplayerService';
 import '../game/game.css';
 
-// Variabili per il timer
 let searchTimer: number | null = null;
 let searchStartTime: number = 0;
 
 export class OnlineGamePage {
 	user : User = new UserService().getUser() || new User();
+	private searchTimer: number | null = null;
+	private powerUpsEnabled: boolean = true;
 	constructor(_currentLang: string) {
 		console.log("[OnlineGame] 🚀 OnlineGamePage constructor chiamato!");
 		this.init();
@@ -104,8 +105,8 @@ export class OnlineGamePage {
     }
 }
 
-	private init() {
-		this.render();
+	private async init() {
+		await this.render();
 		
 		// Inizializza il gioco DOPO aver renderizzato l'HTML
 		setTimeout(() => {
@@ -129,6 +130,29 @@ export class OnlineGamePage {
 		const status = document.getElementById("status")!;
 		const matchInfo = document.getElementById("matchInfo")!;
 		const findMatchBtn = document.getElementById("findMatchBtn");
+
+		let powerBtn = document.getElementById("powerUpsBtn");
+		if (!powerBtn && findMatchBtn?.parentElement) {
+			powerBtn = document.createElement("button");
+			powerBtn.id = "powerToggleOnline";
+			powerBtn.type = "button";
+			powerBtn.textContent = this.powerUpsEnabled ? "POWER UP ON" : "POWER UP OFF";
+			powerBtn.className = "btn-large";
+			powerBtn.style.marginLeft = "12px";
+			powerBtn.title = "Abilita/Disabilita power-up per questa partita";
+			findMatchBtn.parentElement.insertBefore(powerBtn, findMatchBtn.nextSibling);
+			powerBtn.addEventListener("click", () => {
+				this.powerUpsEnabled = !this.powerUpsEnabled;
+				powerBtn!.textContent = this.powerUpsEnabled ? "POWER UP ON" : "POWER UP OFF";
+				powerBtn!.classList.toggle("opacity-70", !this.powerUpsEnabled);
+			});
+		}
+		
+		if (powerBtn) {
+		powerBtn.textContent = this.powerUpsEnabled ? "POWER UP ON" : "POWER UP OFF";
+		powerBtn.classList.toggle("opacity-70", !this.powerUpsEnabled);
+		}
+
 
 		console.log("[OnlineGame] Elementi trovati:", {
 			canvas: !!canvas,
@@ -160,7 +184,6 @@ export class OnlineGamePage {
 				clearInterval(searchTimer);
 				searchTimer = null;
 			}
-			
 			// Mostra la schermata di setup
 			const setupScreen = document.getElementById("onlineSetup-screen");
 			if (setupScreen) {
@@ -195,6 +218,10 @@ export class OnlineGamePage {
 			if (matchInfo) {
 				matchInfo.classList.add("hidden");
 			}
+
+			const p = document.getElementById("powerToggleOnline") as HTMLButtonElement | null;
+			if (p)
+				p.removeAttribute("disabled");
 		};
 
 		console.log("[OnlineGame] 🎯 Aggiungendo listener al pulsante Cerca Partita");
@@ -216,7 +243,10 @@ export class OnlineGamePage {
 			if (cancelBtn) {
 				cancelBtn.classList.remove("hidden");
 			}
-			
+			const p = document.getElementById("powerToggleOnline") as HTMLButtonElement | null;
+			if (p)
+				p.setAttribute("disabled", "true");
+
 			// Avvia la ricerca
 			console.log("[OnlineGame] 🔍 Avviando ricerca partita...");
 			
@@ -229,7 +259,7 @@ export class OnlineGamePage {
 			const players = urlParams.get('players');
 			const gameType = players === '4' ? 'four' : 'two';
 			console.log("[OnlineGame] 🚀 Cerco partita con gameType:", gameType);
-			multiplayerService.findMatch(gameType as 'two' | 'four');
+			multiplayerService.findMatch(gameType as 'two' | 'four', {powerUp: this.powerUpsEnabled ? 'on' : 'off'});
 		});
 
 		const cancelBtn = document.createElement("button");
@@ -344,6 +374,10 @@ export class OnlineGamePage {
 				canvas.focus();
 			}
 
+			const p = document.getElementById("powerToggleOnline") as HTMLButtonElement | null;
+			if (p)
+				p.setAttribute("disabled", "true");
+
 			// Countdown e avvio controller
 			const ctx = canvas?.getContext('2d');
 			if (canvas && ctx) {
@@ -352,13 +386,14 @@ export class OnlineGamePage {
 		});
 	}
 
-	render () {
+	async render () {
 		console.log("[OnlineGame] 🎨 Rendering HTML...");
 		const container = document.getElementById('app');
 		if (!container)
 			return;
 
-		const translation = new UserService().getUser()?.language || 'en';
+		const user = await new UserService().getUser();
+		const translation = user?.language || 'en';
 		const translatedHtml = new TranslationService(translation).translateTemplate(onlineGameHtml);
 		container.innerHTML = translatedHtml;
 

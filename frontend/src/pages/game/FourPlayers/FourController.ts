@@ -192,14 +192,17 @@ function render(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, game: 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawField(ctx, canvas);
   game.leftPaddle.forEach(p => {
-	drawRect(ctx, p.x, p.y, game.paddleWidth, p.height, TeamLeft);
+    drawRect(ctx, p.x, p.y, game.paddleWidth, p.height, TeamLeft);
   });
   game.rightPaddle.forEach(p => {
-	drawRect(ctx, p.x, p.y, game.paddleWidth, p.height, TeamRight);
+    drawRect(ctx, p.x, p.y, game.paddleWidth, p.height, TeamRight);
   });
   drawBall(ctx, game.ball);
   drawScore(ctx, canvas, game.scoreLeft, game.scoreRight);
-  drawPowerUp(ctx, game.powerUp);
+  // +++ NEW: disegna solo se abilitati e attivi
+  if (powerUpsEnabled4P && game.powerUp?.active) {
+    drawPowerUp(ctx, game.powerUp);
+  }
 }
 
 // === Game loop ===
@@ -238,30 +241,48 @@ const originalResetAfterPoint = (window as any).resetAfterPoint;
   if (originalResetAfterPoint) originalResetAfterPoint(x, game);
 };
 
-export async function FourGameLoop(TeamLeft: string, TeamRight: string, fromPage: string, players?: string[])
-{
+type LocalOptions = {
+  powerUp?: 'on' | 'off';
+};
+let powerUpsEnabled4P = true;
+
+export async function FourGameLoop(
+  TeamLeft: string,
+  TeamRight: string,
+  fromPage: string,
+  players?: string[],
+  options?: LocalOptions
+) {
+  if (options && typeof options.powerUp !== 'undefined') {
+    powerUpsEnabled4P = options.powerUp === 'on';
+  }
+
   const { canvas, ctx } = getCanvasAndCtx();
 
   // Crea stato di gioco solo la prima volta
-	if (!(window as any).game4 || (window as any).game4.canvas !== canvas) {
-		(window as any).game4 = createInitialGameState(canvas);
-		setupKeyboard();
-	predictedY = [
-	  null,
-	  predictBallY((window as any).game4.ball, (window as any).game4.leftPaddle[1].x, canvas),
-	  predictBallY((window as any).game4.ball, (window as any).game4.rightPaddle[0].x, canvas),
-	  predictBallY((window as any).game4.ball, (window as any).game4.rightPaddle[1].x, canvas),
-	];
-	gameCreated = false;
-	gameRoom.game_id = undefined;
+  if (!(window as any).game4 || (window as any).game4.canvas !== canvas) {
+    (window as any).game4 = createInitialGameState(canvas);
+    setupKeyboard();
+    predictedY = [
+      null,
+      predictBallY((window as any).game4.ball, (window as any).game4.leftPaddle[1].x, canvas),
+      predictBallY((window as any).game4.ball, (window as any).game4.rightPaddle[0].x, canvas),
+      predictBallY((window as any).game4.ball, (window as any).game4.rightPaddle[1].x, canvas),
+    ];
+    gameCreated = false;
+    gameRoom.game_id = undefined;
+
+    // +++ NEW: se disabilitati, spegni subito
+    if (!powerUpsEnabled4P) {
+      (window as any).game4.powerUp.active = false;
+    }
   }
   const game: GameState = (window as any).game4;
 
   // Crea partita su backend solo la prima volta
-  if (!gameCreated)
-  {
-	randomizePowerUp(game);
-
+  if (!gameCreated) {
+    // +++ NEW: randomize solo se abilitati
+    if (powerUpsEnabled4P) randomizePowerUp(game);
 
 		try {
 		// Determina i nickname reali da inviare: preferisci l'array players passato, altrimenti usa fallback
@@ -435,7 +456,13 @@ export async function FourGameLoop(TeamLeft: string, TeamRight: string, fromPage
 	botInterval = setInterval(moveBotPaddle, 1000);
   }
 
+  // +++ NEW: forza OFF ogni frame se disabilitati (impedisce effetti/spawn)
+  if (!powerUpsEnabled4P) {
+    game.powerUp.active = false;
+  }
+
   update(game);
   render(ctx, canvas, game, TeamLeft, TeamRight);
+  // flag già memorizzata, non serve ripassare options
   requestAnimationFrame(() => FourGameLoop(TeamLeft, TeamRight, fromPage));
 }

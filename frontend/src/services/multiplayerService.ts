@@ -1,5 +1,7 @@
 import { GameState } from "../pages/game/common/types";
 
+type FindMatchOptions = { powerUp?: 'on' | 'off' };
+
 export class MultiplayerService {
 	public socket: WebSocket | null = null;
 	private gameUpdateCallback: ((state: GameState) => void) | null = null;
@@ -153,13 +155,14 @@ export class MultiplayerService {
 		}
 	}
 
-	findMatch(gameType: 'two' | 'four' = 'two') {
+	findMatch(gameType: 'two' | 'four' = 'two', opts?: FindMatchOptions) {
 		console.log("[MultiplayerService] Inviando richiesta findMatch con gameType:", gameType);
 		if (this.socket && this.socket.readyState === WebSocket.OPEN) {
 			console.log("[MultiplayerService] Inviando richiesta findMatch");
 			this.socket.send(JSON.stringify({ 
 				type: "findMatch", 
-				gameType: gameType 
+				gameType: gameType,
+				options: { powerUp: opts?.powerUp || 'on' }  // << nuovo
 			}));
 		} else {
 			console.error("[MultiplayerService] Socket non connesso! ReadyState:", this.socket?.readyState);

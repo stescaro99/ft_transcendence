@@ -22,7 +22,7 @@ export class GamePage {
 	Team1Color = "#ffffff";
 	Team2Color = "#ffffff";
 	colors = ["#ff0000", "#00ff00", "#ffff00", "#800080", "#007bff", "#ffffff"];
-	
+	private powerUpsEnabled: boolean = true;
 
 	constructor(lang: string, fromPage: string, player1 : string, player2 : string) {
 
@@ -155,7 +155,8 @@ export class GamePage {
 
 	const startBtn2 = document.getElementById("startBtn2");
 	if (startBtn2) {
-	  startBtn2.addEventListener("click", () => {
+		this.injectPowerToggle(startBtn2 as HTMLElement);
+	  	startBtn2.addEventListener("click", () => {
 		this.hideScreens();
 		canvas.style.display = "block";
 		document.fonts.ready.then(() => {
@@ -167,17 +168,38 @@ export class GamePage {
 
 	const startBtn4 = document.getElementById("startBtn4");
 	if (startBtn4) {
-	  startBtn4.addEventListener("click", () => {
+		this.injectPowerToggle(startBtn4 as HTMLElement);
+	  	startBtn4.addEventListener("click", () => {
 		this.hideScreens();
 		canvas.style.display = "block";
 		document.fonts.ready.then(() => {
 		  ctx.font = "80px Helvetica";
 		  this.startCountdown(4, ctx, canvas);
 		});
-	  });
-	}
+		  });
+		}
+	  }
 	
-  }
+	  private injectPowerToggle(anchorEl: HTMLElement) {
+        if (document.getElementById('powerToggleBtn'))
+            return;
+        const btn = document.createElement('button');
+        btn.id = 'powerToggleBtn';
+        btn.type = 'button';
+        btn.textContent = this.powerUpsEnabled ? 'POWER UP ON' : 'POWER UP OFF';
+		// Stessa estetica del bottone online
+		btn.className = 'btn-large';
+		btn.style.marginLeft = '12px';
+		btn.title = 'Abilita/Disabilita power-up per questa partita';
+        anchorEl.insertAdjacentElement('afterend', btn);
+		// Stato visivo iniziale coerente con online
+		btn.classList.toggle('opacity-70', !this.powerUpsEnabled);
+        btn.addEventListener('click', () => {
+            this.powerUpsEnabled = !this.powerUpsEnabled;
+            btn.textContent = this.powerUpsEnabled ? 'POWER UP ON' : 'POWER UP OFF';
+			btn.classList.toggle('opacity-70', !this.powerUpsEnabled);
+        });
+      }
 
    hideScreens() {
 	document.querySelectorAll(".screen").forEach(el => el.classList.remove("visible"));
@@ -219,9 +241,9 @@ export class GamePage {
 	  if (countdown < 0) {
 		clearInterval(interval);
 		if (x === 2) {
-		  TwoGameLoop(this.Team1Color, this.Team2Color, this.fromPage, this.players);
+		  TwoGameLoop(this.Team1Color, this.Team2Color, this.fromPage, this.players, { powerUp: this.powerUpsEnabled ? 'on' : 'off' });
 				} else if (x === 4) {
-					FourGameLoop(this.Team1Color, this.Team2Color, this.fromPage, this.players);
+					FourGameLoop(this.Team1Color, this.Team2Color, this.fromPage, this.players, { powerUp: this.powerUpsEnabled ? 'on' : 'off' });
 		}
 	  }
 	  countdown--;

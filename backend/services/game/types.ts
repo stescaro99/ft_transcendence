@@ -14,8 +14,8 @@ export interface GameRoom {
   isActive: boolean;
   maxPlayers: number;
   type: 'two' | 'four';
-  // opzionale: id partita salvata a fine match (non usato ancora)
   gameId?: number;
+  powerUpsEnabled?: boolean;
 }
 
 export interface GameState {
@@ -52,6 +52,7 @@ export interface GameState {
     type: string;
     color: string;
   };
+  powerUpsEnabled?: boolean;
   scoreLeft: number;
   scoreRight: number;
   paddleHeight: number;

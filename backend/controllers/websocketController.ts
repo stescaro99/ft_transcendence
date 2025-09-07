@@ -128,7 +128,8 @@ function handleJoinRoom(player: Player, data: any) {
 
 function handleFindMatch(player: Player, data: any) {
   console.log('[WebSocket] handleFindMatch called for player:', player.nickname, 'gameType:', data.gameType);
-  const result = gameManager.findMatch(player, data.gameType || 'two');
+  const powerUpsEnabled = data?.options?.powerUp !== 'off';
+  const result = gameManager.findMatch(player, data.gameType || 'two', { powerUpsEnabled });
   console.log('[WebSocket] findMatch result:', result);
 
   if (result.roomId) 

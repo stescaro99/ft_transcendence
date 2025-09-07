@@ -6,6 +6,12 @@ import { User } from "../../../model/user.model";
 import { GameService } from "../../../service/game.service";
 import { Game } from "../../../model/game.model";
 
+
+type LocalOptions = {
+  powerUp?: 'on' | 'off';
+};
+let powerUpsEnabled = true; // default ON
+
 function getCanvasAndCtx() {
 	const canvas = document.getElementById("pong") as HTMLCanvasElement | null;
 	if (!canvas) throw new Error("Canvas not found!");
@@ -162,7 +168,9 @@ function render(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, game: 
   drawRect(ctx, game.rightPaddle[0].x, game.rightPaddle[0].y, game.paddleWidth, game.rightPaddle[0].height, paddleColor2);
   drawBall(ctx, game.ball);
   drawScore(ctx, canvas, game.scoreLeft, game.scoreRight);
-  drawPowerUp(ctx, game.powerUp);
+  if (powerUpsEnabled && game.powerUp?.active) {
+    drawPowerUp(ctx, game.powerUp);
+  }
 }
 
 // === Game loop ===
@@ -197,18 +205,31 @@ const originalResetAfterPoint = (window as any).resetAfterPoint;
 };
 let lastLogTime = 0;
 const LOG_INTERVAL = 3000;
-export async function TwoGameLoop(paddleColor1: string, paddleColor2: string, fromPage: string, players: string[]) {
-  
-	
-	const { canvas, ctx } = getCanvasAndCtx();
+
+export async function TwoGameLoop(
+  paddleColor1: string,
+  paddleColor2: string,
+  fromPage: string,
+  players: string[],
+  options?: LocalOptions            // <— NEW parametro opzionale
+) {
+  // +++ NEW: applica l’opzione alla prima invocazione
+  if (options && typeof options.powerUp !== 'undefined') {
+    powerUpsEnabled = options.powerUp === 'on';
+  }
+
+  const { canvas, ctx } = getCanvasAndCtx();
   // Crea stato di gioco solo la prima volta
-  
   if (!(window as any).game || (window as any).game.canvas !== canvas) {
     (window as any).game = createInitialGameState(canvas);
     setupKeyboard();
-	predictedY = predictBallY((window as any).game.ball, (window as any).game.rightPaddle[0].x, canvas);
-	gameCreated = false;
-	gameRoom.game_id = undefined;
+    predictedY = predictBallY((window as any).game.ball, (window as any).game.rightPaddle[0].x, canvas);
+    gameCreated = false;
+    gameRoom.game_id = undefined;
+
+    if (!powerUpsEnabled) {
+      (window as any).game.powerUp.active = false;
+    }
   }
   const game: GameState = (window as any).game;
   const now = Date.now();
@@ -224,9 +245,8 @@ export async function TwoGameLoop(paddleColor1: string, paddleColor2: string, fr
   }
   
   // Crea partita su backend solo la prima volta
-  if (!gameCreated)
-  {
-	randomizePowerUp(game);
+  if (!gameCreated) {
+    if (powerUpsEnabled) randomizePowerUp(game);
 
     try {
     // Usa l'array players passato alla funzione; se mancante costruisci un fallback dagli storage
@@ -247,12 +267,12 @@ export async function TwoGameLoop(paddleColor1: string, paddleColor2: string, fr
 		console.error("DEBUG: Failed to create game:", error);
 		gameRoom.game_id = undefined;
 		});
-	} catch (error) {
-	  console.error("Failed to create game on backend:", error);
-	  // Continua il gioco anche se il backend non risponde
-	  gameRoom.game_id = undefined;
-	}
-	gameCreated = true;
+    } catch (error) {
+      console.error("Failed to create game on backend:", error);
+      // Continua il gioco anche se il backend non risponde
+      gameRoom.game_id = undefined;
+    }
+    gameCreated = true;
   }
 
   // Fine partita
@@ -452,7 +472,13 @@ function handleTournamentGameEnd(winner: string) {
 	botInterval = setInterval(moveBotPaddle, 1000);
   }
 
+  // +++ NEW: forza OFF ogni frame se disabilitati (impedisce effetti/spawn)
+  if (!powerUpsEnabled) {
+    game.powerUp.active = false;
+  }
+
   update(game);
   render(ctx, canvas, game, paddleColor1, paddleColor2);
+  // richiama senza options (flag già memorizzata)
   requestAnimationFrame(() => TwoGameLoop(paddleColor1, paddleColor2, fromPage, players));
 }

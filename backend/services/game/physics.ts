@@ -20,6 +20,11 @@ export class GamePhysics {
   }
 
   static handlePowerUpCollision(gameState: GameState): void {
+    // Power-up disattivati: non applicare effetti né respawn
+    if (gameState.powerUpsEnabled === false) {
+      if (gameState.powerUp) gameState.powerUp.active = false;
+      return;
+    }
     if (
       gameState.powerUp.active &&
       gameState.ball.x + gameState.ball.radius > gameState.powerUp.x &&
@@ -54,8 +59,10 @@ export class GamePhysics {
         gameState.rightPaddle.forEach(p => p.speed = gameState.paddleSpeed);
         
         setTimeout(() => {
-          this.randomizePowerUp(gameState);
-          gameState.powerUp.active = true;
+          if (gameState.powerUpsEnabled !== false) {
+            this.randomizePowerUp(gameState);
+            gameState.powerUp.active = true;
+          }
         }, 5000);
       }, 10000);
     }

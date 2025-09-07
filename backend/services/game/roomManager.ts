@@ -3,7 +3,7 @@ import { GameRoom, Player, GameState, GAME_CONSTANTS } from './types';
 export class RoomManager {
   private rooms: Map<string, GameRoom> = new Map();
 
-  createRoom(type: 'two' | 'four' = 'two'): string {
+  createRoom(type: 'two' | 'four' = 'two', opts?: { powerUpsEnabled?: boolean }): string {
     console.log('[RoomManager] Creating room of type:', type);
     
     const roomId = this.generateRoomId();
@@ -19,8 +19,15 @@ export class RoomManager {
       gameState: gameState,
       isActive: false,
       maxPlayers: type === 'two' ? 2 : 4,
-      type
+      type,
+      powerUpsEnabled: opts?.powerUpsEnabled !== false
     };
+    
+    // Propaga la preferenza nello stato
+    room.gameState.powerUpsEnabled = room.powerUpsEnabled;
+    if (room.powerUpsEnabled === false && room.gameState.powerUp) {
+      room.gameState.powerUp.active = false; // non attivo all'inizio
+    }
     
     this.rooms.set(roomId, room);
     console.log('[RoomManager] Room created and stored');
@@ -53,7 +60,7 @@ export class RoomManager {
     }
     }
 
-  findMatch(player: Player, gameType: 'two' | 'four' = 'two'): string | null {
+  findMatch(player: Player, gameType: 'two' | 'four' = 'two', opts?: { powerUpsEnabled?: boolean }): string | null {
     console.log('[RoomManager] findMatch called for:', player.nickname, 'gameType:', gameType);
     console.log('[RoomManager] Current rooms count:', this.rooms.size);
     
@@ -66,8 +73,9 @@ export class RoomManager {
         isActive: room.isActive
       });
       if (room.type === gameType && 
-          room.players.length < room.maxPlayers && 
-          !room.isActive) {
+          (typeof opts?.powerUpsEnabled === 'undefined' || room.powerUpsEnabled === (opts?.powerUpsEnabled !== false)) &&
+           room.players.length < room.maxPlayers && 
+           !room.isActive) {
         console.log('[RoomManager] Found existing room:', roomId);
         this.addPlayerToRoom(roomId, player);
         return roomId;
@@ -76,7 +84,7 @@ export class RoomManager {
 
     // Nessuna room disponibile, crea una nuova
     console.log('[RoomManager] No existing room found, creating new one...');
-    const roomId = this.createRoom(gameType);
+    const roomId = this.createRoom(gameType, { powerUpsEnabled: opts?.powerUpsEnabled !== false });
     this.addPlayerToRoom(roomId, player);
     return roomId;
   }
@@ -199,6 +207,7 @@ export class RoomManager {
             type: "", 
             color: "" 
         },
+        powerUpsEnabled: true, // default ON
         scoreLeft: 0,
         scoreRight: 0,
         paddleHeight: paddleHeight,

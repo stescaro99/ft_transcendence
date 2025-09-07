@@ -146,7 +146,11 @@ export class FourRemoteController {
         drawField(this.ctx, this.canvas);
 
         if (state.ball) drawBall(this.ctx, state.ball);
-        if (state.powerUp?.active) drawPowerUp(this.ctx, state.powerUp);
+
+        const puEnabled = (state as any).powerUpsEnabled !== false;
+        if (puEnabled && state.powerUp?.active) {
+            drawPowerUp(this.ctx, state.powerUp);
+        }
 
         state.leftPaddle.forEach(p =>
             drawRect(this.ctx, p.x, p.y, state.paddleWidth, p.height, "#00FF00")
