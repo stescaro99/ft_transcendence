@@ -9,6 +9,7 @@ import { GamePage } from './pages/game/game';
 import { TournamentPage } from './pages/tournament/tournament';
 import { OnlineGamePage } from './pages/online_game/online_game';
 import { friendPage } from './pages/friend/friend';
+import { UserService } from './service/user.service';
 
 
 console.log("Script caricato");
@@ -366,4 +367,17 @@ if (document.readyState === 'loading') {
   });
 } else {
   (async () => { await hydrateUserLanguageOnce(); router(); })();
+}
+
+window.onbeforeunload = async () => {
+  const nickname = sessionStorage.getItem('nickname');
+    if (nickname) {
+      try {
+        await fetch(environment.apiUrl + '/force_offline', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nickname })
+        });
+      } catch (e) { console.error('force_offline error:', e); }
+    }
 }

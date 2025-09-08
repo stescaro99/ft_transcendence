@@ -26,17 +26,7 @@ export class ProfilePage {
 		console.log('sessionStorage token:', sessionStorage.getItem('token'));
 		console.log('sessionStorage nickname:', sessionStorage.getItem('nickname'));
 
-		// const userString = sessionStorage.getItem('user');
-		// if (userString) {
-		// 	try {
-		// 		const user = JSON.parse(userString);
-		// 		console.log('🔍 User source:', user.provider || 'local');
-		// 	} catch (e) {
-		// 		console.error('🔍 Error parsing user:', e);
-		// 	}
-		// }
-
-		this.userService.takeUserFromApi(nickname || '') 
+		this.userService.takeUserFromApi(decodeURIComponent(nickname) || '') 
 			.then((userData) => {
 				this.user.name = userData.name || '';
 				this.user.surname = userData.surname || '';
@@ -56,8 +46,6 @@ export class ProfilePage {
 			})
 			.catch((error) => {
 				console.error('Error fetching user data:', error);
-				
-				
 				// Solo per lavorare sulla pagina user senza dati utente veri, per ucolla. NON CANCELLARE! 
 				this.user.name = 'Test';
 				this.user.surname = 'User';

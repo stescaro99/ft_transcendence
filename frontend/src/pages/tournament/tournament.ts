@@ -8,6 +8,20 @@ export class TournamentPage {
     private currentLang: string;
     private translationService: TranslationService;
 
+    // Mostra/nasconde il selettore del numero di giocatori (e il suo wrapper con glow)
+    private setPlayerCountVisible(visible: boolean) {
+        const select = document.getElementById('tournamentList');
+        if (!select) return;
+        const wrapper = select.parentElement; // contiene anche il glow sibling
+        if (wrapper) {
+            if (visible) {
+                wrapper.classList.remove('hidden');
+            } else {
+                wrapper.classList.add('hidden');
+            }
+        }
+    }
+
     private setTheme(theme: string) {
 		const element = document.querySelector('[data-theme]') as HTMLElement;
 
@@ -24,15 +38,15 @@ export class TournamentPage {
         }
     }
 
-    // Method to translate dynamically added content
+
     private translateDynamicContent(element: HTMLElement) {
         const html = element.innerHTML;
         const translatedHtml = this.translationService.translateTemplate(html);
         element.innerHTML = translatedHtml;
 
-        // Handle placeholder templates for input elements
-        const inputs = element.querySelectorAll('input[placeholder-template]');
-        inputs.forEach((input: HTMLInputElement) => {
+
+        const inputs = element.querySelectorAll('input[placeholder-template]') as NodeListOf<HTMLInputElement>;
+        inputs.forEach((input) => {
             const placeholderTemplate = input.getAttribute('placeholder-template');
             if (placeholderTemplate) {
                 const translatedPlaceholder = this.translationService.translateTemplate(placeholderTemplate);
@@ -180,6 +194,8 @@ export class TournamentPage {
         this.createRound(playerNames, 0);
 
         sessionStorage.setItem('activeTournament', JSON.stringify(this.tournament));
+    // Nascondi il selettore dei giocatori durante il torneo
+    this.setPlayerCountVisible(false);
         
     // Mostra intro del primo round (non avvia subito la partita)
     this.showRoundIntro(this.tournament.rounds[this.tournament.currentRound]);
@@ -385,8 +401,8 @@ export class TournamentPage {
             this.tournament.winner_nickname = winners[0];
             this.showTournamentResults();
         } else if (winners.length >= 2) {
-            // Mostra sempre il recap del round completato prima di procedere
-            this.showRoundRecap(currentRound, winners);
+            // Salta il recap a colonna e vai direttamente all'intro del prossimo round (piramide)
+            this.startNextRound(winners);
         } else {
             console.error('No winners found for completed round');
         }
@@ -542,6 +558,8 @@ private showTournamentResults() {
                 sessionStorage.removeItem('currentGameIndex');
                 sessionStorage.removeItem('currentRound');
                 this.tournament = new Tournament();
+                // Mostra nuovamente il selettore dei giocatori
+                this.setPlayerCountVisible(true);
                 window.location.hash = '#/tournament';
             });
         }
@@ -557,6 +575,8 @@ private checkTournamentContinuation() {
         const tournamentData = sessionStorage.getItem('activeTournament');
         if (tournamentData) {
             this.tournament = JSON.parse(tournamentData);
+            // Siamo in un torneo in corso: nascondi il selettore dei giocatori
+            this.setPlayerCountVisible(false);
             
             // Controlla se il round corrente è completato
             const currentRound = this.tournament.rounds[this.tournament.currentRound];
@@ -585,6 +605,13 @@ private checkTournamentContinuation() {
         this.addEventListeners();
         this.setTheme('tournament');
         this.checkTournamentContinuation(); // Aggiungi questa chiamata
+        // Se esiste già un torneo attivo, nascondi subito il selettore
+        try {
+            const active = sessionStorage.getItem('activeTournament');
+            if (active) {
+                this.setPlayerCountVisible(false);
+            }
+        } catch {}
         
         // Carica automaticamente i campi per 4 giocatori (valore di default)
         setTimeout(() => {
