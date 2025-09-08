@@ -21,9 +21,23 @@
             <strong>⚠️ Attenzione! È necessario che non ci siano altri indirizzi IP con lo stesso dominio nel file /etc/hosts.</strong>
           </p>
           <p class="mt-2 text-xs">
-            <strong>Accetta i certificati di <a href="https://10.11.247.129:9443" target="_blank" class="text-cyan-400 underline">https://10.11.247.129:9443</a> e, se hai modificato /etc/hosts, <a href="https://transcendence.be:9443" target="_blank" class="text-cyan-400 underline">https://transcendence.be:9443</a></strong><br><br>
+      <strong>Accetta i certificati di <span id="host-link-placeholder"></span> e, se hai modificato /etc/hosts, <a href="https://transcendence.be:9443" target="_blank" class="text-cyan-400 underline">https://transcendence.be:9443</a></strong><br><br>
+      <script>
+        (function(){
+          var host = window.__HOST_ID__ || window.location.hostname || '10.11.247.129';
+          var url = 'https://' + host + ':9443';
+          var a = document.createElement('a');
+          a.href = url;
+          a.target = '_blank';
+          a.className = 'text-cyan-400 underline';
+          a.textContent = url;
+          var placeholder = document.getElementById('host-link-placeholder');
+          if (placeholder) placeholder.appendChild(a);
+        })();
+      </script>
             <strong>Limitazioni senza configurazione:</strong><br>
             • Google OAuth potrebbe non funzionare<br>
+            • Le immagini del profilo potrebbero non essere visualizzate correttamente<br>
           </p>
           <button id="dismissHostWarning" class="mt-2 text-yellow-400 hover:text-yellow-300 text-xs underline">
             Nascondi avviso
@@ -67,4 +81,23 @@
     const ip = window.location.hostname;
     hostConfigCommand.textContent = `echo "${ip} transcendence.be transcendence.fe" | sudo tee -a /etc/hosts`;
   }
+  // Also populate the host link placeholder (ensures the IP link is always visible)
+  (function(){
+    try {
+      const placeholder = document.getElementById('host-link-placeholder');
+      if (!placeholder) return;
+      const existing = placeholder.querySelector('a');
+      if (existing) return; // already populated
+      const ip = window.location.hostname || '10.11.247.129';
+      const url = 'https://' + ip + ':9443';
+      const a = document.createElement('a');
+      a.href = url;
+      a.target = '_blank';
+      a.className = 'text-cyan-400 underline';
+      a.textContent = url;
+      placeholder.appendChild(a);
+    } catch (e) {
+      console.error('Failed to render host link placeholder:', e);
+    }
+  })();
 </script>

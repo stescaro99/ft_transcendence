@@ -4,8 +4,11 @@
 -FRONTEND
     -tutte le pagine devono usare CSS Tailwind (game.css e' in CSS puro)
 
--CUSTOMIZATION:
-    -deve essere possibile giocare senza power up in ogni modalita' di gioco
+-TRADUZIONI:
+    -traduzione delle pagine di multiplayer e stats
 
 
 TESTING GENERALE
+
+problematiche:
+    -salvare le partite online nel db da ambo le parti

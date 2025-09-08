@@ -77,9 +77,7 @@ export class UserService {
 
 
 	async takeUserFromApi(nick: string): Promise<any> {
-		const apiEnv = import.meta.env.VITE_BACKEND_URL;
-		const baseUrl = apiEnv || environment.apiUrl;
-		const url = `${baseUrl}/get_user?nickname=${encodeURIComponent(nick)}`;
+		const url = `${environment.apiUrl}/get_user?nickname=${encodeURIComponent(nick)}`;
 
 		console.log('[UserService] 🌐 URL chiamato:', url);
 

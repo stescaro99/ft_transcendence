@@ -222,6 +222,25 @@ export class LogInPage{
 				commandElement.textContent = config.setupCommand.linux;
 			}
 
+			// Populate the host link placeholder so the IP link is visible
+			try {
+				const placeholder = document.getElementById('host-link-placeholder');
+				if (placeholder) {
+					// If config provides hostId use it, otherwise use current hostname
+					const host = config.hostId || window.location.hostname || '10.11.247.129';
+					// Clear any existing content
+					placeholder.innerHTML = '';
+					const a = document.createElement('a');
+					a.href = `https://${host}:9443`;
+					a.target = '_blank';
+					a.className = 'text-cyan-400 underline';
+					a.textContent = `https://${host}:9443`;
+					placeholder.appendChild(a);
+				}
+			} catch (e) {
+				console.error('Failed to populate host link placeholder:', e);
+			}
+
 			// Mostra l'avviso
 			warningElement.classList.remove('hidden');
 
