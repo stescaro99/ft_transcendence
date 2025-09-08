@@ -83,8 +83,13 @@ export async function login(request: FastifyRequest, reply: FastifyReply) {
 	const { nickname, password } = request.body as { nickname: string; password: string };
 
 	try {
-		const user = await User.findOne({ where: { nickname } });
-		if (!user || !(await bcrypt.compare(password, user.password))) {
+		let user = await User.findOne({ where: { nickname } });
+		let foundBy: 'nickname' | 'none' = 'none';
+		if (user) foundBy = 'nickname';
+		console.log(`[auth] login attempt for '${nickname}' - foundBy=${foundBy} userId=${user ? user.id : 'none'}`);
+		const passwordMatches = user ? await bcrypt.compare(password, user.password) : false;
+		console.log(`[auth] passwordMatches=${passwordMatches} for userId=${user ? user.id : 'none'}`);
+		if (!user || !passwordMatches) {
 			reply.code(401).send({ error: 'Invalid credentials' });
 			return;
 		}

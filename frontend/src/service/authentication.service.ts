@@ -42,10 +42,20 @@ export class AuthenticationService {
 			},
 			body: JSON.stringify({ nickname, password }),
 		});
+		// Read response body to provide better debug info on failures
+		const text = await response.text();
 		if (!response.ok) {
-			throw new Error('Network response was not ok');
+			let message = text;
+			try {
+				const parsed = JSON.parse(text);
+				if (parsed && parsed.error) message = parsed.error;
+			} catch (e) {
+				// not JSON, keep raw text
+			}
+			console.error('[AuthenticationService] loginUserToApi failed', response.status, message);
+			throw new Error(`Login failed: ${response.status} - ${message}`);
 		}
-		const result = await response.json();
+		const result = text ? JSON.parse(text) : {};
 		if (result.token) {
 			sessionStorage.setItem('token', result.token);
 		}

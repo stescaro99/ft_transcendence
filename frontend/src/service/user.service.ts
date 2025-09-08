@@ -162,11 +162,12 @@ export class UserService {
 		const body = JSON.stringify({
 			nickname: nickname,
 		});
+		const token = sessionStorage.getItem('token');
+		const headers: any = { 'Content-Type': 'application/json' };
+		if (token) headers['Authorization'] = `Bearer ${token}`;
 		const response = await fetch(url, {
 			method: 'DELETE',
-			headers: {
-				'Content-Type': 'application/json',
-			},
+			headers: headers,
 			body: body,
 		});
 		if (!response.ok) {

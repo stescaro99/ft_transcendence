@@ -31,6 +31,16 @@ export class IdentificationPage {
 private handleSubmit(event: Event) {
 	console.log('button');
 	event.preventDefault();
+	// Read values directly from form inputs at submit time to avoid relying on blur events
+	const nicknameInput = document.getElementById('nicknameInput') as HTMLInputElement;
+	const passwordInput = document.getElementById('passwordInput') as HTMLInputElement;
+	const nameInput = document.getElementById('nameInput') as HTMLInputElement;
+	const surnameInput = document.getElementById('surnameInput') as HTMLInputElement;
+	if (nicknameInput) this.user.nickname = nicknameInput.value.trim();
+	if (passwordInput) this.user.password = passwordInput.value.trim();
+	if (nameInput) this.user.name = nameInput.value.trim();
+	if (surnameInput) this.user.surname = surnameInput.value.trim();
+
 	this.userService.postUserToApi(this.user)
 	.then((response) => {
 		console.log('User saved successfully:', response);
