@@ -41,6 +41,11 @@ export class MultiplayerService {
 		this.socket = new WebSocket(wsUrl);
 
 		this.socket.onopen = () => {
+			// NEW: invia nickname per riconnessione
+			const nickname = sessionStorage.getItem('nickname');
+			if (nickname) {
+				this.socket?.send(JSON.stringify({ type: 'reconnect', nickname }));
+			}
 			this.startHeartbeat();
 		};
 
@@ -145,7 +150,6 @@ export class MultiplayerService {
 					timestamp: input.timestamp
 				}
 			};
-			console.log("[MultiplayerService] Messaggio completo:", JSON.stringify(message));
 			this.socket.send(JSON.stringify(message));
 		} else {
 			console.error("[MultiplayerService] Impossibile inviare input:", {
@@ -183,6 +187,11 @@ export class MultiplayerService {
 
 	onWaitingForPlayers(cb: (data: any) => void) {
 		this.waitingCallback = cb;
+	}
+
+	// NEW: Metodo per controllare se connesso
+	isConnected(): boolean {
+		return !!(this.socket && this.socket.readyState === WebSocket.OPEN);
 	}
 }
 

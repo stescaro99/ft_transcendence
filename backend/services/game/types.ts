@@ -5,6 +5,9 @@ export interface Player {
   nickname: string;
   socket: any; // WebSocket o connection object di Fastify
   ready: boolean;
+  online : boolean;
+  lastHeartbeat: number;
+  currentRoomId?: string;
 }
 
 export interface GameRoom {
@@ -60,6 +63,7 @@ export interface GameState {
   waitingForStart: boolean;
   maxScore: number;
   paddleSpeed: number;
+  countdownEndTime?: number;  // NEW: Timestamp per countdown indipendente
 }
 
 export interface GameConstants {

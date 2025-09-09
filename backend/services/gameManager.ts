@@ -7,7 +7,7 @@ import { HeartbeatManager } from './game/heartbeat';
 import Game from '../models/game';
 import { saveGameAndStats } from './game/gameResult';
 
-class GameManager {
+export class GameManager {
   public roomManager: RoomManager = new RoomManager();
   private heartbeatManager: HeartbeatManager;
   private waitingPlayers: Player[] = [];
@@ -217,22 +217,18 @@ class GameManager {
     const playerSide = this.roomManager.getPlayerSide(room, player);
     const paddleIndex = this.roomManager.getPlayerPaddleIndex(room, player);
     
-    console.log(`[GameManager] Player ${player.nickname} side: ${playerSide}, direction: ${validatedDirection}`);
-    
     if (room.type === 'two') {
-        if (playerSide === 'left') {
-            // CAMBIA: assegna direttamente invece di aggiungere
-            room.gameState.leftPaddle[0].dy = validatedDirection * room.gameState.leftPaddle[0].speed;
-        } else if (playerSide === 'right') {
-            room.gameState.rightPaddle[0].dy = validatedDirection * room.gameState.rightPaddle[0].speed;
-        }
+      if (playerSide === 'left') {
+        room.gameState.leftPaddle[0].dy = validatedDirection * room.gameState.leftPaddle[0].speed;
+      } else if (playerSide === 'right') {
+        room.gameState.rightPaddle[0].dy = validatedDirection * room.gameState.rightPaddle[0].speed;
+      }
     } else {
-        // Logica per 4 giocatori
-        if (playerSide === 'left') {
-            room.gameState.leftPaddle[paddleIndex].dy = validatedDirection * room.gameState.leftPaddle[paddleIndex].speed;
-        } else {
-            room.gameState.rightPaddle[paddleIndex].dy = validatedDirection * room.gameState.rightPaddle[paddleIndex].speed;
-        }
+      if (playerSide === 'left') {
+        room.gameState.leftPaddle[paddleIndex].dy = validatedDirection * room.gameState.leftPaddle[paddleIndex].speed;
+      } else {
+        room.gameState.rightPaddle[paddleIndex].dy = validatedDirection * room.gameState.rightPaddle[paddleIndex].speed;
+      }
     }
   }
 
@@ -349,6 +345,28 @@ class GameManager {
     } else {
       return playerIndex < 2 ? 'left' : 'right';
     }
+  }
+
+  handlePlayerDisconnection(playerId: string): void {
+    console.log(`Player ${playerId} disconnected`);
+    const activeRooms = this.roomManager.getAllRooms();
+    activeRooms.forEach(room => {
+      if (room.players.some(p => p.id === playerId)) {
+        this.roomManager.setPlayerOffline(room.id, playerId);
+      }
+    });
+  }
+
+  handlePlayerReconnection(nickname: string, newSocket: any): Player | null {
+    const activeRooms = this.roomManager.getAllRooms();
+    for (const room of activeRooms) {
+      const reconnectedPlayer = this.roomManager.reconnectPlayer(room.id, nickname, newSocket);
+      if (reconnectedPlayer) {
+        this.syncClientState(room.id, reconnectedPlayer.id);
+        return reconnectedPlayer;
+      }
+    }
+    return null;
   }
 }
 

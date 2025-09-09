@@ -42,6 +42,8 @@ export class RoomManager {
     }
 
     room.players.push(player);
+    // NEW: Imposta currentRoomId sul player quando si unisce
+    player.currentRoomId = roomId;
     return true;
   }
 
@@ -49,16 +51,25 @@ export class RoomManager {
     const room = this.rooms.get(roomId);
     if (!room) return;
 
+    // NEW: Reset currentRoomId prima di rimuovere il player
+    const player = room.players.find(p => p.id === playerId);
+    if (player) {
+        player.currentRoomId = undefined;
+        console.log(`[RoomManager] Reset currentRoomId per player ${player.nickname} - roomId: ${roomId}`);
+    }
+
     room.players = room.players.filter(p => p.id !== playerId);
     
     if (room.players.length === 0) {
-      this.rooms.delete(roomId);
+        this.rooms.delete(roomId);
+        console.log(`[RoomManager] Stanza ${roomId} eliminata (nessun player rimasto)`);
     } else {
-      if (room.isActive) {
-        room.isActive = false;
+        if (room.isActive) {
+            room.isActive = false;
+            console.log(`[RoomManager] Stanza ${roomId} marcata come non attiva`);
         }
     }
-    }
+}
 
   findMatch(player: Player, gameType: 'two' | 'four' = 'two', opts?: { powerUpsEnabled?: boolean }): string | null {
     console.log('[RoomManager] findMatch called for:', player.nickname, 'gameType:', gameType);
@@ -66,20 +77,20 @@ export class RoomManager {
     
     // Prima cerca una room esistente
     for (const [roomId, room] of this.rooms) {
-      console.log('[RoomManager] Checking room:', roomId, {
-        type: room.type,
-        playersCount: room.players.length,
-        maxPlayers: room.maxPlayers,
-        isActive: room.isActive
-      });
-      if (room.type === gameType && 
-          (typeof opts?.powerUpsEnabled === 'undefined' || room.powerUpsEnabled === (opts?.powerUpsEnabled !== false)) &&
-           room.players.length < room.maxPlayers && 
-           !room.isActive) {
-        console.log('[RoomManager] Found existing room:', roomId);
-        this.addPlayerToRoom(roomId, player);
-        return roomId;
-      }
+        console.log('[RoomManager] Checking room:', roomId, {
+            type: room.type,
+            playersCount: room.players.length,
+            maxPlayers: room.maxPlayers,
+            isActive: room.isActive
+        });
+        if (room.type === gameType && 
+            (typeof opts?.powerUpsEnabled === 'undefined' || room.powerUpsEnabled === (opts?.powerUpsEnabled !== false)) &&
+            room.players.length < room.maxPlayers && 
+            !room.isActive) {  // Assicurati che la stanza sia attiva
+            console.log('[RoomManager] Found existing room:', roomId);
+            this.addPlayerToRoom(roomId, player);
+            return roomId;
+        }
     }
 
     // Nessuna room disponibile, crea una nuova
@@ -269,5 +280,46 @@ private randomizePowerUp(gameState: GameState): void
             gameState.powerUp.color = "#ffff00"; // giallo
             break;
     }
+  }
+
+  // NEW: metodo per segnare un player come offline
+  setPlayerOffline(roomId: string, playerId: string): void {
+    const room = this.rooms.get(roomId);
+    if (!room) return;
+    const player = room.players.find(p => p.id === playerId);
+    if (player) {
+      player.online = false;
+      console.log(`Player ${player.nickname} marked as offline in room ${roomId}`);
+    }
+  }
+
+  // NEW: metodo per segnare un player come online (riconnessione)
+  setPlayerOnline(roomId: string, playerId: string): void {
+    const room = this.rooms.get(roomId);
+    if (!room) return;
+    const player = room.players.find(p => p.id === playerId);
+    if (player) {
+      player.online = true;
+      console.log(`Player ${player.nickname} reconnected and marked as online in room ${roomId}`);
+    }
+  }
+
+  // NEW: metodo per riassociare un player riconnesso alla room esistente
+  reconnectPlayer(roomId: string, nickname: string, newSocket: WebSocket): Player | null {
+    const room = this.rooms.get(roomId);
+    if (!room) return null;
+    
+    // NEW: Controlla se la stanza è attiva prima di riconnettere
+    if (!room.isActive) return null;
+    
+    const existingPlayer = room.players.find(p => p.nickname === nickname && !p.online);
+    if (existingPlayer) {
+      existingPlayer.socket = newSocket;
+      existingPlayer.online = true;
+      existingPlayer.lastHeartbeat = Date.now();
+      console.log(`Player ${nickname} reconnected to room ${roomId}`);
+      return existingPlayer;
+    }
+    return null;
   }
 }

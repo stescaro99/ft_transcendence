@@ -25,13 +25,28 @@ export async function handleWebSocketConnection(connection: any, req: FastifyReq
     }
   }
 
-  const player: Player = {
-    id: Math.random().toString(36).substring(2),
-    nickname: authenticatedUser?.nickname || authenticatedUser?.username || '',
-    socket: connection,
-    ready: false
-  };
+  let player: Player | null = null;
 
+  if (authenticatedUser?.nickname) {
+    const reconnected = gameManager.handlePlayerReconnection(authenticatedUser.nickname, connection);
+    if (reconnected) {
+      player = reconnected;
+    }
+  }
+
+  if (!player) {
+    player = {
+      id: Math.random().toString(36).substring(2),
+      nickname: authenticatedUser?.nickname || authenticatedUser?.username || '',
+      socket: connection,
+      ready: false,
+      online: true,
+      lastHeartbeat: Date.now(),
+      currentRoomId: authenticatedUser?.current_room || undefined 
+    };
+  }
+
+  // Ora 'player' è sicuramente assegnato, puoi usarlo
   console.log(`Player ${player.id} connected with nickname: ${player.nickname}`);
   connection.send(JSON.stringify({
     type: 'connected',
@@ -69,8 +84,6 @@ function handlePlayerMessage(player: Player, message: any) {
         handleCreateRoom(player, data);
         break;
       case 'playerInput':
-        console.log('[WebSocket] 📨 Ricevuto messaggio playerInput');
-        console.log('[WebSocket] Dati completi:', JSON.stringify(data, null, 2));
         handlePlayerInputWithValidation(player, data);
         break;
       case 'playerReady':
@@ -127,8 +140,28 @@ function handleJoinRoom(player: Player, data: any) {
 }
 
 function handleFindMatch(player: Player, data: any) {
-  console.log('[WebSocket] handleFindMatch called for player:', player.nickname, 'gameType:', data.gameType);
-  const powerUpsEnabled = data?.options?.powerUp !== 'off';
+    console.log('[WebSocket] handleFindMatch called for player:', player.nickname, 'gameType:', data.gameType);
+    
+    // DEBUG: Log per tracciare currentRoomId e stato stanza
+    console.log('[WebSocket] DEBUG - currentRoomId:', player.currentRoomId);
+    const existingRoom = gameManager.getRoomInfo(player.currentRoomId || '');
+    console.log('[WebSocket] DEBUG - existingRoom:', existingRoom ? { id: existingRoom.id, isActive: existingRoom.isActive } : 'null');
+    
+    if (existingRoom && existingRoom.isActive && existingRoom.players.some(p => p.id === player.id && !p.online)) {
+        console.log('[WebSocket] Tentativo riconnessione alla stanza attiva:', existingRoom.id);
+        const reconnected = gameManager.handlePlayerReconnection(player.nickname, player.socket);
+        if (reconnected) {
+            console.log('[WebSocket] Riconnessione riuscita');
+            return;
+        } else {
+            console.log('[WebSocket] Riconnessione fallita - stanza non valida o player non trovato');
+        }
+    } else {
+        console.log('[WebSocket] Nessuna stanza attiva trovata per riconnessione');
+    }
+    
+    // Procedi con ricerca normale
+    const powerUpsEnabled = data?.options?.powerUp !== 'off';
   const result = gameManager.findMatch(player, data.gameType || 'two', { powerUpsEnabled });
   console.log('[WebSocket] findMatch result:', result);
 
@@ -137,7 +170,6 @@ function handleFindMatch(player: Player, data: any) {
     const room = gameManager.getRoomInfo(result.roomId);
     if (result.isRoomFull && room)
     {
-      // Room è piena, invia matchFound a tutti i giocatori
       console.log(`[MatchMaking] Room ${result.roomId} è piena, avviando partita per ${room.players.length} giocatori`);
       room.players.forEach(p => {
         sendToPlayer(p, {
@@ -226,17 +258,11 @@ function handleLeaveRoom(player: Player, data: any) {
 
 async function handlePlayerDisconnection(player: Player, authenticatedUser?: any) {
   console.log(`Player ${player.id} (${player.nickname}) disconnected`);
+  // MODIFICA: chiama handlePlayerDisconnection invece di rimuovere dalla room
+  gameManager.handlePlayerDisconnection(player.id);
   if (authenticatedUser?.nickname) {
     await updateUserOnlineStatus(authenticatedUser.nickname, false);
-    await updateUserCurrentRoom(authenticatedUser.nickname, null);
   }
-  
-  const activeRooms = gameManager.getActiveRooms();
-  activeRooms.forEach(room => {
-    if (room.players.some(p => p.id === player.id)) {
-      gameManager.removePlayerFromRoom(room.id, player.id);
-    }
-  });
 }
 
 async function updateUserOnlineStatus(nickname: string, online: boolean): Promise<void> {

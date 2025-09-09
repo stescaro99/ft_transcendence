@@ -9,6 +9,9 @@ export class RemoteController {
     private animationFrameId: number | null = null;
     private stopped: boolean = false;
 
+    // NEW: Aggiungi flag per tracciare disconnessione
+    private isDisconnected = false;
+
     constructor(canvasId: string, initialState: GameState) {
         this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
         this.ctx = this.canvas.getContext('2d')!;
@@ -17,6 +20,7 @@ export class RemoteController {
         this.setupListeners();
         this.setupInput();
         this.gameLoop();
+        this.setupDisconnectionListener(); // NEW: Inizializza listener disconnessione
     }
 
     public stop() {
@@ -54,9 +58,24 @@ export class RemoteController {
         });
     }
 
+    // NEW: Aggiungi metodo per ascoltare la disconnessione
+    private setupDisconnectionListener() {
+        window.addEventListener('beforeunload', () => {
+            this.isDisconnected = true;
+        });
+        // O usa un evento dal service
+        multiplayerService.socket?.addEventListener('close', () => {
+            this.isDisconnected = true;
+        });
+    }
+
     private gameLoop = () => {
-        if (this.stopped)
-            return;
+        if (this.stopped) return;
+
+        // MODIFICA: Usa il nuovo metodo per controllare connessione
+        const isOnline = multiplayerService.isConnected();
+        if (!isOnline) return; // Ferma input solo se disconnesso
+
         let direction = "stop";
         if (this.keys["w"] && this.keys["s"]) {
             direction = "stop";
@@ -70,7 +89,6 @@ export class RemoteController {
             direction,
             timestamp: Date.now()
         });
-
         this.animationFrameId = requestAnimationFrame(this.gameLoop);
     }
 
@@ -127,13 +145,20 @@ export class RemoteController {
     }
 
     private draw(state: GameState) {
-        // Verifica fine partita
+        // Fine partita
         if (state.scoreLeft >= state.maxScore || state.scoreRight >= state.maxScore) {
             this.stop();
-            const winner =
-                state.scoreLeft >= state.maxScore
-                    ? state.leftPaddle[0].nickname
-                    : state.rightPaddle[0].nickname;
+            
+            // MODIFICA: Migliora controllo disconnessione con flag esplicito
+            const isOnline = multiplayerService.isConnected();
+            if (!isOnline || this.isDisconnected) {  // NEW: Aggiungi flag isDisconnected
+                console.log('[RemoteController] Player disconnesso, non mostrare schermata vittoria');
+                return;
+            }
+            
+            const winner = state.scoreLeft >= state.maxScore
+                ? state.leftPaddle[0].nickname
+                : state.rightPaddle[0].nickname;
             this.showWinOverlay(winner);
             return;
         }

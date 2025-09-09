@@ -47,6 +47,15 @@ export class GameLoop {
         return;
       }
 
+      // NEW: controlla timeout disconnessione ogni frame
+      room.players.forEach(player => {
+        if (!player.online && now - player.lastHeartbeat > 30000) { // 30 secondi
+          console.log(`Player ${player.nickname} offline too long, ending game`);
+          this.handleGameEnd(roomId, room, broadcastCallback);
+          return;
+        }
+      });
+
       frameCounter++;
       setTimeout(gameLoop, Math.max(0, frameTime - (Date.now() - now)));
     };

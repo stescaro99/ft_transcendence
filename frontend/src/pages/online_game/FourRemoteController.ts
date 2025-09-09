@@ -12,6 +12,8 @@ export class FourRemoteController {
     private mySide: "left" | "right";
     private myPaddleIndex: number; // 0 o 1
 
+    private isDisconnected = false;
+
     constructor(
         canvasId: string,
         initialState: GameState & { mySide: "left" | "right"; myPaddleIndex: number }
@@ -26,6 +28,7 @@ export class FourRemoteController {
         this.setupListeners();
         this.setupInput();
         this.gameLoop();
+        this.setupDisconnectionListener();
     }
 
     public stop() {
@@ -61,6 +64,9 @@ export class FourRemoteController {
 
     private gameLoop = () => {
         if (this.stopped) return;
+
+        const isOnline = multiplayerService.isConnected();
+        if (!isOnline) return;
 
         let direction = "stop";
         if (this.keys["w"] && this.keys["s"]) direction = "stop";
@@ -129,12 +135,58 @@ export class FourRemoteController {
         window.addEventListener("hashchange", removeOverlay, { once: true });
     }
 
+    private setupDisconnectionListener() {
+        multiplayerService.onDisconnect(() => {
+            this.isDisconnected = true;
+            this.stop();
+
+            const overlay = document.createElement("div");
+            overlay.id = "disconnectOverlay";
+            overlay.style.position = "fixed";
+            overlay.style.inset = "0";
+            overlay.style.display = "flex";
+            overlay.style.alignItems = "center";
+            overlay.style.justifyContent = "center";
+            overlay.style.background = "rgba(0,0,0,0.85)";
+            overlay.style.zIndex = "10000";
+
+            const message = document.createElement("div");
+            message.textContent = "Sei stato disconnesso dal gioco.";
+            message.style.color = "#ffffff";
+            message.style.font = "18px Arial";
+            message.style.marginBottom = "16px";
+
+            const btn = document.createElement("button");
+            btn.textContent = "Riconnetti";
+            btn.style.padding = "10px 20px";
+            btn.style.fontSize = "16px";
+            btn.style.borderRadius = "8px";
+            btn.style.border = "none";
+            btn.style.cursor = "pointer";
+            btn.style.background = "#4caf50";
+            btn.style.color = "#fff";
+            btn.style.boxShadow = "0 4px 14px rgba(0,0,0,0.45)";
+            btn.addEventListener("click", () => {
+                window.location.reload();
+            });
+
+            overlay.appendChild(message);
+            overlay.appendChild(btn);
+            document.body.appendChild(overlay);
+        });
+    }
+
     private draw(state: GameState) {
-        // Fine partita (usa maxScore inviato dal server)
         if (state.scoreLeft >= state.maxScore || state.scoreRight >= state.maxScore) {
             this.stop();
+            
+            const isOnline = multiplayerService.isConnected();
+            if (!isOnline || this.isDisconnected) {
+                console.log('[FourRemoteController] Player disconnesso, non mostrare schermata vittoria');
+                return;
+            }
+            
             const leftWin = state.scoreLeft >= state.maxScore;
-            // Etichetta vincitori: unisci i nickname dei due paddle del lato vincente
             const winners = leftWin
                 ? state.leftPaddle.map(p => p.nickname).join(" & ")
                 : state.rightPaddle.map(p => p.nickname).join(" & ");

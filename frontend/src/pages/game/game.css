@@ -231,19 +231,3 @@ canvas[style*="display: block"] ~ #playerNames {
   position: relative;
   background: #111;
 }
-
-.game-wrapper[data-phase="setup"] {
-  pointer-events: none;
-}
-.game-wrapper[data-phase="playing"] {
-  pointer-events: auto;
-}
-/* Garantisce che la schermata di setup sia in cima finché visibile */
-.screen.visible {
-  z-index: 20;
-  position: relative;
-}
-.game-wrapper {
-  z-index: 10;
-  position: relative;
-}

@@ -3,7 +3,19 @@ import { GAME_CONSTANTS } from './types';
 
 export class GamePhysics {
   static updateGameStateWithDelta(gameState: GameState, deltaTime: number): void {
-    if (gameState.waitingForStart) return;
+    if (gameState.waitingForStart) {
+      // NEW: Controlla se il countdown è finito indipendentemente dal client
+      if ((gameState as any).countdownEndTime && Date.now() >= (gameState as any).countdownEndTime) {
+        gameState.waitingForStart = false;
+        // Imposta direzione iniziale se non già impostata
+        if (gameState.ball.dx === 0) {
+          gameState.ball.dx = 5;
+          gameState.ball.dy = 5;
+        }
+        console.log('[Physics] Countdown finito automaticamente, palla avviata');
+      }
+      return;
+    }
     
     this.handleBallMovement(gameState);
     this.handlePowerUpCollision(gameState);
@@ -232,23 +244,28 @@ export class GamePhysics {
     gameState.ball.y = GAME_CONSTANTS.CANVAS_HEIGHT / 2;
 
     gameState.leftPaddle.forEach(p => {
-      p.y = GAME_CONSTANTS.CANVAS_HEIGHT / 2 - p.height / 2;
-      p.dy = 0;
+        p.y = GAME_CONSTANTS.CANVAS_HEIGHT / 2 - p.height / 2;
+        p.dy = 0;
     });
 
     gameState.rightPaddle.forEach(p => {
-      p.y = GAME_CONSTANTS.CANVAS_HEIGHT / 2 - p.height / 2;
-      p.dy = 0;
+        p.y = GAME_CONSTANTS.CANVAS_HEIGHT / 2 - p.height / 2;
+        p.dy = 0;
     });
 
-    setTimeout(() => {
-      gameState.ball.dx = x === 0 ? 5 : -5;
-      gameState.ball.dy = 5;
-      gameState.waitingForStart = false;
-    }, 1000);
-  }
+    // NEW: Aggiungi timestamp per countdown indipendente dal client
+    (gameState as any).countdownEndTime = Date.now() + 1000;
+    console.log('[Physics] Countdown end time set:', (gameState as any).countdownEndTime);
 
-  static randomizePowerUp(gameState: GameState): void {
+    setTimeout(() => {
+        gameState.ball.dx = x === 0 ? 5 : -5;
+        gameState.ball.dy = 5;
+        gameState.waitingForStart = false;
+        console.log('[Physics] Countdown finito, palla avviata');
+    }, 1000);
+}
+
+static randomizePowerUp(gameState: GameState): void {
     const rectWidth = GAME_CONSTANTS.CANVAS_WIDTH / 2;
     const rectHeight = GAME_CONSTANTS.CANVAS_HEIGHT / 2;
     const rectX = GAME_CONSTANTS.CANVAS_WIDTH / 4;
