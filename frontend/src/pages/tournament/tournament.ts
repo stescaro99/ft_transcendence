@@ -256,15 +256,17 @@ export class TournamentPage {
             const currentGame = currentRound.games[currentIndex];
             console.log(`Starting ${currentRound.roundName} - Game ${currentIndex + 1}: ${currentGame[0]} vs ${currentGame[1]}`);
             
-            // Salva che siamo in modalità torneo
             sessionStorage.setItem('tournamentMode', 'true');
             sessionStorage.setItem('currentGameIndex', currentIndex.toString());
             sessionStorage.setItem('currentRound', this.tournament.currentRound.toString());
-            
-            // Usa il formato che già funziona nel router
-            window.location.hash = `#/game?${encodeURIComponent(currentGame[0])}_${encodeURIComponent(currentGame[1])}`;
+
+            // NEW: passa i nomi tramite sessionStorage (evita problemi col router)
+            sessionStorage.setItem('tournamentP1', currentGame[0]);
+            sessionStorage.setItem('tournamentP2', currentGame[1]);
+
+            // Hash minimale così il router non rompe
+            window.location.hash = '#/game?players=2';
         } else {
-            // Round completato
             this.completeCurrentRound();
         }
     }
@@ -651,8 +653,7 @@ private checkTournamentContinuation() {
         for (let i = shuffled.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-        }
-
+        } 
         return shuffled;
     }
 }

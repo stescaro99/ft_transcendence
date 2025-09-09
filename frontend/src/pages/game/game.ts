@@ -25,18 +25,50 @@ export class GamePage {
 	private powerUpsEnabled: boolean = true;
 
 	constructor(lang: string, fromPage: string, player1 : string, player2 : string) {
+        if (player1 === undefined || player2 === undefined) {
+            player1 = sessionStorage.getItem('nickname') || "Player 1";
+            player2 = "Player 2";
+        }
+        this.players.push(player1, player2);
+        this.currentLang = lang;
+        this.fromPage = fromPage;
 
-		if (player1 === undefined || player2 === undefined) {
-			player1 = sessionStorage.getItem('nickname') || "Player 1";
-			player2 = "Player 2";
-		}
-		this.players.push(player1, player2);
-		console.log('Players initialized:', this.players);
-		this.currentLang = lang;
-		this.fromPage = fromPage;
-		this.render();
-		this.setTheme('game');
-  	}
+        this.parsePlayersFromHash();
+
+        // NEW: override da sessionStorage se torneo
+        if (sessionStorage.getItem('tournamentMode') === 'true') {
+            const tp1 = sessionStorage.getItem('tournamentP1');
+            const tp2 = sessionStorage.getItem('tournamentP2');
+            if (tp1) this.players[0] = tp1;
+            if (tp2) this.players[1] = tp2;
+        }
+
+        this.render();
+        this.setTheme('game');
+      }
+
+    private parsePlayersFromHash() {
+        try {
+            const qs = window.location.hash.split('?')[1] || '';
+            if (!qs) return;
+            const params = new URLSearchParams(qs);
+            const n1 = params.get('n1');
+            const n2 = params.get('n2');
+            if (n1) this.players[0] = decodeURIComponent(n1);
+            if (n2) this.players[1] = decodeURIComponent(n2);
+
+            // Legacy (#/game?NomeA_NomeB)
+            if (!n1 && !n2 && !qs.includes('=')) {
+                const parts = qs.split('_');
+                if (parts.length >= 2) {
+                    this.players[0] = decodeURIComponent(parts[0]);
+                    this.players[1] = decodeURIComponent(parts.slice(1).join('_'));
+                }
+            }
+        } catch (e) {
+            console.warn('parsePlayersFromHash failed', e);
+        }
+    }
 
 
 	private getLang() {
@@ -44,210 +76,193 @@ export class GamePage {
 	}
   
 	private render() {
+        const params = new URLSearchParams(window.location.hash.split('?')[1]);
+        const players = params.get('players');
+        const container = document.getElementById('app');
 
-		const params = new URLSearchParams(window.location.hash.split('?')[1]);
-		const players = params.get('players');
-		const container = document.getElementById('app');
+        console.log("[GamePage] render(), players param =", players, "this.players =", this.players);
+        if (!container) return;
 
-		console.log("Rendering GamePage with players:", players);
-		if (!container) 
-		  return;
+        const translation = new TranslationService(this.currentLang);
+        if (players === '4') {
+            container.innerHTML = translation.translateTemplate(gameFourHtml);
+        } else {
+            container.innerHTML = translation.translateTemplate(gameTwoHtml);
+        }
 
-		const translation = new TranslationService(this.currentLang);
-		console.log("Language is: ", this.currentLang);
-		if (players === '4') {
-			const translatedHtml = translation.translateTemplate(gameFourHtml);
-			container.innerHTML = translatedHtml;
-		} else {
-			const translatedHtml = translation.translateTemplate(gameTwoHtml);
-			container.innerHTML = translatedHtml;
-		}
+        const screen = container.querySelector('.screen');
+        if (screen) screen.classList.add('visible');
 
-  		const screen = container.querySelector('.screen');
-		if (screen) screen.classList.add('visible');
+        // Blocca interazioni sulla game-wrapper finché non parte il gioco
+        const gameWrapper = container.querySelector('.game-wrapper') as HTMLElement | null;
+        if (gameWrapper) {
+            gameWrapper.style.pointerEvents = 'none';
+            gameWrapper.setAttribute('data-phase', 'setup');
+        }
 
-		// Palette colori
-		const preview1 = document.getElementById("Preview1") as HTMLDivElement;
-		const preview2 = document.getElementById("Preview2") as HTMLDivElement;
-		const preview3 = document.getElementById("Preview3") as HTMLDivElement;
-		const preview4 = document.getElementById("Preview4") as HTMLDivElement;
+        try {
+            // Palette colori
+            const preview1 = document.getElementById("Preview1") as HTMLDivElement | null;
+            const preview2 = document.getElementById("Preview2") as HTMLDivElement | null;
+            const preview3 = document.getElementById("Preview3") as HTMLDivElement | null;
+            const preview4 = document.getElementById("Preview4") as HTMLDivElement | null;
 
-		const paletteContainers = container.querySelectorAll(".palette");
-		paletteContainers.forEach((palette) => {
-		  palette.innerHTML = "";
-		  const player = (palette as HTMLElement).dataset.player!;
-		  this.colors.forEach((color) => {
-			const btn = document.createElement("button");
-			btn.style.backgroundColor = color;
-			btn.setAttribute("data-color", color);
-			btn.addEventListener("click", () => {
-			  if (player === "1" || player === "3") {
-				this.Team1Color = color;
-				if (preview1) preview1.style.backgroundColor = color;
-				if (preview3) preview3.style.backgroundColor = color;
-			  } else {
-				this.Team2Color = color;
-				if (preview2) preview2.style.backgroundColor = color;
-				if (preview4) preview4.style.backgroundColor = color;
-			  }
-			  (palette as HTMLElement)
-				.querySelectorAll("button")
-				.forEach((b) => b.classList.remove("selected"));
-			  btn.classList.add("selected");
-			});
-			palette.appendChild(btn);
-		  });
-		});
+            const paletteContainers = container.querySelectorAll(".palette");
+            paletteContainers.forEach((palette) => {
+                palette.innerHTML = "";
+                const player = (palette as HTMLElement).dataset.player || "";
+                this.colors.forEach((color) => {
+                    const btn = document.createElement("button");
+                    btn.style.backgroundColor = color;
+                    btn.setAttribute("data-color", color);
+                    btn.addEventListener("click", () => {
+                        if (player === "1" || player === "3") {
+                            this.Team1Color = color;
+                            if (preview1) preview1.style.backgroundColor = color;
+                            if (preview3) preview3.style.backgroundColor = color;
+                        } else {
+                            this.Team2Color = color;
+                            if (preview2) preview2.style.backgroundColor = color;
+                            if (preview4) preview4.style.backgroundColor = color;
+                        }
+                        (palette as HTMLElement)
+                            .querySelectorAll("button")
+                            .forEach((b) => b.classList.remove("selected"));
+                        btn.classList.add("selected");
+                    });
+                    palette.appendChild(btn);
+                });
+            });
 
-		const usernick = document.getElementById("nickname");
-		if (usernick) {
-			usernick.textContent = this.players[0];
-			console.log("Updated nickname to:", this.players[0]);
-		} else {
-			console.log("Nickname element not found or user has no nickname");
-			console.log("usernick element:", usernick);
-			console.log("user nickname:", this.players[0]);
-		}
+            // Nicknames
+            const usernick = document.getElementById("nickname");
+            if (usernick) usernick.textContent = this.players[0];
 
-		const play_two = document.getElementById("play2");
-		if (play_two) {
-			play_two.textContent = this.players[1];
-			if (this.players[1].split(" ")[0] !== "Player"){
-				const botBtn = document.getElementById("addBotBtn0");
-				if (botBtn) botBtn.classList.add(' pointer-events-none');
-			}
-			console.log("Updated play_two to:", this.players[1]);
-		} else {
-			console.log("play_two element not found or user has no nickname");
-			console.log("play_two element:", play_two);
-			console.log("play_two nickname:", this.players[1]);
-		}
+            const play_two = document.getElementById("play2");
+            if (play_two) {
+                play_two.textContent = this.players[1];
+                if (this.players[1] && this.players[1].split(" ")[0] !== "Player") {
+                    const botBtn = document.getElementById("addBotBtn0");
+                    if (botBtn) botBtn.classList.add('pointer-events-none', 'opacity-60');
+                }
+            }
 
-		// Bot buttons
-		for (let i = 0; i < 4; i++) {
-		const btn = document.getElementById(`addBotBtn${i}`);
-		if (btn) {
-			btn.addEventListener("click", () => {
-				const newState = !getBotActive(i);
-				setBotActive(i, newState);
-				
-				// Gestione classi Tailwind per bot attivo
-				if (newState) {
-					btn.classList.remove("bg-black", "text-white", "hover:bg-gray-900", "hover:text-cyan-400");
-					btn.classList.add("bg-green-500", "text-white");
-				} else {
-					btn.classList.remove("bg-green-500");
-					btn.classList.add("bg-black", "text-white", "hover:bg-gray-900", "hover:text-cyan-400");
-				}
+            // Bot buttons
+            for (let i = 0; i < 4; i++) {
+                const btn = document.getElementById(`addBotBtn${i}`);
+                if (btn && !btn.getAttribute('data-bound')) {
+                    btn.addEventListener("click", () => {
+                        const newState = !getBotActive(i);
+                        setBotActive(i, newState);
+                        if (newState) {
+                            btn.classList.add("bg-green-500");
+                        } else {
+                            btn.classList.remove("bg-green-500");
+                        }
+                        btn.textContent = newState
+                          ? this.getLang().game.bot_active
+                          : this.getLang().game.add_bot;
+                        this.updatePlayerNames();
+                    });
+                    btn.setAttribute('data-bound', '1');
+                }
+            }
 
-				btn.textContent = newState ? this.getLang().game.bot_active : this.getLang().game.add_bot;
-				// btn.textContent = newState ? "add bot" : "bot active";
-				
-				// Aggiorna i nomi dei giocatori
-				this.updatePlayerNames();
-			});
-		}
-	}
+            // Start buttons e canvas
+            const canvas = document.getElementById("pong") as HTMLCanvasElement;
+            const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 
-	// Start buttons
-	const canvas = document.getElementById("pong") as HTMLCanvasElement;
-	const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+            const bindStart = (el: HTMLElement | null, mode: 2 | 4) => {
+                if (!el) return;
+                if (el.getAttribute('data-bound') === '1') return;
+                el.addEventListener("click", () => {
+                    console.log("[GamePage] START click mode:", mode, "players:", this.players);
+                    this.hideScreens(); // ora esiste
+                    canvas.style.display = "block";
+                    if (gameWrapper) {
+                        gameWrapper.style.pointerEvents = 'auto';
+                        gameWrapper.setAttribute('data-phase', 'playing');
+                    }
+                    document.fonts.ready.then(() => {
+                        ctx.font = "80px Helvetica";
+                        this.startCountdown(mode, ctx, canvas);
+                    });
+                });
+                el.setAttribute('data-bound', '1');
+            };
 
-	const startBtn2 = document.getElementById("startBtn2");
-	if (startBtn2) {
-		this.injectPowerToggle(startBtn2 as HTMLElement);
-	  	startBtn2.addEventListener("click", () => {
-		this.hideScreens();
-		canvas.style.display = "block";
-		document.fonts.ready.then(() => {
-		  ctx.font = "80px Helvetica";
-		  this.startCountdown(2, ctx, canvas);
-		});
-	  });
-	}
+            bindStart(document.getElementById("startBtn2"), 2);
+            bindStart(document.getElementById("startBtn4"), 4);
 
-	const startBtn4 = document.getElementById("startBtn4");
-	if (startBtn4) {
-		this.injectPowerToggle(startBtn4 as HTMLElement);
-	  	startBtn4.addEventListener("click", () => {
-		this.hideScreens();
-		canvas.style.display = "block";
-		document.fonts.ready.then(() => {
-		  ctx.font = "80px Helvetica";
-		  this.startCountdown(4, ctx, canvas);
-		});
-		  });
-		}
-	  }
-	
-	  private injectPowerToggle(anchorEl: HTMLElement) {
-        if (document.getElementById('powerToggleBtn'))
+            this.initPowerToggle();
+        } catch (err) {
+            console.error("[GamePage] render failed:", err);
+        }
+    }
+    
+    private initPowerToggle() {
+        const btn = document.getElementById('powerToggleBtn') as HTMLButtonElement | null;
+        if (!btn) {
+            console.warn("[GamePage] powerToggleBtn not found");
             return;
-        const btn = document.createElement('button');
-        btn.id = 'powerToggleBtn';
-        btn.type = 'button';
+        }
+        if (btn.dataset.bound === '1') return;
+
         btn.textContent = this.powerUpsEnabled ? 'POWER UP ON' : 'POWER UP OFF';
-		// Stessa estetica del bottone online
-		btn.className = 'btn-large';
-		btn.style.marginLeft = '12px';
-		btn.title = 'Abilita/Disabilita power-up per questa partita';
-        anchorEl.insertAdjacentElement('afterend', btn);
-		// Stato visivo iniziale coerente con online
-		btn.classList.toggle('opacity-70', !this.powerUpsEnabled);
+        btn.classList.toggle('opacity-70', !this.powerUpsEnabled);
+
         btn.addEventListener('click', () => {
             this.powerUpsEnabled = !this.powerUpsEnabled;
             btn.textContent = this.powerUpsEnabled ? 'POWER UP ON' : 'POWER UP OFF';
-			btn.classList.toggle('opacity-70', !this.powerUpsEnabled);
+            btn.classList.toggle('opacity-70', !this.powerUpsEnabled);
+            console.log("[GamePage] powerUpsEnabled =", this.powerUpsEnabled);
         });
-      }
-
-   hideScreens() {
-	document.querySelectorAll(".screen").forEach(el => el.classList.remove("visible"));
-  }
+        btn.dataset.bound = '1';
+    }
 
   startCountdown(x: number, ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) {
-	// Mostra i nomi dei giocatori
-	const playerNameContainer = document.getElementById("playerNames");
-	if (playerNameContainer) {
-	  playerNameContainer.style.display = "flex";
-	  console.log("Showing player names for game type:", x);
-	  if (x === 2) {
-		const player1Name = document.getElementById("player1Name");
-		const player2Name = document.getElementById("player2Name");
-		if (player1Name) player1Name.textContent = this.players[0];
-		if (player2Name) player2Name.textContent = this.players[1];
-	  } else if (x === 4) {
-		const player1Name = document.getElementById("player1Name");
-		const player2Name = document.getElementById("player2Name");
-		const player3Name = document.getElementById("player3Name");
-		const player4Name = document.getElementById("player4Name");
-		
-		if (player1Name) player1Name.textContent = "Team 1 - " + this.players[0] || "P1";
-		if (player2Name) player2Name.textContent = "Team 1 - P2";
-		if (player3Name) player3Name.textContent = "Team 2 - P1";
-		if (player4Name) player4Name.textContent = "Team 2 - P2";
-	  }
-	}
+    // Mostra i nomi dei giocatori
+    const playerNameContainer = document.getElementById("playerNames");
+    if (playerNameContainer) {
+      playerNameContainer.style.display = "flex";
+      console.log("Showing player names for game type:", x);
+      if (x === 2) {
+        const player1Name = document.getElementById("player1Name");
+        const player2Name = document.getElementById("player2Name");
+        if (player1Name) player1Name.textContent = this.players[0];
+        if (player2Name) player2Name.textContent = this.players[1];
+      } else if (x === 4) {
+        const player1Name = document.getElementById("player1Name");
+        const player2Name = document.getElementById("player2Name");
+        const player3Name = document.getElementById("player3Name");
+        const player4Name = document.getElementById("player4Name");
+        
+        if (player1Name) player1Name.textContent = "Team 1 - " + this.players[0] || "P1";
+        if (player2Name) player2Name.textContent = "Team 1 - P2";
+        if (player3Name) player3Name.textContent = "Team 2 - P1";
+        if (player4Name) player4Name.textContent = "Team 2 - P2";
+      }
+    }
 
-	let countdown = 3;
-	const interval = setInterval(() => {
-	  ctx.clearRect(0, 0, canvas.width, canvas.height);
-	  ctx.fillStyle = "white";
-	  ctx.textAlign = "center";
-	  if (countdown > 0)
-		ctx.fillText(countdown.toString(), canvas.width / 2, canvas.height / 2);
-	  if (countdown === 0)
-		ctx.fillText("GO!", canvas.width / 2, canvas.height / 2);
-	  if (countdown < 0) {
-		clearInterval(interval);
-		if (x === 2) {
-		  TwoGameLoop(this.Team1Color, this.Team2Color, this.fromPage, this.players, { powerUp: this.powerUpsEnabled ? 'on' : 'off' });
+    let countdown = 3;
+    const interval = setInterval(() => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "white";
+      ctx.textAlign = "center";
+      if (countdown > 0)
+        ctx.fillText(countdown.toString(), canvas.width / 2, canvas.height / 2);
+      if (countdown === 0)
+        ctx.fillText("GO!", canvas.width / 2, canvas.height / 2);
+      if (countdown < 0) {
+        clearInterval(interval);
+        if (x === 2) {
+          TwoGameLoop(this.Team1Color, this.Team2Color, this.fromPage, this.players, { powerUp: this.powerUpsEnabled ? 'on' : 'off' });
 				} else if (x === 4) {
 					FourGameLoop(this.Team1Color, this.Team2Color, this.fromPage, this.players, { powerUp: this.powerUpsEnabled ? 'on' : 'off' });
 		}
-	  }
-	  countdown--;
-	}, 1000);
+      }
+      countdown--;
+    }, 1000);
   }
 	
 	createCanvas() {
@@ -329,4 +344,9 @@ export class GamePage {
 
 		element.dataset.theme = theme;
 	}
+
+    private hideScreens() {
+        document.querySelectorAll('.screen.visible')
+          .forEach(el => el.classList.remove('visible'));
+    }
 }
