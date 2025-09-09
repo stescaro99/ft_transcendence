@@ -1,0 +1,45 @@
+@import "../../style.css";
+
+.profile-div {
+    @apply p-3;
+}
+
+.container-shadow {
+    box-shadow: 0 0 10px var(--secondary), 0 0 40px var(--secondary);
+}
+
+.profile-container {
+    @apply text-white w-[80%] p-4 rounded-2xl
+            border-1 border-[var(--primary)];
+}
+
+.profile-element {
+    @apply p-2 flex justify-between text-2xl font-['digital'];
+}
+
+.circle-image {
+    @apply w-[200px] h-[200px] rounded-[50%] object-cover;
+}
+
+.stats-div {
+    @apply p-3
+}
+
+.stats-container { 
+    @apply text-white p-4 rounded-2xl
+            border-1 border-[var(--primary)];
+}
+
+.stats-element {
+    @apply p-2 flex justify-between text-2xl font-['digital'];
+}
+
+.lang-container {
+    @apply flex justify-center w-full;
+}
+
+.lang-btn {
+    @apply w-40 p-5 mx-3 rounded-2xl bg-[var(--primary)] text-white cursor-pointer
+            hover:bg-[var(--secondary)] transition-all duration-200 ease-linear
+            hover:shadow-[var(--shadow-glow)];
+}

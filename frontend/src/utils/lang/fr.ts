@@ -36,7 +36,9 @@ export default {
         "average_score": "Score moyen",
         "percentage_wins": "Pourcentage de victoires",
         "percentage_losses": "Pourcentage de defaites",
-        "percentage_draws": "Pourcentage de matchs nuls"
+        "percentage_draws": "Pourcentage de matchs nuls",
+        "history": "Historique",
+        "change_profile": "Modifier le profil"
     },
     game: {
         "player": "Joueur",

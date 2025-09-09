@@ -36,7 +36,9 @@ export default {
         "average_score": "Average Score",
         "percentage_wins": "Percentage of Wins",
         "percentage_losses": "Percentage of Losses",
-        "percentage_draws": "Percentage of Draws"
+        "percentage_draws": "Percentage of Draws",
+        "history": "History",
+        "change_profile": "Change Profile"
     },
     game: {
         "player": "Player",
