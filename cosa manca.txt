@@ -4,11 +4,11 @@
 -FRONTEND
     -tutte le pagine devono usare CSS Tailwind (game.css e' in CSS puro)
 
--TRADUZIONI:
-    -traduzione delle pagine di multiplayer e stats
-
+-PAGINA STATS:
+    -dare un ordine alle partite e formattare l'orario in modo leggibile
 
 TESTING GENERALE
 
 problematiche:
     -salvare le partite online nel db da ambo le parti
+    -ancora problemi nel salvare le partite dei tornei (sistemare come fatto nelle altre)
