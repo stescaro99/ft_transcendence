@@ -90,6 +90,32 @@ export async function updateStats(request: FastifyRequest, reply: FastifyReply) 
 	}
 }
 
+export async function winTournament(request: FastifyRequest, reply: FastifyReply) {
+	const { nickname, index } = request.body as { nickname: string; index: number };
+	
+	try {
+		const user = await User.findOne({
+			where: { nickname },
+			include: [{ model: Stats, as: 'stats' }]
+		});
+		if (!user) {
+			return reply.code(404).send({ message: 'User not found' });
+		}
+		const statsArray = user.stats as Stats[];
+		const userStat = statsArray[index];
+		if (!userStat) {
+			return reply.code(404).send({ message: 'Stats not found for given index' });
+		}
+		userStat.number_of_tournaments_won = (userStat.number_of_tournaments_won || 0) + 1;
+		await userStat.save();
+		reply.code(200).send({ message: 'Tournament win recorded!', stats: userStat });
+	}
+	catch (error) {
+		console.error('Error recording tournament win:', error);
+		reply.code(500).send({ message: 'Failed to record tournament win', error });
+	}
+}
+
 export async function getStats(request: FastifyRequest, reply: FastifyReply) {
 	const { nickname, index } = request.query as { nickname: string, index: number };
 
