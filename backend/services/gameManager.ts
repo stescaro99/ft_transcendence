@@ -301,6 +301,8 @@ export class GameManager {
       }
     }
 
+    // Snapshot final scores before forcing maxScore so we can save the real values
+    const finalScores: [number, number] = [room.gameState.scoreLeft, room.gameState.scoreRight];
     if (winner === 'left') {
       room.gameState.scoreLeft = room.gameState.maxScore;
     } else {
@@ -331,7 +333,8 @@ export class GameManager {
       winnerNicknames,
       loserNicknames,
       reason: 'playerDisconnection',
-      isDisconnectionWin: true
+      isDisconnectionWin: true,
+      finalScores
     }).catch(err => console.error('[GameManager] Error saving disconnection result:', err));
     console.log(`Game ended in room ${roomId} due to disconnection. Winner: ${winner}`, gameResult);
   }

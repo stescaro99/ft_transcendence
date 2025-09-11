@@ -8,6 +8,7 @@ export interface SaveResultOptions {
   loserNicknames: string[];
   reason: 'normalEnd' | 'playerDisconnection';
   isDisconnectionWin?: boolean;
+  finalScores?: [number, number];
 }
 
 /**
@@ -17,7 +18,8 @@ export interface SaveResultOptions {
  */
 export async function saveGameAndStats(room: GameRoom, opts: SaveResultOptions): Promise<void> {
   try {
-    const finalScores: [number, number] = [room.gameState.scoreLeft, room.gameState.scoreRight];
+    // Prefer explicit finalScores snapshot if provided (useful when caller forces scores after snapshot)
+    const finalScores: [number, number] = opts.finalScores ?? [room.gameState.scoreLeft, room.gameState.scoreRight];
     const allPlayers = room.players.map(p => p.nickname).filter(n => !!n);
 
     const gameRecord = await (Game as any).create({
