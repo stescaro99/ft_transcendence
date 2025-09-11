@@ -239,10 +239,10 @@ export class OnlineGamePage {
 			searchTimer = setInterval(updateSearchTimer, 1000);
 			
 			// Mostra il pulsante di annullamento
-			const cancelBtn = document.getElementById("");
-			if (cancelBtn) {
-				cancelBtn.classList.remove("hidden");
-			}
+			const cancelBtn = document.getElementById("cancelMatchBtn"); // FIX: id corretto
+            if (cancelBtn) {
+                cancelBtn.classList.remove("hidden");
+            }
 			const p = document.getElementById("powerToggleOnline") as HTMLButtonElement | null;
 			if (p)
 				p.setAttribute("disabled", "true");
@@ -262,17 +262,18 @@ export class OnlineGamePage {
 			multiplayerService.findMatch(gameType as 'two' | 'four', {powerUp: this.powerUpsEnabled ? 'on' : 'off'});
 		});
 
-		const cancelBtn = document.createElement("button");
-		cancelBtn.id = "cancelMatchBtn";
-		cancelBtn.className = "btn-large hidden"; 
-		cancelBtn.textContent = "Annulla Ricerca";
-		cancelBtn.style.background = "#dc2626";
-		cancelBtn.style.marginLeft = "20px";
-		cancelBtn.addEventListener("click", () => {
-			console.log("[OnlineGame] ❌ Ricerca annullata dall'utente");
-			stopSearch();
-			cancelBtn.classList.add("hidden");
-		});
+        const cancelBtn = document.createElement("button");
+        cancelBtn.id = "cancelMatchBtn";
+        cancelBtn.className = "btn-large hidden"; 
+        cancelBtn.textContent = "Annulla Ricerca";
+        cancelBtn.style.background = "#dc2626";
+        cancelBtn.style.marginLeft = "20px";
+        cancelBtn.addEventListener("click", () => {
+            console.log("[OnlineGame] ❌ Ricerca annullata dall'utente");
+            multiplayerService.cancelFindMatch(); // NEW: lascia la stanza lato server
+            stopSearch();
+            cancelBtn.classList.add("hidden");
+        });
 		
 		findMatchBtn.parentNode?.insertBefore(cancelBtn, findMatchBtn.nextSibling);
 

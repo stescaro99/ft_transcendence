@@ -350,11 +350,22 @@ export class GameManager {
   handlePlayerDisconnection(playerId: string): void {
     console.log(`Player ${playerId} disconnected`);
     const activeRooms = this.roomManager.getAllRooms();
+
     activeRooms.forEach(room => {
-      if (room.players.some(p => p.id === playerId)) {
-        this.roomManager.setPlayerOffline(room.id, playerId);
+      const player = room.players.find(p => p.id === playerId);
+      if (!player) return;
+
+      // Se la partita è attiva, termina subito assegnando la vittoria ai rimanenti
+      if (room.isActive) {
+        this.handlePlayerDisconnectionWin(room.id, room, player);
       }
+
+      // Rimuovi il player dalla stanza (non rilancerà la win perché room.isActive è stato messo a false)
+      this.roomManager.removePlayerFromRoom(room.id, playerId);
     });
+
+    GameValidator.clearPlayerInputHistory(playerId);
+    this.heartbeatManager.removePlayer(playerId);
   }
 
   handlePlayerReconnection(nickname: string, newSocket: any): Player | null {
