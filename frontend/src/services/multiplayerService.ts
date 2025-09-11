@@ -78,6 +78,8 @@ export class MultiplayerService {
 
             if (data.type === 'gameEnded') {
                 console.log('[MultiplayerService] Game ended:', data);
+                // NEW: non sei più in una room
+                this.currentRoomId = null;
                 this.gameEndedCallback?.(data);
             }
         };
