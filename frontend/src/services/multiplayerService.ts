@@ -1,4 +1,5 @@
 import { GameState } from "../pages/game/common/types";
+import { environment } from "../environments/environment";
 
 type FindMatchOptions = { powerUp?: 'on' | 'off' };
 
@@ -37,7 +38,9 @@ export class MultiplayerService {
             console.error('[MultiplayerService] Token JWT mancante. Impossibile connettersi.');
             return;
         }
-        const wsUrl = `wss://transcendence.be:9443/ws/game?token=${encodeURIComponent(token)}`;
+    // Use the configured environment WS base URL and append the game path + token
+    const baseWs = environment.wsUrl.replace(/\/+$/g, '');
+    const wsUrl = `${baseWs}/game?token=${encodeURIComponent(token)}`;
         console.log('[MultiplayerService] Connessione WS a:', wsUrl);
         this.socket = new WebSocket(wsUrl);
 
