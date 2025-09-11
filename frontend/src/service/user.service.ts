@@ -29,6 +29,7 @@ export class UserService {
 	
 	async getUser(): Promise<User | null >{
 		const nickname = sessionStorage.getItem('nickname');
+		if (!nickname) return null;
 		console.log('getUser called with nickname:', nickname);
 		
 		if (nickname) {
@@ -50,34 +51,33 @@ export class UserService {
     }
     
     return null;
-
-		if (sessionStorage.getItem('user') || nickname) {
-			if (nickname) {
-				this.takeUserFromApi(nickname)
-				.then((userData) => {
-					this.user.name = userData.name || '';
-					this.user.surname = userData.surname;
-					this.user.nickname = userData.nickname;
-					this.user.email = userData.email;
-					this.user.image_url = userData.image_url;
-					this.user.stats = userData.stats;
-					this.user.id = userData.id;
-					return this.user;
-				})
-				.catch((error) => {
-					console.error('[UserService] Errore nel recupero dati utente:', error);
-				});
-			}
-		} else {
-			console.warn('[UserService] Nessun dato utente trovato in sessionStorage');
-			return null;
-		}
-		return this.user;
+		// if (sessionStorage.getItem('user') || nickname) {
+		// 	if (nickname) {
+		// 		this.takeUserFromApi(nickname)
+		// 		.then((userData) => {
+		// 			this.user.name = userData.name || '';
+		// 			this.user.surname = userData.surname;
+		// 			this.user.nickname = userData.nickname;
+		// 			this.user.email = userData.email;
+		// 			this.user.image_url = userData.image_url;
+		// 			this.user.stats = userData.stats;
+		// 			this.user.id = userData.id;
+		// 			return this.user;
+		// 		})
+		// 		.catch((error) => {
+		// 			console.error('[UserService] Errore nel recupero dati utente:', error);
+		// 		});
+		// 	}
+		// } else {
+		// 	console.warn('[UserService] Nessun dato utente trovato in sessionStorage');
+		// 	return null;
+		// }
+		// return this.user;
 	}
 
 
 	async takeUserFromApi(nick: string): Promise<any> {
-		const url = `${environment.apiUrl}/get_user?nickname=${encodeURIComponent(nick)}`;
+		const url = `${environment.apiUrl}/get_user?nickname=${encodeURIComponent(nick || '')}`;
 
 		console.log('[UserService] 🌐 URL chiamato:', url);
 

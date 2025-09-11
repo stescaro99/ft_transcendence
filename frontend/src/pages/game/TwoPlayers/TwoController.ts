@@ -174,7 +174,7 @@ function render(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, game: 
 }
 
 // === Game loop ===
-let botInterval: number | undefined = undefined;
+let botInterval: ReturnType<typeof setInterval> | undefined = undefined;
 let predictedY: number | null = null;
 let gameCreated = false;
 

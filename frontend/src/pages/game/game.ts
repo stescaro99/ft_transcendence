@@ -13,18 +13,18 @@ import { User } from '../../model/user.model';
 import { UserService } from '../../service/user.service';
 
 export class GamePage {
-	private currentLang: string;
-	private langMap = { en, fr, it };
-	private players: string[] = [];
-	fromPage: string;
-	userService: UserService = new UserService();
-	lobby?: Lobby;
-	Team1Color = "#ffffff";
-	Team2Color = "#ffffff";
-	colors = ["#ff0000", "#00ff00", "#ffff00", "#800080", "#007bff", "#ffffff"];
-	private powerUpsEnabled: boolean = true;
+    private currentLang: string;
+    private langMap = { en, fr, it };
+    private players: string[] = [];
+    fromPage: string;
+    userService: UserService = new UserService();
+    lobby?: Lobby;
+    Team1Color = "#ffffff";
+    Team2Color = "#ffffff";
+    colors = ["#ff0000", "#00ff00", "#ffff00", "#800080", "#007bff", "#ffffff"];
+    private powerUpsEnabled: boolean = true;
 
-	constructor(lang: string, fromPage: string, player1 : string, player2 : string) {
+    constructor(lang: string, fromPage: string, player1 : string, player2 : string) {
     if (player1 === undefined || player2 === undefined) {
       player1 = sessionStorage.getItem('nickname') || "Player 1";
             player2 = "Player 2";
@@ -72,11 +72,11 @@ export class GamePage {
     }
 
 
-	private getLang() {
-		return this.langMap[this.currentLang as keyof typeof this.langMap];
-	}
+    private getLang() {
+        return this.langMap[this.currentLang as keyof typeof this.langMap];
+    }
   
-	private render() {
+    private render() {
         const params = new URLSearchParams(window.location.hash.split('?')[1]);
         const players = params.get('players');
         const container = document.getElementById('app');
@@ -109,30 +109,71 @@ export class GamePage {
             const preview4 = document.getElementById("Preview4") as HTMLDivElement | null;
 
             const paletteContainers = container.querySelectorAll(".palette");
-            paletteContainers.forEach((palette) => {
+            paletteContainers.forEach((paletteNode) => {
+                const palette = paletteNode as HTMLElement;
                 palette.innerHTML = "";
                 const player = (palette as HTMLElement).dataset.player || "";
-                this.colors.forEach((color) => {
+                this.colors.forEach((color, idx) => {
                     const btn = document.createElement("button");
-                    btn.style.backgroundColor = color;
+                    // usa background così da sovrascrivere gradient CSS della preview
+                    btn.style.background = color;
+                    btn.style.border = "none";
+                    btn.style.padding = "0";
+                    btn.style.width = "44px";
+                    btn.style.height = "44px";
+                    btn.style.borderRadius = "10px";
                     btn.setAttribute("data-color", color);
+                    btn.setAttribute("aria-label", `color-${player}-${idx}`);
                     btn.addEventListener("click", () => {
                         if (player === "1" || player === "3") {
                             this.Team1Color = color;
-                            if (preview1) preview1.style.backgroundColor = color;
-                            if (preview3) preview3.style.backgroundColor = color;
+                            if (preview1) {
+                                preview1.style.background = color;
+                                preview1.style.backgroundImage = 'none';
+                            }
+                            if (preview3) {
+                                preview3.style.background = color;
+                                preview3.style.backgroundImage = 'none';
+                            }
                         } else {
                             this.Team2Color = color;
-                            if (preview2) preview2.style.backgroundColor = color;
-                            if (preview4) preview4.style.backgroundColor = color;
+                            if (preview2) {
+                                preview2.style.background = color;
+                                preview2.style.backgroundImage = 'none';
+                            }
+                            if (preview4) {
+                                preview4.style.background = color;
+                                preview4.style.backgroundImage = 'none';
+                            }
                         }
-                        (palette as HTMLElement)
-                            .querySelectorAll("button")
-                            .forEach((b) => b.classList.remove("selected"));
+                        // toggle selected class and subtle glow
+                        Array.from(palette.querySelectorAll("button")).forEach((b: Element) => {
+                            b.classList.remove("selected");
+                            (b as HTMLElement).style.boxShadow = '';
+                        });
                         btn.classList.add("selected");
+                        btn.style.boxShadow = `0 8px 20px ${hexToRgba(color, 0.2)}, inset 0 -4px 8px ${hexToRgba(color, 0.13)}`;
                     });
                     palette.appendChild(btn);
                 });
+
+                // Select first color by default for each palette and update previews
+                const firstBtn = palette.querySelector("button") as HTMLButtonElement | null;
+                if (firstBtn) {
+                    firstBtn.classList.add("selected");
+                    const defaultColor = firstBtn.getAttribute("data-color") || "#ffffff";
+                    // update relevant previews depending on player data attribute
+                    const p = palette.dataset.player;
+                    if (p === "1") {
+                        if (preview1) { preview1.style.background = defaultColor; preview1.style.backgroundImage = 'none'; }
+                    } else if (p === "2") {
+                        if (preview2) { preview2.style.background = defaultColor; preview2.style.backgroundImage = 'none'; }
+                    } else if (p === "3") {
+                        if (preview3) { preview3.style.background = defaultColor; preview3.style.backgroundImage = 'none'; }
+                    } else if (p === "4") {
+                        if (preview4) { preview4.style.background = defaultColor; preview4.style.backgroundImage = 'none'; }
+                    }
+                }
             });
 
             // Nicknames
@@ -173,7 +214,7 @@ export class GamePage {
 
             // Start buttons e canvas
             const canvas = document.getElementById("pong") as HTMLCanvasElement;
-            const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+            const ctx = canvas ? canvas.getContext("2d") as CanvasRenderingContext2D : null;
 
             const bindStart = (el: HTMLElement | null, mode: 2 | 4) => {
                 if (!el) return;
@@ -181,11 +222,12 @@ export class GamePage {
                 el.addEventListener("click", () => {
                     console.log("[GamePage] START click mode:", mode, "players:", this.players);
                     this.hideScreens(); // ora esiste
-                    canvas.style.display = "block";
+                    if (canvas) canvas.style.display = "block";
                     if (gameWrapper) {
                         gameWrapper.style.pointerEvents = 'auto';
                         gameWrapper.setAttribute('data-phase', 'playing');
                     }
+                    if (!ctx || !canvas) return;
                     document.fonts.ready.then(() => {
                         ctx.font = "80px Helvetica";
                         this.startCountdown(mode, ctx, canvas);
@@ -198,6 +240,9 @@ export class GamePage {
             bindStart(document.getElementById("startBtn4"), 4);
 
             this.initPowerToggle();
+
+            // ensure player names reflect current bot state
+            this.updatePlayerNames();
         } catch (err) {
             console.error("[GamePage] render failed:", err);
         }
@@ -240,10 +285,10 @@ export class GamePage {
         const player3Name = document.getElementById("player3Name");
         const player4Name = document.getElementById("player4Name");
         
-        if (player1Name) player1Name.textContent = "Team 1 - " + this.players[0] || "P1";
-        if (player2Name) player2Name.textContent = "Team 1 - P2";
-        if (player3Name) player3Name.textContent = "Team 2 - P1";
-        if (player4Name) player4Name.textContent = "Team 2 - P2";
+        if (player1Name) player1Name.textContent = this.players[0] || "P1";
+        if (player2Name) player2Name.textContent = this.players[1] || "P2";
+        if (player3Name) player3Name.textContent = this.players[2] || "P3";
+        if (player4Name) player4Name.textContent = this.players[3] || "P4";
       }
     }
 
@@ -260,97 +305,109 @@ export class GamePage {
         clearInterval(interval);
         if (x === 2) {
           TwoGameLoop(this.Team1Color, this.Team2Color, this.fromPage, this.players, { powerUp: this.powerUpsEnabled ? 'on' : 'off' });
-				} else if (x === 4) {
-					FourGameLoop(this.Team1Color, this.Team2Color, this.fromPage, this.players, { powerUp: this.powerUpsEnabled ? 'on' : 'off' });
-		}
+                } else if (x === 4) {
+                    FourGameLoop(this.Team1Color, this.Team2Color, this.fromPage, this.players, { powerUp: this.powerUpsEnabled ? 'on' : 'off' });
+        }
       }
       countdown--;
     }, 1000);
   }
-	
-	createCanvas() {
-	  let canvas = document.getElementById("pong") as HTMLCanvasElement | null;
-	  if (!canvas) {
-		canvas = document.createElement("canvas");
-		canvas.id = "pong";
-		canvas.width = 1200;
-		canvas.height = 750;
-		canvas.style.display = "none";
-		document.body.appendChild(canvas);
-	  }
-	  return canvas;
-	}
-	
-	removeCanvas() {
-	  const canvas = document.getElementById("pong");
-	  if (canvas) canvas.remove();
-	}
+    
+    createCanvas() {
+      let canvas = document.getElementById("pong") as HTMLCanvasElement | null;
+      if (!canvas) {
+        canvas = document.createElement("canvas");
+        canvas.id = "pong";
+        canvas.width = 1200;
+        canvas.height = 750;
+        canvas.style.display = "none";
+        document.body.appendChild(canvas);
+      }
+      return canvas;
+    }
+    
+    removeCanvas() {
+      const canvas = document.getElementById("pong");
+      if (canvas) canvas.remove();
+    }
 
-	// Aggiungi metodo per aggiornare i nomi dei giocatori
-	updatePlayerNames() {
-	  // Aggiorna i nomi durante il setup
-	  const team1Player1 = document.getElementById("team1player1");
-	  const team1Player2 = document.getElementById("team1Player2");
-	  const team2Player1 = document.getElementById("team2Player1");
-	  const team2Player2 = document.getElementById("team2Player2");
-    console.log("sono qui");
-	  if (team1Player1) {
-      console.log("sono dentro");
-		  team1Player1.textContent = this.players[0] || "Player 1";
-	  }
-	  
-	  if (team1Player2) {
-		  team1Player2.textContent = getBotActive(1) ? "BOT" : "Player 2";
-		if (getBotActive(1)) {
-		  team1Player2.classList.add("text-green-500");
-		  team1Player2.classList.remove("text-cyan-400");
-		} else {
-		  team1Player2.classList.add("text-cyan-400");
-		  team1Player2.classList.remove("text-green-500");
-		}
-	  }
-	  
-	  if (team2Player1) {
-		team2Player1.textContent = getBotActive(2) ? "BOT" : "Player 1";
-		if (getBotActive(2)) {
-		  team2Player1.classList.add("text-green-500");
-		  team2Player1.classList.remove("text-cyan-400");
-		} else {
-		  team2Player1.classList.add("text-cyan-400");
-		  team2Player1.classList.remove("text-green-500");
-		}
-	  }
-	  
-	  if (team2Player2) {
-		team2Player2.textContent = getBotActive(3) ? "BOT" : "Player 2";
-		if (getBotActive(3)) {
-		  team2Player2.classList.add("text-green-500");
-		  team2Player2.classList.remove("text-cyan-400");
-		} else {
-		  team2Player2.classList.add("text-cyan-400");
-		  team2Player2.classList.remove("text-green-500");
-		}
-	  }
+    // Aggiungi metodo per aggiornare i nomi dei giocatori
+    updatePlayerNames() {
+      // Aggiorna i nomi durante il setup
+      const team1Player1 = document.getElementById("team1Player1");
+      const team1Player2 = document.getElementById("team1Player2");
+      const team2Player1 = document.getElementById("team2Player1");
+      const team2Player2 = document.getElementById("team2Player2");
 
-	  const player1Name = document.getElementById("player1Name");
-	  const player2Name = document.getElementById("player2Name");
-	  const player3Name = document.getElementById("player3Name");
-	  const player4Name = document.getElementById("player4Name");
+      if (team1Player1) {
+          team1Player1.textContent = this.players[0] || "Player 1";
+      }
+      
+      if (team1Player2) {
+          team1Player2.textContent = getBotActive(1) ? "BOT" : "Player 2";
+          if (getBotActive(1)) {
+              team1Player2.classList.add("text-green-500");
+              team1Player2.classList.remove("text-cyan-400");
+          } else {
+              team1Player2.classList.add("text-cyan-400");
+              team1Player2.classList.remove("text-green-500");
+          }
+      }
+      
+      if (team2Player1) {
+          team2Player1.textContent = getBotActive(2) ? "BOT" : "Player 1";
+          if (getBotActive(2)) {
+              team2Player1.classList.add("text-green-500");
+              team2Player1.classList.remove("text-cyan-400");
+          } else {
+              team2Player1.classList.add("text-cyan-400");
+              team2Player1.classList.remove("text-green-500");
+          }
+      }
+      
+      if (team2Player2) {
+          team2Player2.textContent = getBotActive(3) ? "BOT" : "Player 2";
+          if (getBotActive(3)) {
+              team2Player2.classList.add("text-green-500");
+              team2Player2.classList.remove("text-cyan-400");
+          } else {
+              team2Player2.classList.add("text-cyan-400");
+              team2Player2.classList.remove("text-green-500");
+          }
+      }
 
-	  if (player1Name) player1Name.textContent = getBotActive(0) ? "Team 1 - BOT" : "Team 1 - " + this.players[0] || "Player 1";
-	  if (player2Name) player2Name.textContent = getBotActive(1) ? "Team 1 - BOT" : "Team 1 - Player 2";
-	  if (player3Name) player3Name.textContent = getBotActive(2) ? "Team 2 - BOT" : "Team 2 - Player 1";
-	  if (player4Name) player4Name.textContent = getBotActive(3) ? "Team 2 - BOT" : "Team 2 - Player 2";
-	}
+      const player1Name = document.getElementById("player1Name");
+      const player2Name = document.getElementById("player2Name");
+      const player3Name = document.getElementById("player3Name");
+      const player4Name = document.getElementById("player4Name");
 
-	private setTheme(theme: string) {
-		const element = document.querySelector('[data-theme]') as HTMLElement;
+      if (player1Name) player1Name.textContent = getBotActive(0) ? "Team 1 - BOT" : ("Team 1 - " + (this.players[0] || "Player 1"));
+      if (player2Name) player2Name.textContent = getBotActive(1) ? "Team 1 - BOT" : ("Team 1 - " + (this.players[1] || "Player 2"));
+      if (player3Name) player3Name.textContent = getBotActive(2) ? "Team 2 - BOT" : ("Team 2 - " + (this.players[2] || "Player 1"));
+      if (player4Name) player4Name.textContent = getBotActive(3) ? "Team 2 - BOT" : ("Team 2 - " + (this.players[3] || "Player 2"));
+    }
 
-		element.dataset.theme = theme;
-	}
+    private setTheme(theme: string) {
+        const element = document.querySelector('[data-theme]') as HTMLElement;
+
+        element.dataset.theme = theme;
+    }
 
     private hideScreens() {
         document.querySelectorAll('.screen.visible')
           .forEach(el => el.classList.remove('visible'));
     }
+}
+
+/* helper: converti esadecimale in rgba string */
+function hexToRgba(hex: string, alpha = 1) {
+    // supporta #rgb, #rrggbb
+    let c = hex.replace('#', '');
+    if (c.length === 3) {
+        c = c.split('').map(ch => ch + ch).join('');
+    }
+    const r = parseInt(c.substring(0,2), 16);
+    const g = parseInt(c.substring(2,4), 16);
+    const b = parseInt(c.substring(4,6), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }

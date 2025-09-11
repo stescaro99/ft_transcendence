@@ -7,13 +7,13 @@ import { FourRemoteController } from "./FourRemoteController";
 import multiplayerService from '../../services/multiplayerService';
 import '../game/game.css';
 
-let searchTimer: number | null = null;
+let searchTimer: ReturnType<typeof setTimeout> | null = null;
 let searchStartTime: number = 0;
 
 export class OnlineGamePage {
-	user : User = new UserService().getUser() || new User();
-	private searchTimer: number | null = null;
-	private powerUpsEnabled: boolean = true;
+    user: User | null = null; // prima era Promise<User|null> -> correggi assegnazione asincrona
+    private searchTimer: ReturnType<typeof setTimeout> | null = null;
+    private powerUpsEnabled: boolean = true;
 	constructor(_currentLang: string) {
 		console.log("[OnlineGame] 🚀 OnlineGamePage constructor chiamato!");
 		this.init();
@@ -108,6 +108,13 @@ export class OnlineGamePage {
 	private async init() {
 		await this.render();
 		
+		// recupera user in modo asincrono e assegna correttamente
+		try {
+            this.user = await new UserService().getUser();
+        } catch (e) {
+            this.user = null;
+        }
+
 		// Inizializza il gioco DOPO aver renderizzato l'HTML
 		setTimeout(() => {
 			this.initializeOnlineGame();
@@ -131,26 +138,22 @@ export class OnlineGamePage {
 		const matchInfo = document.getElementById("matchInfo")!;
 		const findMatchBtn = document.getElementById("findMatchBtn");
 
-		let powerBtn = document.getElementById("powerUpsBtn");
+		let powerBtn = document.getElementById("powerUpsBtn") as HTMLButtonElement | null;
 		if (!powerBtn && findMatchBtn?.parentElement) {
-			powerBtn = document.createElement("button");
-			powerBtn.id = "powerToggleOnline";
-			powerBtn.type = "button";
-			powerBtn.textContent = this.powerUpsEnabled ? "POWER UP ON" : "POWER UP OFF";
+			powerBtn = document.createElement('button') as HTMLButtonElement;
+			powerBtn.id = "powerUpsBtn";
 			powerBtn.className = "btn-large";
-			powerBtn.style.marginLeft = "12px";
-			powerBtn.title = "Abilita/Disabilita power-up per questa partita";
+			powerBtn.textContent = this.powerUpsEnabled ? "POWER UP ON" : "POWER UP OFF";
 			findMatchBtn.parentElement.insertBefore(powerBtn, findMatchBtn.nextSibling);
+		}
+		if (powerBtn) {
 			powerBtn.addEventListener("click", () => {
 				this.powerUpsEnabled = !this.powerUpsEnabled;
 				powerBtn!.textContent = this.powerUpsEnabled ? "POWER UP ON" : "POWER UP OFF";
 				powerBtn!.classList.toggle("opacity-70", !this.powerUpsEnabled);
 			});
-		}
-		
-		if (powerBtn) {
-		powerBtn.textContent = this.powerUpsEnabled ? "POWER UP ON" : "POWER UP OFF";
-		powerBtn.classList.toggle("opacity-70", !this.powerUpsEnabled);
+			powerBtn.textContent = this.powerUpsEnabled ? "POWER UP ON" : "POWER UP OFF";
+			powerBtn.classList.toggle("opacity-70", !this.powerUpsEnabled);
 		}
 
 
