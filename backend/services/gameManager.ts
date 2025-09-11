@@ -337,6 +337,12 @@ export class GameManager {
       finalScores
     }).catch(err => console.error('[GameManager] Error saving disconnection result:', err));
     console.log(`Game ended in room ${roomId} due to disconnection. Winner: ${winner}`, gameResult);
+
+    // NEW: elimina la room poco dopo il broadcast per evitare riutilizzo al reconnect
+    setTimeout(() => {
+      this.roomManager.deleteRoom(roomId);
+      console.log(`[GameManager] Room ${roomId} deleted after disconnection end`);
+    }, 150);
   }
 
   // saveGameResultToDatabase rimosso (logica centralizzata in saveGameAndStats)

@@ -6,7 +6,8 @@ const getApiUrl = (): string => {
 };
 
 const getWsUrl = (): string => {
-  return 'wss://transcendence.be:9443/ws';
+  const hostId = getHostId();
+  return `wss://${hostId}:9443/ws`;
 };
 
 const getHostId = (): string => {

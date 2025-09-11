@@ -385,6 +385,120 @@ export class OnlineGamePage {
 				this.startCountdown(canvas, ctx, initialState);
 			}
 		});
+
+		multiplayerService.onWaitingForPlayers((data) => {
+			console.log("[OnlineGame] 🕐 In attesa di altri giocatori:", data);
+			status.textContent = `In attesa di giocatori... (${data.currentPlayers}/${data.maxPlayers})`;
+		});
+
+		// Callback quando la partita inizia
+		multiplayerService.onGameStart((initialState) => {
+			console.log("[OnlineGame] 🎉 Partita trovata! Callback onGameStart chiamato!", initialState);
+
+			if (searchTimer) {
+				clearInterval(searchTimer);
+				searchTimer = null;
+			}
+
+			// Nascondi la schermata di setup
+			const setupScreen = document.getElementById("onlineSetup-screen");
+			if (setupScreen) setupScreen.style.display = "none";
+
+			// Mostra la schermata di gioco
+			const gameScreen = document.getElementById("gameScreen");
+			if (gameScreen) {
+				gameScreen.style.display = "flex";
+				gameScreen.classList.add("visible");
+			}
+
+			const playerNames = document.getElementById("playerNames");
+			if (playerNames) playerNames.style.display = "flex";
+
+			const player1Name = document.getElementById("player1Name");
+			const player2Name = document.getElementById("player2Name");
+			const player3Name = document.getElementById("player3Name");
+			const player4Name = document.getElementById("player4Name");
+
+			const isFourPlayers = initialState.leftPaddle.length === 2 && initialState.rightPaddle.length === 2;
+
+			if (isFourPlayers) {
+				// Mostra tutti e 4 i nomi
+				if (player1Name && initialState.leftPaddle[0]) {
+					player1Name.textContent = initialState.leftPaddle[0].nickname;
+					player1Name.style.display = "block";
+				}
+				if (player2Name && initialState.leftPaddle[1]) {
+					player2Name.textContent = initialState.leftPaddle[1].nickname;
+					player2Name.style.display = "block";
+				}
+				if (player3Name && initialState.rightPaddle[0]) {
+					player3Name.textContent = initialState.rightPaddle[0].nickname;
+					player3Name.style.display = "block";
+				}
+				if (player4Name && initialState.rightPaddle[1]) {
+					player4Name.textContent = initialState.rightPaddle[1].nickname;
+					player4Name.style.display = "block";
+				}
+			} else {
+				// Mostra solo i primi 2 nomi
+				if (player1Name && initialState.leftPaddle[0]) {
+					player1Name.textContent = initialState.leftPaddle[0].nickname;
+					player1Name.style.display = "block";
+				}
+				if (player2Name && initialState.rightPaddle[0]) {
+					player2Name.textContent = initialState.rightPaddle[0].nickname;
+					player2Name.style.display = "block";
+				}
+				if (player3Name) player3Name.style.display = "none";
+				if (player4Name) player4Name.style.display = "none";
+			}
+
+            const mySide: "left" | "right" = initialState.mySide;
+            const myPaddleIndex: number = typeof initialState.myPaddleIndex === 'number' ? initialState.myPaddleIndex : 0;
+
+            const styleName = (el: HTMLElement | null, side: 'left'|'right', isMine: boolean) => {
+                if (!el) return;
+                el.style.color = side === 'left' ? '#44ff44' : '#ff4444';
+                el.style.fontWeight = isMine ? '700' : '400';
+                el.style.textShadow = isMine ? '0 0 8px rgba(0,255,255,0.8)' : 'none';
+                el.style.filter = isMine ? 'brightness(1.2)' : 'none';
+            };
+
+            if (isFourPlayers) {
+                // Left paddles
+                styleName(player1Name, 'left',  mySide === 'left' && myPaddleIndex === 0);
+                styleName(player2Name, 'left',  mySide === 'left' && myPaddleIndex === 1);
+                // Right paddles
+                styleName(player3Name, 'right', mySide === 'right' && myPaddleIndex === 0);
+                styleName(player4Name, 'right', mySide === 'right' && myPaddleIndex === 1);
+            } else {
+                styleName(player1Name, 'left',  mySide === 'left');
+                styleName(player2Name, 'right', mySide === 'right');
+            }
+
+		
+			// Mostra il canvas
+			const canvas = document.getElementById("gameCanvas") as HTMLCanvasElement;
+			if (canvas) {
+				canvas.style.display = "block";
+				canvas.focus();
+			}
+
+			const p = document.getElementById("powerToggleOnline") as HTMLButtonElement | null;
+			if (p)
+				p.setAttribute("disabled", "true");
+
+			// Countdown e avvio controller
+			const ctx = canvas?.getContext('2d');
+			if (canvas && ctx) {
+				this.startCountdown(canvas, ctx, initialState);
+			}
+		});
+
+		// NEW: mostra overlay alla fine partita (es. per disconnessione avversario)
+		multiplayerService.onGameEnded((data) => {
+			this.showGameEndedOverlay(data);
+		});
 	}
 
 	async render () {
@@ -435,4 +549,73 @@ export class OnlineGamePage {
         countdown--;
     }, 1000);
 }
+
+	// NEW: overlay di fine partita, abilita uscita
+  private showGameEndedOverlay(data: any) {
+    // Nascondi schermo setup e mostra gameScreen (se serve) per overlay
+    const setupScreen = document.getElementById("onlineSetup-screen");
+    if (setupScreen) setupScreen.style.display = "none";
+    const gameScreen = document.getElementById("gameScreen");
+    if (gameScreen) gameScreen.style.display = "flex";
+
+    // Costruisci messaggio
+    const myNick = sessionStorage.getItem('nickname') || '';
+    const me = (data.players || []).find((p: any) => p.nickname === myNick);
+    const iWon = me ? (data.winner === me.side) : false;
+
+    const winnerLabel = iWon ? "Hai Vinto!" : "Hai Perso";
+    const reason = data.reason === 'playerDisconnection' ? 'L\'avversario si è disconnesso' : '';
+
+    // Crea overlay
+    const existing = document.getElementById('winOverlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'winOverlay';
+    overlay.style.position = 'fixed';
+    overlay.style.inset = '0';
+    overlay.style.display = 'flex';
+    overlay.style.flexDirection = 'column';
+    overlay.style.alignItems = 'center';
+    overlay.style.justifyContent = 'center';
+    overlay.style.gap = '24px';
+    overlay.style.background = 'rgba(0,0,0,0.85)';
+    overlay.style.zIndex = '10000';
+
+    const title = document.createElement('div');
+    title.textContent = winnerLabel;
+    title.style.color = iWon ? '#00ffff' : '#ff6666';
+    title.style.font = 'bold 48px Arial';
+    title.style.textShadow = '0 0 18px rgba(0,255,255,0.6)';
+
+    const sub = document.createElement('div');
+    sub.textContent = reason;
+    sub.style.color = '#ccc';
+    sub.style.font = '16px Arial';
+
+    const btn = document.createElement('button');
+    btn.textContent = 'Torna Indietro';
+    btn.style.padding = '12px 28px';
+    btn.style.fontSize = '16px';
+    btn.style.borderRadius = '8px';
+    btn.style.border = 'none';
+    btn.style.cursor = 'pointer';
+    btn.style.background = '#2563eb';
+    btn.style.color = '#fff';
+    btn.addEventListener('click', () => {
+      overlay.remove();
+      // reset UI e ritorna alla schermata iniziale
+      this.resetUIState();
+      // opzionale: chiudi socket per ripartire pulito
+      if (multiplayerService.socket && multiplayerService.socket.readyState === WebSocket.OPEN) {
+        multiplayerService.socket.close();
+      }
+      window.location.hash = '/';
+    }, { once: true });
+
+    overlay.appendChild(title);
+    if (reason) overlay.appendChild(sub);
+    overlay.appendChild(btn);
+    document.body.appendChild(overlay);
+  }
 }
