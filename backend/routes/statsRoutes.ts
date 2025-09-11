@@ -54,7 +54,6 @@ export default async function (server: FastifyInstance) {
 			tags: ['Stats']
 		},
 	}, winTournament)
-	}
 
 	server.get('/get_stats', {
 		schema: {
