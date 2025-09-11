@@ -46,7 +46,7 @@ export class ProfilePage {
 			})
 			.catch((error) => {
 				console.error('Error fetching user data:', error);
-				// Solo per lavorare sulla pagina user senza dati utente veri, per ucolla. NON CANCELLARE! 
+				
 				this.user.name = 'Test';
 				this.user.surname = 'User';
 				this.user.nickname = /*sessionStorage.getItem('nickname') || */'testuser';
@@ -168,19 +168,33 @@ export class ProfilePage {
 		}
 	}
 
+	private datConverted(dateStr: string): string {
+		const date = new Date(dateStr);
+		if (isNaN(date.getTime())) {
+			return dateStr; // Ritorna la stringa originale se la data non è valida
+		}
+		const options: Intl.DateTimeFormatOptions = {
+			year: 'numeric',
+			month: '2-digit',
+			day: '2-digit',
+			hour: '2-digit',
+			minute: '2-digit',
+			second: '2-digit',
+		};
+		return date.toLocaleDateString(this.currentLang, options).replace(',', '');
+	}
+
 	private async showgameHistory(games: Game[], modalContent: HTMLElement) {
 		if (games.length === 0 ) {
 			modalContent.innerHTML = '<p>No game history available.</p>';
 			return;
 		}
 		modalContent.innerHTML = "";
-		let us: Pick <User, 'nickname'|'image_url'>[] = [];
-
-		
 		const ul = document.createElement("ul");
 		ul.className = "list-none list-inside text-left space-y-1";
-		
-		for(const game of games) {
+		// Create a copy and sort by game_id descending (fallback 0 if undefined)
+		const sortedGames = [...games].sort((a,b) => (b.game_id ?? 0) - (a.game_id ?? 0));
+		for(const game of sortedGames) {
 			if (!game.players) return;
 			const playerPromises = game.players.map(async (p: string) => {
 				try {
@@ -197,9 +211,10 @@ export class ProfilePage {
 			const team2:  Pick <User, 'nickname'|'image_url'>[] = us.slice(half);
 
 			const li = document.createElement("li");
+			let datestr = this.datConverted(game.date as unknown as string);
 			li.className = "p-2 border-b"; 
 			li.innerHTML = `
-			<div class="flex items-center space-x-2 mb-1">${game.date}</div>
+			<div class="flex items-center space-x-2 mb-1">${datestr}</div>
 			<div class="flex items-center justify-between mb-1">
 				<!-- Team 1 -->
 				<div class="flex flex-col items-center space-x-2">

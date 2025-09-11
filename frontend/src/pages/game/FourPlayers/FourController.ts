@@ -325,10 +325,10 @@ export async function FourGameLoop(
     ctx.fillText(`${winner} ha vinto!`, canvas.width / 2, canvas.height / 2);
 
     if (gameRoom.game_id) {
-      gameService.updateGame(gameRoom.game_id, "1_scores", game.scoreLeft.toString())
+      await gameService.updateGame(gameRoom.game_id, "1_scores", game.scoreLeft.toString())
         .then(() => console.log("DEBUG: Successfully updated left score to:", game.scoreLeft))
         .catch((error) => console.error("DEBUG: Failed to update left score:", error));
-      gameService.updateGame(gameRoom.game_id, "2_scores", game.scoreRight.toString())
+      await gameService.updateGame(gameRoom.game_id, "2_scores", game.scoreRight.toString())
         .then(() => console.log("DEBUG: Successfully updated right score to:", game.scoreRight))
         .catch((error) => console.error("DEBUG: Failed to update right score:", error));
       
@@ -374,9 +374,9 @@ export async function FourGameLoop(
         winnerNickname = "Draw";
       }
 
-      gameService.updateGame(gameRoom.game_id, "winner_nickname", winnerNickname)
-        .then(() => console.log("DEBUG: Successfully updated winner nickname to:", winnerNickname))
-        .catch((error) => console.error("DEBUG: Failed to update winner nickname:", error));
+    	await  gameService.updateGame(gameRoom.game_id, "winner_nickname", winnerNickname)
+			.then(() => console.log("DEBUG: Successfully updated winner nickname to:", winnerNickname))
+			.catch((error) => console.error("DEBUG: Failed to update winner nickname:", error));
 
       setTimeout(() => {
         console.log("DEBUG: Four player game ended - resetting state and navigating back to:", fromPage);
