@@ -1,14 +1,15 @@
--LOGIN
-    -dopo aver fatto logout e' necessario ricaricare la pagina perche login funzioni
+COSE DA RISOLVERE:
 
 -FRONTEND
     -tutte le pagine devono usare CSS Tailwind (game.css e' in CSS puro)
 
--PAGINA STATS:
-    -dare un ordine alle partite e formattare l'orario in modo leggibile
-
-TESTING GENERALE
-
-problematiche:
+-SALVATAGGIO PARTITE:
     -salvare le partite online nel db da ambo le parti
     -ancora problemi nel salvare le partite dei tornei (sistemare come fatto nelle altre)
+
+MIGLIORIE:
+
+-PAGINA STATS:
+    -dare un ordine alle partite
+    -formattare l'orario in modo leggibile
+    -aggiungere il numero dei tornei vinti nelle STATS
