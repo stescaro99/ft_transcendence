@@ -25,12 +25,13 @@ export class GamePage {
 	private powerUpsEnabled: boolean = true;
 
 	constructor(lang: string, fromPage: string, player1 : string, player2 : string) {
-        if (player1 === undefined || player2 === undefined) {
-            player1 = sessionStorage.getItem('nickname') || "Player 1";
+    if (player1 === undefined || player2 === undefined) {
+      player1 = sessionStorage.getItem('nickname') || "Player 1";
             player2 = "Player 2";
         }
         this.players.push(player1, player2);
         this.currentLang = lang;
+
         this.fromPage = fromPage;
 
         this.parsePlayersFromHash();
@@ -137,6 +138,8 @@ export class GamePage {
             // Nicknames
             const usernick = document.getElementById("nickname");
             if (usernick) usernick.textContent = this.players[0];
+            const usernick4 = document.getElementById("team1Player1");
+            if (usernick4) usernick4.textContent = this.players[0];
 
             const play_two = document.getElementById("play2");
             if (play_two) {
@@ -290,13 +293,14 @@ export class GamePage {
 	  const team1Player2 = document.getElementById("team1Player2");
 	  const team2Player1 = document.getElementById("team2Player1");
 	  const team2Player2 = document.getElementById("team2Player2");
-
+    console.log("sono qui");
 	  if (team1Player1) {
-		team1Player1.textContent = sessionStorage.getItem('nickname') || "Player 1";
+      console.log("sono dentro");
+		  team1Player1.textContent = this.players[0] || "Player 1";
 	  }
 	  
 	  if (team1Player2) {
-		team1Player2.textContent = getBotActive(1) ? "BOT" : "Player 2";
+		  team1Player2.textContent = getBotActive(1) ? "BOT" : "Player 2";
 		if (getBotActive(1)) {
 		  team1Player2.classList.add("text-green-500");
 		  team1Player2.classList.remove("text-cyan-400");

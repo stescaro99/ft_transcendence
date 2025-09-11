@@ -60,7 +60,7 @@ function createInitialGameState(canvas: HTMLCanvasElement): GameState {
 		dy: 0,
 		speed: 4,
 		height: paddleHeight,
-		nickname: getPlayerNick(0, "left")
+		nickname: sessionStorage.getItem("nickname") || getPlayerNick(0, "left")
 	  },
 	  {
 		x: canvas.width / 7,
@@ -333,10 +333,10 @@ export async function FourGameLoop(
         .catch((error) => console.error("DEBUG: Failed to update right score:", error));
       
       const players = [
-        game.leftPaddle[0].nickname,   // idx = 0 (Team 1 - Player 1)
-        game.leftPaddle[1].nickname,   // idx = 1 (Team 1 - Player 2)  
-        game.rightPaddle[0].nickname,  // idx = 2 (Team 2 - Player 1)
-        game.rightPaddle[1].nickname   // idx = 3 (Team 2 - Player 2)
+        game.leftPaddle[0].nickname,
+        game.leftPaddle[1].nickname,   
+        game.rightPaddle[0].nickname,
+        game.rightPaddle[1].nickname 
       ];
       
 			players.forEach((nickname, idx) => {
@@ -350,13 +350,13 @@ export async function FourGameLoop(
 					// Team 2 vince (idx 2 e 3 sono Team 2)  
 					(game.scoreRight > game.scoreLeft && (idx === 2 || idx === 3))
 				) {
-					result = 2; // vittoria
+					result = 2;
 				} else {
-					result = 0; // sconfitta
+					result = 0; 
 				}
 
-				// Aggiorna le statistiche solo se il nickname del giocatore corrisponde all'utente loggato
 				const loggedNick = sessionStorage.getItem('nickname');
+				console.log('DEBUD!!!!!! NICKNAME LOGGATO:', loggedNick, ' - NICKNAME GIOCATORE:', nickname, ' - RISULTATO CALCOLATO:', result);
 				if (loggedNick && nickname === loggedNick) {
 					gameService.upDateStat(nickname, gameRoom.game_id!, result)
 						.then(() => console.log(`DEBUG: Successfully updated stats for ${nickname} with result:`, result))
