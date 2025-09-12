@@ -10,6 +10,7 @@ export class Stats {
 	number_of_losses?: number;
 	number_of_draws?: number;
 	number_of_points?: number;
+	number_of_tournaments_won?: number;
 	average_score?: number;
 	percentage_wins?: number;
 	percentage_losses?: number;

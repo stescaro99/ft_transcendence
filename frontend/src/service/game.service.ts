@@ -120,4 +120,30 @@ export class GameService {
 		}
 		return res.json();
 	}
+
+	async winTournament(nickname : string){
+		let apitornament = "https://transcendence.be:9443/api/win_tournament";
+		if (!nickname) {
+			throw new Error("Invalid parameters for updating stat");
+		}
+		const token = this.getToken();
+
+		const body = {
+			nickname: nickname,
+			index: 0,
+		};
+		console.log('chiamataaaaaaaaaaa', body);
+		const res = await fetch(`${apitornament}`, {
+			method: "PUT",
+			headers:{
+				"Authorization": `Bearer ${token}`,
+				"Content-Type": "application/json",
+			},
+			body : JSON.stringify(body),
+		});
+		if (!res.ok) {
+			throw new Error(`Error updating tournament win for ${nickname} . HTTP ${res.status}`);
+		}
+		return res.json();
+	}
 }

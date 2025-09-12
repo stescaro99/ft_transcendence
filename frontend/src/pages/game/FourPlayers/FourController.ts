@@ -367,9 +367,9 @@ export async function FourGameLoop(
       // Determina il vincitore per il database
       let winnerNickname = "";
       if (game.scoreLeft > game.scoreRight) {
-        winnerNickname = `${TeamLeft} (Team 1)`;
+        winnerNickname = `(Team 1)`;
       } else if (game.scoreRight > game.scoreLeft) {
-        winnerNickname = `${TeamRight} (Team 2)`;
+        winnerNickname = `(Team 2)`;
       } else {
         winnerNickname = "Draw";
       }

@@ -2,17 +2,57 @@ import tournamentHtml from './tournament.html?raw';
 import { Tournament, TournamentRound, TournamentResult } from '../../model/touranment.model';
 import { TranslationService } from '../../service/translation.service';
 import './tournament.css';
+import { GameService } from '../../service/game.service';
 
 export class TournamentPage {
+    private gameService = new GameService();
     private tournament: Tournament = new Tournament();
     private currentLang: string;
     private translationService: TranslationService;
 
-    // Mostra/nasconde il selettore del numero di giocatori (e il suo wrapper con glow)
+
+     private initCleanupHandlers() {
+        const TOURNAMENT_KEYS = [
+            'activeTournament',
+            'tournamentMode',
+            'currentGameIndex',
+            'currentRound',
+            'tournamentP1',
+            'tournamentP2',
+        ];
+
+        const clearAll = () => {
+            try {
+                TOURNAMENT_KEYS.forEach(k => sessionStorage.removeItem(k));
+                console.log('[Tournament] State cleared');
+            } catch {}
+        };
+
+        // Pulisci se si lascia la pagina (chiusura/refresh)
+        window.addEventListener('pagehide', clearAll);
+        window.addEventListener('beforeunload', clearAll);
+
+        // Pulisci quando si lascia il torneo verso una route che NON è il game
+        window.addEventListener('hashchange', (e: HashChangeEvent) => {
+            try {
+                const prev = new URL((e as any).oldURL || window.location.href).hash || '';
+                const next = new URL((e as any).newURL || window.location.href).hash || '';
+                const wasTournament = prev.startsWith('#/tournament');
+                const goingToGame = next.startsWith('#/game');
+                if (wasTournament && !goingToGame) {
+                    clearAll();
+                }
+            } catch {
+                // fallback: se non riusciamo a leggere, non pulire
+            }
+       });
+    }
+
+
     private setPlayerCountVisible(visible: boolean) {
         const select = document.getElementById('tournamentList');
         if (!select) return;
-        const wrapper = select.parentElement; // contiene anche il glow sibling
+        const wrapper = select.parentElement;
         if (wrapper) {
             if (visible) {
                 wrapper.classList.remove('hidden');
@@ -260,11 +300,9 @@ export class TournamentPage {
             sessionStorage.setItem('currentGameIndex', currentIndex.toString());
             sessionStorage.setItem('currentRound', this.tournament.currentRound.toString());
 
-            // NEW: passa i nomi tramite sessionStorage (evita problemi col router)
+            
             sessionStorage.setItem('tournamentP1', currentGame[0]);
             sessionStorage.setItem('tournamentP2', currentGame[1]);
-
-            // Hash minimale così il router non rompe
             window.location.hash = '#/game?players=2';
         } else {
             this.completeCurrentRound();
@@ -348,8 +386,7 @@ export class TournamentPage {
                         </div>
                         ${winner ? `<div class=\"mt-1 text-[11px] text-green-400 font-bold\">👑 ${winner}</div>` : ''}
                     </div>`);
-            }
-
+                }
             return `
                 <div class="pyramid-row flex justify-center gap-4" data-round="${rIndex}" style="order:${rIndex};">
                     ${matchesHtml.join('')}
@@ -401,6 +438,15 @@ export class TournamentPage {
         if (winners.length === 1) {
             // Torneo finito! Abbiamo un campione
             this.tournament.winner_nickname = winners[0];
+            if (this.tournament.winner_nickname === sessionStorage.getItem('nickname')) {
+            this.gameService.winTournament(this.tournament.winner_nickname)
+                .then(() => {
+                    console.log('Tournament win recorded on server');
+                })
+                .catch((error) => {
+                    console.error('Error recording tournament win:', error);
+                });
+            }
             this.showTournamentResults();
         } else if (winners.length >= 2) {
             // Salta il recap a colonna e vai direttamente all'intro del prossimo round (piramide)
@@ -410,66 +456,6 @@ export class TournamentPage {
         }
     }
 
-    private showRoundRecap(completedRound: TournamentRound, winners: string[]) {
-        const tournamentName = document.getElementById('tournamentName');
-        if (!tournamentName) return;
-
-        // Determina quale sarà il prossimo round
-        const nextRoundName = winners.length === 2 ? "Finale" : 
-                             this.getRoundName(this.tournament.currentRound + 1, this.tournament.number_of_players || 0);
-
-        tournamentName.innerHTML = `
-            <div class="text-center relative">
-                <!-- Effetto glow di sfondo -->
-                <div class="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-purple-500/10 to-pink-500/10 rounded-2xl blur-xl"></div>
-                
-                <div class="relative z-10 bg-black/60 backdrop-blur-sm border-2 border-cyan-400/50 rounded-2xl p-60% shadow-[0_0_30px_rgba(34,211,238,0.3)]">
-                    <h2 class="text-cyan-400 text-3xl font-black mb-8 drop-shadow-lg" style="text-shadow: 0 0 10px rgba(34, 211, 238, 0.8)">
-                        🏆 ${completedRound.roundName} - {{tournament.round_results}}
-                    </h2>
-                    <div class="space-y-4 mb-8">
-                        ${completedRound.results.map((result, index) => `
-                            <div class="bg-gray-900/80 border border-purple-400/50 p-4 rounded-lg shadow-[0_0_15px_rgba(168,85,247,0.3)] backdrop-blur-sm">
-                                <h3 class="text-purple-400 font-bold mb-2">⚔️ {{tournament.match}} ${index + 1}</h3>
-                                <p class="text-gray-300 mb-2">${result.game[0]} vs ${result.game[1]}</p>
-                                <p class="text-green-400 font-bold text-lg" style="text-shadow: 0 0 5px rgba(34, 197, 94, 0.8)">
-                                    👑 {{tournament.winner}}: ${result.winner}
-                                </p>
-                            </div>
-                        `).join('')}
-                    </div>
-                    
-                    <div class="bg-gradient-to-r from-blue-900/80 to-purple-900/80 border-2 border-blue-400/50 p-6 rounded-lg mb-8 shadow-[0_0_20px_rgba(59,130,246,0.4)] backdrop-blur-sm">
-                        <h3 class="text-blue-400 text-xl font-bold mb-4" style="text-shadow: 0 0 8px rgba(59, 130, 246, 0.8)">
-                            ⭐ {{tournament.qualified_for}} ${nextRoundName}:
-                        </h3>
-                        <div class="flex flex-wrap justify-center gap-3">
-                            ${winners.map(winner => `
-                                <span class="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2 rounded-full font-bold shadow-[0_0_10px_rgba(34,197,94,0.6)] transform hover:scale-105 transition-all duration-300">
-                                    🌟 ${winner}
-                                </span>
-                            `).join('')}
-                        </div>
-                    </div>
-                    
-                    <button id="continueBtn" class="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-black py-4 px-8 rounded-lg shadow-[0_0_20px_rgba(34,211,238,0.5)] hover:shadow-[0_0_30px_rgba(34,211,238,0.8)] transform hover:scale-105 transition-all duration-300">
-                        ${winners.length === 2 ? '🏁 {{tournament.go_to_final}}' : '⚡ {{tournament.continue_tournament}}'}
-                    </button>
-                </div>
-            </div>
-        `;
-
-        // Translate the dynamic content
-        this.translateDynamicContent(tournamentName);
-        
-        // Aggiungi listener per continuare
-        const continueBtn = document.getElementById('continueBtn');
-        if (continueBtn) {
-            continueBtn.addEventListener('click', () => {
-                this.startNextRound(winners);
-            });
-        }
-    }
 
     private startNextRound(winners: string[]) {
         // Verifica se questo sarà l'ultimo round (finale)
@@ -492,113 +478,116 @@ export class TournamentPage {
     this.showRoundIntro(this.tournament.rounds[this.tournament.currentRound]);
     }
 
-private showTournamentResults() {
-    // Mantieni i dati finché l'utente non decide di iniziare un nuovo torneo
-    // Mostra i risultati finali nella UI
-    const tournamentName = document.getElementById('tournamentName');
-    if (tournamentName) {
-        const allResults: TournamentResult[] = [];
-        this.tournament.rounds.forEach(round => {
-            allResults.push(...round.results);
-        });
+    private showTournamentResults() {
+        // Mantieni i dati finché l'utente non decide di iniziare un nuovo torneo
+        // Mostra i risultati finali nella UI
+        const tournamentName = document.getElementById('tournamentName');
+        if (tournamentName) {
+            const allResults: TournamentResult[] = [];
+            this.tournament.rounds.forEach(round => {
+                allResults.push(...round.results);
+            });
 
-        tournamentName.innerHTML = `
-            <div class="text-center relative">
-                <!-- Effetti di sfondo per la celebrazione -->
-                <div class="absolute inset-0 bg-gradient-to-br from-yellow-500/20 via-orange-500/20 to-red-500/20 rounded-3xl blur-2xl animate-pulse"></div>
-                <div class="absolute top-0 left-0 w-full h-full">
-                    <div class="absolute top-1/4 left-1/4 w-20 h-20 bg-yellow-400 rounded-full blur-xl opacity-40 animate-bounce"></div>
-                    <div class="absolute top-3/4 right-1/4 w-16 h-16 bg-orange-400 rounded-full blur-lg opacity-30 animate-bounce animation-delay-1000"></div>
-                    <div class="absolute bottom-1/4 left-1/2 w-12 h-12 bg-red-400 rounded-full blur-lg opacity-35 animate-bounce animation-delay-2000"></div>
-                </div>
-                
-                <div class="relative z-10 bg-black/70 backdrop-blur-sm border-2 border-yellow-400/60 rounded-3xl p-8 shadow-[0_0_50px_rgba(234,179,8,0.4)]">
-                    <h1 class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 text-5xl font-black mb-6 animate-pulse drop-shadow-2xl">
-                        🏆 {{tournament.tournament_champion}} 🏆
-                    </h1>
-                    <div class="bg-gradient-to-r from-yellow-500 to-orange-500 text-black text-4xl font-black p-8 rounded-xl mb-8 shadow-[0_0_30px_rgba(234,179,8,0.6)] transform hover:scale-105 transition-all duration-300">
-                        👑 ${this.tournament.winner_nickname} 👑
+            tournamentName.innerHTML = `
+                <div class="text-center relative">
+                    <!-- Effetti di sfondo per la celebrazione -->
+                    <div class="absolute inset-0 bg-gradient-to-br from-yellow-500/20 via-orange-500/20 to-red-500/20 rounded-3xl blur-2xl animate-pulse"></div>
+                    <div class="absolute top-0 left-0 w-full h-full">
+                        <div class="absolute top-1/4 left-1/4 w-20 h-20 bg-yellow-400 rounded-full blur-xl opacity-40 animate-bounce"></div>
+                        <div class="absolute top-3/4 right-1/4 w-16 h-16 bg-orange-400 rounded-full blur-lg opacity-30 animate-bounce animation-delay-1000"></div>
+                        <div class="absolute bottom-1/4 left-1/2 w-12 h-12 bg-red-400 rounded-full blur-lg opacity-35 animate-bounce animation-delay-2000"></div>
                     </div>
                     
-                    <h2 class="text-cyan-400 text-2xl font-black mb-8" style="text-shadow: 0 0 10px rgba(34, 211, 238, 0.8)">
-                        📊 {{tournament.tournament_summary}}
-                    </h2>
-                    
-                    ${this.tournament.rounds.map(round => `
-                        <div class="mb-8">
-                            <h3 class="text-purple-400 text-xl font-black mb-4" style="text-shadow: 0 0 8px rgba(168, 85, 247, 0.8)">
-                                ⚔️ ${round.roundName}
-                            </h3>
-                            <div class="space-y-2">
-                                ${round.results.map((result) => `
-                                    <div class="bg-gray-900/80 border border-purple-400/30 p-3 rounded-lg shadow-[0_0_10px_rgba(168,85,247,0.2)] backdrop-blur-sm">
-                                        <span class="text-gray-300">${result.game[0]} vs ${result.game[1]}</span>
-                                        <span class="text-green-400 font-bold ml-4" style="text-shadow: 0 0 5px rgba(34, 197, 94, 0.6)">→ ${result.winner}</span>
-                                    </div>
-                                `).join('')}
-                            </div>
+                    <div class="relative z-10 bg-black/70 backdrop-blur-sm border-2 border-yellow-400/60 rounded-3xl p-8 shadow-[0_0_50px_rgba(234,179,8,0.4)]">
+                        <h1 class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 text-5xl font-black mb-6 animate-pulse drop-shadow-2xl">
+                            🏆 {{tournament.tournament_champion}} 🏆
+                        </h1>
+                        <div class="bg-gradient-to-r from-yellow-500 to-orange-500 text-black text-4xl font-black p-8 rounded-xl mb-8 shadow-[0_0_30px_rgba(234,179,8,0.6)] transform hover:scale-105 transition-all duration-300">
+                            👑 ${this.tournament.winner_nickname} 👑
                         </div>
-                    `).join('')}
-                    
-                    <button id="newTournamentBtn" class="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-black py-4 px-8 rounded-lg mt-8 shadow-[0_0_25px_rgba(236,72,153,0.5)] hover:shadow-[0_0_40px_rgba(236,72,153,0.8)] transform hover:scale-105 transition-all duration-300">
-                        🎮 {{tournament.new_tournament}}
-                    </button>
+                        
+                        <h2 class="text-cyan-400 text-2xl font-black mb-8" style="text-shadow: 0 0 10px rgba(34, 211, 238, 0.8)">
+                            📊 {{tournament.tournament_summary}}
+                        </h2>
+                        
+                        ${this.tournament.rounds.map(round => `
+                            <div class="mb-8">
+                                <h3 class="text-purple-400 text-xl font-black mb-4" style="text-shadow: 0 0 8px rgba(168, 85, 247, 0.8)">
+                                    ⚔️ ${round.roundName}
+                                </h3>
+                                <div class="space-y-2">
+                                    ${round.results.map((result) => `
+                                        <div class="bg-gray-900/80 border border-purple-400/30 p-3 rounded-lg shadow-[0_0_10px_rgba(168,85,247,0.2)] backdrop-blur-sm">
+                                            <span class="text-gray-300">${result.game[0]} vs ${result.game[1]}</span>
+                                            <span class="text-green-400 font-bold ml-4" style="text-shadow: 0 0 5px rgba(34, 197, 94, 0.6)">→ ${result.winner}</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `).join('')}
+                        
+                        <button id="newTournamentBtn" class="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-black py-4 px-8 rounded-lg mt-8 shadow-[0_0_25px_rgba(236,72,153,0.5)] hover:shadow-[0_0_40px_rgba(236,72,153,0.8)] transform hover:scale-105 transition-all duration-300">
+                            🎮 {{tournament.new_tournament}}
+                        </button>
+                    </div>
                 </div>
-            </div>
-        `;
+            `;
 
-        // Translate the dynamic content
-        this.translateDynamicContent(tournamentName);
-        
-        // Aggiungi listener per nuovo torneo
-        const newTournamentBtn = document.getElementById('newTournamentBtn');
-        if (newTournamentBtn) {
-            newTournamentBtn.addEventListener('click', () => {
-                // Ora pulisco i dati e riparto
-                sessionStorage.removeItem('activeTournament');
-                sessionStorage.removeItem('tournamentMode');
-                sessionStorage.removeItem('currentGameIndex');
-                sessionStorage.removeItem('currentRound');
-                this.tournament = new Tournament();
-                // Mostra nuovamente il selettore dei giocatori
-                this.setPlayerCountVisible(true);
-                window.location.hash = '#/tournament';
-            });
+            // Translate the dynamic content
+            this.translateDynamicContent(tournamentName);
+
+            // Aggiungi listener per nuovo torneo
+            const newTournamentBtn = document.getElementById('newTournamentBtn');
+            if (newTournamentBtn) {
+                newTournamentBtn.addEventListener('click', () => {
+                    // Ora pulisco i dati e riparto
+                    sessionStorage.removeItem('activeTournament');
+                    sessionStorage.removeItem('tournamentMode');
+                    sessionStorage.removeItem('currentGameIndex');
+                    sessionStorage.removeItem('currentRound');
+                    this.tournament = new Tournament();
+                    // Mostra nuovamente il selettore dei giocatori
+                    this.setPlayerCountVisible(true);
+                    window.location.hash = '#/tournament';
+                });
+            }
         }
-    }
-}
 
-// Metodo da chiamare nel costruttore per gestire la continuazione del torneo
-private checkTournamentContinuation() {
-    const params = new URLSearchParams(window.location.hash.split('?')[1]);
-    const continueParam = params.get('continue');
-    
-    if (continueParam === 'true') {
-        const tournamentData = sessionStorage.getItem('activeTournament');
-        if (tournamentData) {
-            this.tournament = JSON.parse(tournamentData);
-            // Siamo in un torneo in corso: nascondi il selettore dei giocatori
-            this.setPlayerCountVisible(false);
-            
-            // Controlla se il round corrente è completato
-            const currentRound = this.tournament.rounds[this.tournament.currentRound];
-            const currentIndex = this.tournament.currentGameIndex || 0;
-            
-            console.log(`Checking tournament continuation: Round ${this.tournament.currentRound}, Game ${currentIndex}`);
-            console.log(`Current round has ${currentRound?.games.length} games, results: ${currentRound?.results.length}`);
-            
-            if (currentRound && currentIndex >= currentRound.games.length) {
-                // Round completato, mostra recap
-                console.log('Round completed, showing recap');
-                this.completeCurrentRound();
-            } else {
-                // Continua con la prossima partita del round
-                console.log('Continuing to next game');
-                this.startNextGame();
+  
+    }
+
+    private checkTournamentContinuation() {
+        const params = new URLSearchParams(window.location.hash.split('?')[1]);
+        const continueParam = params.get('continue');
+        
+        if (continueParam === 'true') {
+            const tournamentData = sessionStorage.getItem('activeTournament');
+            if (tournamentData) {
+                this.tournament = JSON.parse(tournamentData);
+                // Siamo in un torneo in corso: nascondi il selettore dei giocatori
+                this.setPlayerCountVisible(false);
+                
+                // Controlla se il round corrente è completato
+                const currentRound = this.tournament.rounds[this.tournament.currentRound];
+                const currentIndex = this.tournament.currentGameIndex || 0;
+                
+                console.log(`Checking tournament continuation: Round ${this.tournament.currentRound}, Game ${currentIndex}`);
+                console.log(`Current round has ${currentRound?.games.length} games, results: ${currentRound?.results.length}`);
+                
+                if (currentRound && currentIndex >= currentRound.games.length) {
+                    // Round completato, mostra recap
+                    console.log('Round completed, showing recap');
+                    this.completeCurrentRound();
+                } else {
+                    // Continua con la prossima partita del round
+                    console.log('Continuing to next game');
+                    this.startNextGame();
+                }
             }
         }
     }
-}
+
+    // Metodo da chiamare nel costruttore per gestire la continuazione del torneo
 
     constructor(lang: string) {
         console.log('🔍 TournamentPage Debug:');
@@ -606,8 +595,9 @@ private checkTournamentContinuation() {
         this.render();
         this.addEventListeners();
         this.setTheme('tournament');
-        this.checkTournamentContinuation(); // Aggiungi questa chiamata
-        // Se esiste già un torneo attivo, nascondi subito il selettore
+        this.initCleanupHandlers();
+
+        this.checkTournamentContinuation();
         try {
             const active = sessionStorage.getItem('activeTournament');
             if (active) {
@@ -615,8 +605,15 @@ private checkTournamentContinuation() {
             }
         } catch {}
         
+        // window.addEventListener('hashchange', () => {
+        //     if (!location.hash.startsWith('#/tournament')) {
+        //         sessionStorage.removeItem('tournamentFinalLock');
+        //     }
+        // });
         // Carica automaticamente i campi per 4 giocatori (valore di default)
         setTimeout(() => {
+            // if (sessionStorage.getItem('tournamentFinalLock') === '1') return;
+
             const tournamentList = document.getElementById('tournamentList') as HTMLSelectElement;
             if (tournamentList) {
                 // Determina se esiste un torneo attivo in esecuzione
@@ -644,7 +641,7 @@ private checkTournamentContinuation() {
                     console.log(`Auto-loaded input fields for ${defaultPlayers} players`);
                 }
             }
-        }, 100); // Piccolo delay per assicurarsi che il DOM sia pronto
+        }, 100); 
     }
 
     ramdomizeArray(array: any[]): any[] {
