@@ -317,12 +317,12 @@ export class OnlineGamePage {
 
 			if (isFourPlayers) {
 				// Mostra tutti e 4 i nomi
-				if (player1Name && initialState.leftPaddle[0]) {
-					player1Name.textContent = initialState.leftPaddle[0].nickname;
+				if (player1Name && initialState.leftPaddle[1]) {
+					player1Name.textContent = initialState.leftPaddle[1].nickname;
 					player1Name.style.display = "block";
 				}
-				if (player2Name && initialState.leftPaddle[1]) {
-					player2Name.textContent = initialState.leftPaddle[1].nickname;
+				if (player2Name && initialState.leftPaddle[0]) {
+					player2Name.textContent = initialState.leftPaddle[0].nickname;
 					player2Name.style.display = "block";
 				}
 				if (player3Name && initialState.rightPaddle[0]) {
@@ -426,20 +426,20 @@ export class OnlineGamePage {
 
 			if (isFourPlayers) {
 				// Mostra tutti e 4 i nomi
-				if (player1Name && initialState.leftPaddle[0]) {
-					player1Name.textContent = initialState.leftPaddle[0].nickname;
+				if (player1Name && initialState.leftPaddle[1]) {
+					player1Name.textContent = initialState.leftPaddle[1].nickname;
 					player1Name.style.display = "block";
 				}
-				if (player2Name && initialState.leftPaddle[1]) {
-					player2Name.textContent = initialState.leftPaddle[1].nickname;
+				if (player2Name && initialState.leftPaddle[0]) {
+					player2Name.textContent = initialState.leftPaddle[0].nickname;
 					player2Name.style.display = "block";
 				}
-				if (player3Name && initialState.rightPaddle[0]) {
-					player3Name.textContent = initialState.rightPaddle[0].nickname;
+				if (player3Name && initialState.rightPaddle[1]) {
+					player3Name.textContent = initialState.rightPaddle[1].nickname;
 					player3Name.style.display = "block";
 				}
-				if (player4Name && initialState.rightPaddle[1]) {
-					player4Name.textContent = initialState.rightPaddle[1].nickname;
+				if (player4Name && initialState.rightPaddle[0]) {
+					player4Name.textContent = initialState.rightPaddle[0].nickname;
 					player4Name.style.display = "block";
 				}
 			} else {
@@ -553,21 +553,41 @@ export class OnlineGamePage {
     }, 1000);
 }
 
-	// NEW: overlay di fine partita, abilita uscita
   private showGameEndedOverlay(data: any) {
-    // Nascondi schermo setup e mostra gameScreen (se serve) per overlay
     const setupScreen = document.getElementById("onlineSetup-screen");
     if (setupScreen) setupScreen.style.display = "none";
     const gameScreen = document.getElementById("gameScreen");
     if (gameScreen) gameScreen.style.display = "flex";
 
-    // Costruisci messaggio
     const myNick = sessionStorage.getItem('nickname') || '';
     const me = (data.players || []).find((p: any) => p.nickname === myNick);
     const iWon = me ? (data.winner === me.side) : false;
 
     const winnerLabel = iWon ? "Hai Vinto!" : "Hai Perso";
-    const reason = data.reason === 'playerDisconnection' ? 'L\'avversario si è disconnesso' : '';
+    let disconnectReason = '';
+    // Trova il player disconnesso
+    const disconnectedPlayer = (data.players || []).find((p: any) => !p.connected);
+
+    // Trova la squadra di me
+    const mySide = me?.side;
+
+    // Trova tutti i compagni di squadra (escluso me)
+    const myTeam = (data.players || []).filter((p: any) => p.side === mySide && p.nickname !== myNick);
+
+    // Se il disconnesso è nel mio team, è il mio compagno
+    if (data.reason === 'playerDisconnection') {
+        if (disconnectedPlayer) {
+            if (myTeam.some((p: any) => p.nickname === disconnectedPlayer.nickname)) {
+                disconnectReason = 'Il tuo compagno si è disconnesso';
+            } else {
+                disconnectReason = 'L\'avversario si è disconnesso';
+            }
+        } else {
+            disconnectReason = 'Un giocatore si è disconnesso';
+        }
+    }
+
+    const reason = disconnectReason || (data.reason === 'playerDisconnection' ? 'L\'avversario si è disconnesso' : '');
 
     // Crea overlay
     const existing = document.getElementById('winOverlay');
