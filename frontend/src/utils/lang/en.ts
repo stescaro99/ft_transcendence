@@ -39,7 +39,7 @@ export default {
         "percentage_draws": "Percentage of Draws",
         "history": "History",
         "change_profile": "Change Profile",
-        "number_of_tournament_victories": "Number of tournaments won"
+        "tournament_victories": "Number of tournaments won"
     },
     game: {
         "player": "Player",
