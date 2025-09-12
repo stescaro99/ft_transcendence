@@ -89,15 +89,21 @@ Stats.init(
 	}
 );
 
-Stats.hasMany(Game, {
-	foreignKey: 'stat_index',
-	sourceKey: 'stat_index',
+// A stats entry can be associated with many games and a game can be associated with
+// many stats (both players' stats). Use belongsToMany on both models with an
+// explicit through table `game_stats` where `game_id` and `stat_index` are the
+// composite keys.
+(Stats as any).belongsToMany(Game, {
+	through: 'game_stats',
+	foreignKey: 'stat_index', // column in game_stats that references stats.stat_index
+	otherKey: 'game_id', // column in game_stats that references games.game_id
 	as: 'games',
 });
-Game.belongsToMany(Stats, {
+
+(Game as any).belongsToMany(Stats, {
 	through: 'game_stats',
-	foreignKey: 'stat_index',
-	otherKey: 'game_id',
+	foreignKey: 'game_id', 
+	otherKey: 'stat_index', 
 	as: 'stats',
 });
 

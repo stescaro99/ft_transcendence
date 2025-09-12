@@ -1,12 +1,11 @@
 COSE DA RISOLVERE:
 
 -SALVATAGGIO PARTITE:
-    -salvare le partite online nel db e aggiungerle alle stats dei giocatori
     -problemi nel salvataggio delle partite dei tornei (a volte)
     
 -TORNEI:
     -quando user e' il giocatore a destra e vince non viene contato come vincitore (viene preso "Giocatore 2" come winner nickname)
-    -ogni tanto la pagina dei tornei non funziona, non 
+    -Finito il torneo, se non premo sul tasto per avviare un nuovo torneo ma cambio pagina, non sara' mai piu' possibile giocare i tornei.
 
 MIGLIORIE:
 

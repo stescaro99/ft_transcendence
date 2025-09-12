@@ -1,5 +1,6 @@
 import { GameState } from './types';
 import { GAME_CONSTANTS } from './types';
+import { updateGameScores } from './gamePersistence';
 
 export class GamePhysics {
   static updateGameStateWithDelta(gameState: GameState, deltaTime: number): void {
@@ -227,11 +228,23 @@ export class GamePhysics {
   static checkScore(gameState: GameState): void {
     if (gameState.ball.x - gameState.ball.radius < 0) {
       gameState.scoreRight++;
+      // Persist score to DB if gameId available
+      // @ts-ignore
+      if ((gameState as any).gameId) {
+        // @ts-ignore
+        updateGameScores((gameState as any).gameId, [gameState.scoreLeft, gameState.scoreRight]).catch(err => console.error('[Physics] updateGameScores error:', err));
+      }
       this.resetAfterPoint(0, gameState);
     }
     
     if (gameState.ball.x + gameState.ball.radius > GAME_CONSTANTS.CANVAS_WIDTH) {
       gameState.scoreLeft++;
+      // Persist score to DB if gameId available
+      // @ts-ignore
+      if ((gameState as any).gameId) {
+        // @ts-ignore
+        updateGameScores((gameState as any).gameId, [gameState.scoreLeft, gameState.scoreRight]).catch(err => console.error('[Physics] updateGameScores error:', err));
+      }
       this.resetAfterPoint(1, gameState);
     }
   }

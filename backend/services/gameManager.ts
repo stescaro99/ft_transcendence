@@ -328,13 +328,18 @@ export class GameManager {
 
     this.broadcastToRoom(roomId, gameResult);
     
+    // include gameId if available to finalize existing DB record
+  // prefer typed room.gameId, fallback to gameState.gameId
+  // @ts-ignore
+  const gid: number | undefined = room.gameId || (room.gameState && (room.gameState as any).gameId);
     saveGameAndStats(room, {
       winnerSide: winner,
       winnerNicknames,
       loserNicknames,
       reason: 'playerDisconnection',
       isDisconnectionWin: true,
-      finalScores
+      finalScores,
+      gameId: gid
     }).catch(err => console.error('[GameManager] Error saving disconnection result:', err));
     console.log(`Game ended in room ${roomId} due to disconnection. Winner: ${winner}`, gameResult);
 
