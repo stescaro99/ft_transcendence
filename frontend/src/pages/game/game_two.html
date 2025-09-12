@@ -3,8 +3,10 @@
         <div class="column">
         <h2 id="nickname"></h2>
         <p>{{game.choose_color}}</p>
-        <div class="palette" data-player="1"></div>
-        <div id="Preview1" class="paddle-preview"></div>
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <div class="palette" data-player="1" aria-label="palette-player-1"></div>
+          <div id="Preview1" class="paddle-preview" aria-hidden="true"></div>
+        </div>
       </div>
 
       <div class="spacer"></div>
@@ -22,8 +24,10 @@
       <div class="column">
         <h2 id="play2"></h2>
         <p>{{game.choose_color}}</p>
-        <div class="palette" data-player="2"></div>
-        <div id="Preview2" class="paddle-preview"></div>
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <div class="palette" data-player="2" aria-label="palette-player-2"></div>
+          <div id="Preview2" class="paddle-preview" aria-hidden="true"></div>
+        </div>
         <button id="addBotBtn0" class="btn-large">{{game.add_bot}}</button>
       </div>
     </div>

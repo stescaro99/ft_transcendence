@@ -10,7 +10,7 @@ export class MultiplayerService {
     private gameEndedCallback: ((data: any) => void) | null = null;
     private waitingCallback: ((data: any) => void) | null = null;
     private currentRoomId: string | null = null;
-    private heartbeatInterval: number | null = null; 
+    private heartbeatInterval: ReturnType<typeof setTimeout> | null = null; 
     private disconnectCallback: (() => void) | null = null; // NEW
 
     private getToken(): string | null {
@@ -114,7 +114,7 @@ export class MultiplayerService {
 
     private stopHeartbeat() {
         if (this.heartbeatInterval) {
-            clearInterval(this.heartbeatInterval);
+            clearInterval(this.heartbeatInterval as ReturnType<typeof setTimeout>);
             this.heartbeatInterval = null;
         }
     }

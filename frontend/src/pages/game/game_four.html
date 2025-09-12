@@ -7,8 +7,10 @@
         <h3 id="team1Player2">{{game.player}} 2</h3>
       </div>
       <p>{{game.choose_color}}</p>
-      <div class="palette" data-player="3"></div>
-      <div id="Preview3" class="paddle-preview"></div>
+      <div style="display:flex;flex-direction:column;align-items:center;">
+        <div class="palette" data-player="3" aria-label="palette-player-3"></div>
+        <div id="Preview3" class="paddle-preview" aria-hidden="true"></div>
+      </div>
       <button id="addBotBtn1" class="btn-large">{{game.add_bot}}</button>
     </div>
 
@@ -31,8 +33,10 @@
         <h3 id="team2Player2">{{game.player}} 2</h3>
       </div>
       <p>{{game.choose_color}}</p>
-      <div class="palette" data-player="4"></div>
-      <div id="Preview4" class="paddle-preview"></div>
+      <div style="display:flex;flex-direction:column;align-items:center;">
+        <div class="palette" data-player="4" aria-label="palette-player-4"></div>
+        <div id="Preview4" class="paddle-preview" aria-hidden="true"></div>
+      </div>
       <!-- <button id="addBotBtn2" class="btn-large">{{game.add_bot}}</button>
       <button id="addBotBtn3" class="btn-large">{{game.add_bot}}</button> -->
 

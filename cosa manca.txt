@@ -1,19 +1,13 @@
 COSE DA RISOLVERE:
 
--FRONTEND
-    -tutte le pagine devono usare CSS Tailwind (game.css e' in CSS puro)
-
--PARTITE ONLINE:
-    -se un giocatore si disconnette gli altri rimangono bloccati
+-TRADUZIONI:
+    -pagina gioco online:
+        -bottone per cercare partita;
+        -bottone per annullare ricerca;
 
 -SALVATAGGIO PARTITE:
-    -salvare le partite online nel db e aggiungerle alle stats dei giocatori
-    -problemi nel salvare le partite dei tornei
-    -problemi nel salvare le partite 4 giocatori
-
-MIGLIORIE:
-
--PAGINA STATS:
-    -dare un ordine alle partite
-    -formattare l'orario in modo leggibile
-    -aggiungere il numero dei tornei vinti nelle STATS
+    -problemi nel salvataggio delle partite dei tornei (a volte)
+    
+-TORNEI:
+    -quando user e' il giocatore a destra e vince non viene contato come vincitore (viene preso "Giocatore 2" come winner nickname)
+    -Finito il torneo, se non premo sul tasto per avviare un nuovo torneo ma cambio pagina, non sara' mai piu' possibile giocare i tornei.

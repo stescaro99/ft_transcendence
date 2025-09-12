@@ -38,7 +38,8 @@ export default {
         "percentage_losses": "Pourcentage de defaites",
         "percentage_draws": "Pourcentage de matchs nuls",
         "history": "Historique",
-        "change_profile": "Modifier le profil"
+        "change_profile": "Modifier le profil",
+        "number_of_tournament_victories": "Nombre de tournois remportés"
     },
     game: {
         "player": "Joueur",

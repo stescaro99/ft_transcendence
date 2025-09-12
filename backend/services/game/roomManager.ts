@@ -4,14 +4,10 @@ export class RoomManager {
   private rooms: Map<string, GameRoom> = new Map();
 
   createRoom(type: 'two' | 'four' = 'two', opts?: { powerUpsEnabled?: boolean }): string {
-    console.log('[RoomManager] Creating room of type:', type);
     
     const roomId = this.generateRoomId();
-    console.log('[RoomManager] Generated roomId:', roomId);
     
-    console.log('[RoomManager] About to call createInitialGameState...');
     const gameState = this.createInitialGameState(type);
-    console.log('[RoomManager] Game state created:', gameState);
     
     const room: GameRoom = {
       id: roomId,
@@ -30,7 +26,6 @@ export class RoomManager {
     }
     
     this.rooms.set(roomId, room);
-    console.log('[RoomManager] Room created and stored');
     
     return roomId;
   }
@@ -55,46 +50,32 @@ export class RoomManager {
     const player = room.players.find(p => p.id === playerId);
     if (player) {
         player.currentRoomId = undefined;
-        console.log(`[RoomManager] Reset currentRoomId per player ${player.nickname} - roomId: ${roomId}`);
     }
 
     room.players = room.players.filter(p => p.id !== playerId);
     
     if (room.players.length === 0) {
         this.rooms.delete(roomId);
-        console.log(`[RoomManager] Stanza ${roomId} eliminata (nessun player rimasto)`);
     } else {
         if (room.isActive) {
             room.isActive = false;
-            console.log(`[RoomManager] Stanza ${roomId} marcata come non attiva`);
         }
     }
 }
 
   findMatch(player: Player, gameType: 'two' | 'four' = 'two', opts?: { powerUpsEnabled?: boolean }): string | null {
-    console.log('[RoomManager] findMatch called for:', player.nickname, 'gameType:', gameType);
-    console.log('[RoomManager] Current rooms count:', this.rooms.size);
     
     // Prima cerca una room esistente
     for (const [roomId, room] of this.rooms) {
-        console.log('[RoomManager] Checking room:', roomId, {
-            type: room.type,
-            playersCount: room.players.length,
-            maxPlayers: room.maxPlayers,
-            isActive: room.isActive
-        });
         if (room.type === gameType && 
             (typeof opts?.powerUpsEnabled === 'undefined' || room.powerUpsEnabled === (opts?.powerUpsEnabled !== false)) &&
             room.players.length < room.maxPlayers && 
             !room.isActive) {  // Assicurati che la stanza sia attiva
-            console.log('[RoomManager] Found existing room:', roomId);
             this.addPlayerToRoom(roomId, player);
             return roomId;
         }
     }
 
-    // Nessuna room disponibile, crea una nuova
-    console.log('[RoomManager] No existing room found, creating new one...');
     const roomId = this.createRoom(gameType, { powerUpsEnabled: opts?.powerUpsEnabled !== false });
     this.addPlayerToRoom(roomId, player);
     return roomId;
@@ -113,41 +94,34 @@ export class RoomManager {
   }
 
   assignPlayersToPositions(room: GameRoom): void {
-    console.log('[RoomManager] Assigning players to positions...');
     room.players.forEach((player, index) => {
         if (room.type === 'two')
           {
             if (index === 0)
             {
               room.gameState.leftPaddle[0].nickname = player.nickname;
-              console.log(`[RoomManager] Player ${player.nickname} assigned to LEFT paddle`);
             }
             else if (index === 1)
             {
               room.gameState.rightPaddle[0].nickname = player.nickname;
-              console.log(`[RoomManager] Player ${player.nickname} assigned to RIGHT paddle`);
             }
           }
         else {
           if (index === 0)
           {
             room.gameState.leftPaddle[0].nickname = player.nickname;
-            console.log(`[RoomManager] Player ${player.nickname} assigned to LEFT TOP paddle`);
           }
           else if (index === 1)
           {
             room.gameState.leftPaddle[1].nickname = player.nickname;
-            console.log(`[RoomManager] Player ${player.nickname} assigned to LEFT BOTTOM paddle`);
           }
           else if (index === 2)
           {
             room.gameState.rightPaddle[0].nickname = player.nickname;
-            console.log(`[RoomManager] Player ${player.nickname} assigned to RIGHT TOP paddle`);
           }
           else if (index === 3)
           {
             room.gameState.rightPaddle[1].nickname = player.nickname;
-            console.log(`[RoomManager] Player ${player.nickname} assigned to RIGHT BOTTOM paddle`);
           }
       }
     });
@@ -289,7 +263,6 @@ private randomizePowerUp(gameState: GameState): void
     const player = room.players.find(p => p.id === playerId);
     if (player) {
       player.online = false;
-      console.log(`Player ${player.nickname} marked as offline in room ${roomId}`);
     }
   }
 
@@ -300,7 +273,6 @@ private randomizePowerUp(gameState: GameState): void
     const player = room.players.find(p => p.id === playerId);
     if (player) {
       player.online = true;
-      console.log(`Player ${player.nickname} reconnected and marked as online in room ${roomId}`);
     }
   }
 
@@ -317,7 +289,6 @@ private randomizePowerUp(gameState: GameState): void
       existingPlayer.socket = newSocket;
       existingPlayer.online = true;
       existingPlayer.lastHeartbeat = Date.now();
-      console.log(`Player ${nickname} reconnected to room ${roomId}`);
       return existingPlayer;
     }
     return null;

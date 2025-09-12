@@ -86,9 +86,7 @@ export async function login(request: FastifyRequest, reply: FastifyReply) {
 		let user = await User.findOne({ where: { nickname } });
 		let foundBy: 'nickname' | 'none' = 'none';
 		if (user) foundBy = 'nickname';
-		console.log(`[auth] login attempt for '${nickname}' - foundBy=${foundBy} userId=${user ? user.id : 'none'}`);
 		const passwordMatches = user ? await bcrypt.compare(password, user.password) : false;
-		console.log(`[auth] passwordMatches=${passwordMatches} for userId=${user ? user.id : 'none'}`);
 		if (!user || !passwordMatches) {
 			reply.code(401).send({ error: 'Invalid credentials' });
 			return;
@@ -211,7 +209,6 @@ export async function logout(request: FastifyRequest, reply: FastifyReply) {
 			await dbUser.save();
 		}
 		notifyUserStatusChange(user.nickname, false);
-		console.log(`User ${user.nickname} logged out successfully`);
 		reply.code(200).send({ 
 			message: 'Logout successful',
 			timestamp: new Date().toISOString()

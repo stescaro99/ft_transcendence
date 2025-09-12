@@ -1,7 +1,7 @@
 import { GameRoom, GAME_CONSTANTS } from './types';
 import { GamePhysics } from './physics';
-import Game from '../../models/game';
 import { saveGameAndStats } from './gameResult';
+import { createGameRecord, updateGameScores, finalizeGameRecord } from './gamePersistence';
 
 export class GameLoop {
   private static activeLoops: Map<string, boolean> = new Map();
@@ -17,6 +17,26 @@ export class GameLoop {
     let lastUpdate = Date.now();
     const frameTime = 1000 / GAME_CONSTANTS.TARGET_FPS;
     let frameCounter = 0;
+
+    // Create a DB record for this game when starting the loop
+    (async () => {
+      try {
+        // use room.gameId (declared in types) to store the created DB id
+        // @ts-ignore
+        if (!room.gameId) {
+          // @ts-ignore
+          const id = await createGameRecord(room);
+          // attach id to room so other parts can access it
+          // @ts-ignore
+          room.gameId = id;
+          // also attach to gameState for physics to update scores
+          // @ts-ignore
+          if (room.gameState) (room.gameState as any).gameId = id;
+        }
+      } catch (err) {
+        console.error('[GameLoop] Error creating game record:', err);
+      }
+    })();
 
     const gameLoop = () => {
       if (!room.isActive || !this.activeLoops.get(roomId)) {
@@ -40,8 +60,8 @@ export class GameLoop {
         timestamp: now,
         frameId: frameCounter
       });
-      if (room.gameState.scoreLeft >= room.gameState.maxScore || 
-          room.gameState.scoreRight >= room.gameState.maxScore) {
+    if (room.gameState.scoreLeft >= room.gameState.maxScore || 
+      room.gameState.scoreRight >= room.gameState.maxScore) {
         this.stopGameLoop(roomId);
         this.handleGameEnd(roomId, room, broadcastCallback);
         return;
@@ -50,13 +70,12 @@ export class GameLoop {
       // NEW: controlla timeout disconnessione ogni frame
       room.players.forEach(player => {
         if (!player.online && now - player.lastHeartbeat > 30000) { // 30 secondi
-          console.log(`Player ${player.nickname} offline too long, ending game`);
           this.handleGameEnd(roomId, room, broadcastCallback);
           return;
         }
       });
 
-      frameCounter++;
+  frameCounter++;
       setTimeout(gameLoop, Math.max(0, frameTime - (Date.now() - now)));
     };
     gameLoop();
@@ -64,7 +83,6 @@ export class GameLoop {
 
   static stopGameLoop(roomId: string): void {
     this.activeLoops.delete(roomId);
-    console.log(`Game loop stopped for room ${roomId}`);
   }
 
   static isLoopActive(roomId: string): boolean {
@@ -93,11 +111,17 @@ export class GameLoop {
 
     broadcastCallback(roomId, gameResult);
     
-  // Salva il risultato nel database e aggiorna le stats
-  this.saveGameResultToDatabase(room, winner).catch(err => console.error('Save game error:', err));
-    
-    console.log(`Game ended in room ${roomId}:`, gameResult);
-  }
+    // finalize DB record if exists
+    // @ts-ignore
+    const gid: number | undefined = room.gameRecordId;
+    if (gid) {
+      const winnerNick = room.players.filter(p => this.getPlayerSide(room, p) === winner).map(p => p.nickname).join(', ');
+      finalizeGameRecord(gid, [room.gameState.scoreLeft, room.gameState.scoreRight], winnerNick).catch(err => console.error('[GameLoop] finalizeGameRecord error:', err));
+    }
+
+    // Save stats and final result
+    this.saveGameResultToDatabase(room, winner).catch(err => console.error('Save game error:', err));
+    }
 
   private static getPlayerSide(room: GameRoom, player: any): string {
     const playerIndex = room.players.indexOf(player);
