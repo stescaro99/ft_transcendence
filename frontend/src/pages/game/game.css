@@ -109,7 +109,6 @@ canvas {
   margin-top: 1rem;
   width: 16px;
   height: 96px;
-  background: transparent !important;
   border: 2px solid rgba(255,255,255,0.06);
   box-shadow: 0 8px 24px rgba(0,0,0,0.6), inset 0 -6px 14px rgba(255,255,255,0.04);
   transition: transform .12s ease;

@@ -28,7 +28,7 @@ export class FourRemoteController {
         this.setupListeners();
         this.setupInput();
         this.gameLoop();
-        this.setupDisconnectionListener();
+        this.setupDisconnectionListener(); // AGGIUNGI QUI
     }
 
     public stop() {
@@ -139,41 +139,93 @@ export class FourRemoteController {
         multiplayerService.onDisconnect(() => {
             this.isDisconnected = true;
             this.stop();
-
-            const overlay = document.createElement("div");
-            overlay.id = "disconnectOverlay";
-            overlay.style.position = "fixed";
-            overlay.style.inset = "0";
-            overlay.style.display = "flex";
-            overlay.style.alignItems = "center";
-            overlay.style.justifyContent = "center";
-            overlay.style.background = "rgba(0,0,0,0.85)";
-            overlay.style.zIndex = "10000";
-
-            const message = document.createElement("div");
-            message.textContent = "Sei stato disconnesso dal gioco.";
-            message.style.color = "#ffffff";
-            message.style.font = "18px Arial";
-            message.style.marginBottom = "16px";
-
-            const btn = document.createElement("button");
-            btn.textContent = "Riconnetti";
-            btn.style.padding = "10px 20px";
-            btn.style.fontSize = "16px";
-            btn.style.borderRadius = "8px";
-            btn.style.border = "none";
-            btn.style.cursor = "pointer";
-            btn.style.background = "#4caf50";
-            btn.style.color = "#fff";
-            btn.style.boxShadow = "0 4px 14px rgba(0,0,0,0.45)";
-            btn.addEventListener("click", () => {
-                window.location.reload();
-            });
-
-            overlay.appendChild(message);
-            overlay.appendChild(btn);
-            document.body.appendChild(overlay);
         });
+    }
+
+    private showGameEndedOverlay(data: any) {
+        if (document.getElementById("gameEndedOverlay")) return;
+
+        const overlay = document.createElement("div");
+        overlay.id = "gameEndedOverlay";
+        overlay.style.position = "fixed";
+        overlay.style.inset = "0";
+        overlay.style.display = "flex";
+        overlay.style.flexDirection = "column";
+        overlay.style.alignItems = "center";
+        overlay.style.justifyContent = "center";
+        overlay.style.gap = "32px";
+        overlay.style.background = "rgba(0,0,0,0.85)";
+        overlay.style.zIndex = "10000";
+
+        const title = document.createElement("div");
+        title.textContent = "Partita Terminata";
+        title.style.color = "#ffffff";
+        title.style.font = "bold 48px Arial";
+        title.style.textAlign = "center";
+
+        const myNick = sessionStorage.getItem('nickname') || '';
+        const me = (data.players || []).find((p: any) => p.nickname === myNick);
+        // Trova il player disconnesso
+        const disconnectedPlayer = (data.players || []).find((p: any) => !p.connected);
+
+        // Trova la squadra di me
+        const mySide = me?.side;
+
+        // Trova tutti i compagni di squadra (escluso me)
+        const myTeam = (data.players || []).filter((p: any) => p.side === mySide && p.nickname !== myNick);
+
+        // Se il disconnesso è nel mio team, è il mio compagno
+        let disconnectReason = '';
+        if (data.reason === 'playerDisconnection') {
+            if (disconnectedPlayer) {
+                if (myTeam.some((p: any) => p.nickname === disconnectedPlayer.nickname)) {
+                    disconnectReason = 'Il tuo compagno si è disconnesso';
+                } else {
+                    disconnectReason = 'L\'avversario si è disconnesso';
+                }
+            } else {
+                disconnectReason = 'Un giocatore si è disconnesso';
+            }
+        }
+
+        const reason = document.createElement("div");
+        reason.textContent = disconnectReason || (data.reason === "playerDisconnection"
+            ? "Un giocatore si è disconnesso"
+            : "La partita è terminata");
+        reason.style.color = "#ffcc00";
+        reason.style.font = "20px Arial";
+        reason.style.textAlign = "center";
+
+        const btn = document.createElement("button");
+        btn.textContent = "Torna Indietro";
+        btn.style.padding = "14px 32px";
+        btn.style.fontSize = "18px";
+        btn.style.borderRadius = "8px";
+        btn.style.border = "none";
+        btn.style.cursor = "pointer";
+        btn.style.background = "#2563eb";
+        btn.style.color = "#fff";
+        btn.style.boxShadow = "0 4px 14px rgba(0,0,0,0.45)";
+        btn.addEventListener(
+            "click",
+            () => {
+                const ov = document.getElementById("gameEndedOverlay");
+                if (ov) ov.remove();
+                window.location.hash = "/";
+            },
+            { once: true }
+        );
+
+        overlay.appendChild(title);
+        overlay.appendChild(reason);
+        overlay.appendChild(btn);
+        document.body.appendChild(overlay);
+
+        const removeOverlay = () => {
+            const ov = document.getElementById("gameEndedOverlay");
+            if (ov) ov.remove();
+        };
+        window.addEventListener("hashchange", removeOverlay, { once: true });
     }
 
     private draw(state: GameState) {
