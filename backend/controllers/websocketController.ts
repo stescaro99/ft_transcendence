@@ -4,9 +4,6 @@ import jwt from 'jsonwebtoken';
 import User from '../models/user';
 
 export async function handleWebSocketConnection(connection: any, req: FastifyRequest) {
-  console.log('[WebSocket] Nuova connessione WebSocket ricevuta');
-  console.log('[WebSocket] Headers:', req.headers);
-  console.log('[WebSocket] Query:', req.query);
   
   let authenticatedUser = null;
   const query = req.query as any;
@@ -15,13 +12,11 @@ export async function handleWebSocketConnection(connection: any, req: FastifyReq
     try {
       const decoded = jwt.verify(query.token, process.env.JWT_SECRET!) as any;
       authenticatedUser = decoded;
-      console.log(`Authenticated user: ${decoded.nickname || decoded.username}`);
       
       if (decoded.nickname) {
         await updateUserOnlineStatus(decoded.nickname, true);
       }
     } catch (error) {
-      console.log('Invalid token, proceeding as guest');
     }
   }
 
@@ -47,7 +42,6 @@ export async function handleWebSocketConnection(connection: any, req: FastifyReq
   }
 
   // Ora 'player' è sicuramente assegnato, puoi usarlo
-  console.log(`Player ${player.id} connected with nickname: ${player.nickname}`);
   connection.send(JSON.stringify({
     type: 'connected',
     playerId: player.id,
@@ -102,7 +96,6 @@ function handlePlayerMessage(player: Player, message: any) {
         handleRequestSync(player, data);
         break;
       default:
-        console.log('Unknown message type:', data.type);
         sendToPlayer(player, {
           type: 'error',
           message: `Unknown message type: ${data.type}`
@@ -140,37 +133,28 @@ function handleJoinRoom(player: Player, data: any) {
 }
 
 function handleFindMatch(player: Player, data: any) {
-    console.log('[WebSocket] handleFindMatch called for player:', player.nickname, 'gameType:', data.gameType);
     
     // DEBUG: Log per tracciare currentRoomId e stato stanza
-    console.log('[WebSocket] DEBUG - currentRoomId:', player.currentRoomId);
     const existingRoom = gameManager.getRoomInfo(player.currentRoomId || '');
-    console.log('[WebSocket] DEBUG - existingRoom:', existingRoom ? { id: existingRoom.id, isActive: existingRoom.isActive } : 'null');
     
     if (existingRoom && existingRoom.isActive && existingRoom.players.some(p => p.id === player.id && !p.online)) {
-        console.log('[WebSocket] Tentativo riconnessione alla stanza attiva:', existingRoom.id);
         const reconnected = gameManager.handlePlayerReconnection(player.nickname, player.socket);
         if (reconnected) {
-            console.log('[WebSocket] Riconnessione riuscita');
             return;
         } else {
-            console.log('[WebSocket] Riconnessione fallita - stanza non valida o player non trovato');
         }
     } else {
-        console.log('[WebSocket] Nessuna stanza attiva trovata per riconnessione');
     }
     
     // Procedi con ricerca normale
     const powerUpsEnabled = data?.options?.powerUp !== 'off';
   const result = gameManager.findMatch(player, data.gameType || 'two', { powerUpsEnabled });
-  console.log('[WebSocket] findMatch result:', result);
 
   if (result.roomId) 
   {
     const room = gameManager.getRoomInfo(result.roomId);
     if (result.isRoomFull && room)
     {
-      console.log(`[MatchMaking] Room ${result.roomId} è piena, avviando partita per ${room.players.length} giocatori`);
       room.players.forEach(p => {
         sendToPlayer(p, {
           type: 'matchFound',
@@ -181,7 +165,6 @@ function handleFindMatch(player: Player, data: any) {
       gameManager.startGame(result.roomId);
     } else {
       // Il giocatore è in attesa
-      console.log(`[MatchMaking] Giocatore ${player.nickname} in attesa nella room ${result.roomId}`);
       sendToPlayer(player, {
         type: 'waitingForPlayers',
         roomId: result.roomId,
@@ -257,7 +240,6 @@ function handleLeaveRoom(player: Player, data: any) {
 }
 
 async function handlePlayerDisconnection(player: Player, authenticatedUser?: any) {
-  console.log(`Player ${player.id} (${player.nickname}) disconnected`);
   // MODIFICA: chiama handlePlayerDisconnection invece di rimuovere dalla room
   gameManager.handlePlayerDisconnection(player.id);
   if (authenticatedUser?.nickname) {
@@ -305,7 +287,6 @@ export function notifyUserStatusChange(nickname: string, online: boolean): void 
       }
     });
   });
-  console.log(`Notified all connected users about ${nickname} going ${online ? 'online' : 'offline'}`);
 }
 
 function sendToPlayer(player: Player, message: any) {
@@ -319,7 +300,6 @@ function handlePlayerInputWithValidation(player: Player, data: any) {
     const room = gameManager.roomManager.getRoom(data.roomId);
     if (room) {
       room.gameState.waitingForStart = false;
-      console.log(`[WebSocket] Countdown finito, partita avviata per room ${data.roomId}`);
     }
     return;
   }

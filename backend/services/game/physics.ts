@@ -13,7 +13,6 @@ export class GamePhysics {
           gameState.ball.dx = 5;
           gameState.ball.dy = 5;
         }
-        console.log('[Physics] Countdown finito automaticamente, palla avviata');
       }
       return;
     }
@@ -268,13 +267,11 @@ export class GamePhysics {
 
     // NEW: Aggiungi timestamp per countdown indipendente dal client
     (gameState as any).countdownEndTime = Date.now() + 1000;
-    console.log('[Physics] Countdown end time set:', (gameState as any).countdownEndTime);
 
     setTimeout(() => {
         gameState.ball.dx = x === 0 ? 5 : -5;
         gameState.ball.dy = 5;
         gameState.waitingForStart = false;
-        console.log('[Physics] Countdown finito, palla avviata');
     }, 1000);
 }
 

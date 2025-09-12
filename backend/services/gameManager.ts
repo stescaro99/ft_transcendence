@@ -42,25 +42,15 @@ export class GameManager {
 
   findMatch(player: Player, gameType: 'two' | 'four' = 'two', opts?: { powerUpsEnabled?: boolean }) : { roomId: string | null, isRoomFull: boolean }
   {
-    console.log('[GameManager] Finding match for player:', player.nickname, 'gameType:', gameType);
     const roomId = this.roomManager.findMatch(player, gameType, opts);
-    console.log('[GameManager] roomManager.findMatch returned:', roomId);
     let isRoomFull = false;
     
     if (roomId) {
       const room = this.roomManager.getRoom(roomId);
-      console.log('[GameManager] Room details:', {
-        id: room?.id,
-        playersCount: room?.players.length,
-        maxPlayers: room?.maxPlayers,
-        isActive: room?.isActive
-      });
       if (room && room.players.length === room.maxPlayers) {
         isRoomFull = true;
-        console.log('[GameManager] Room is full, returning isRoomFull=true');
       }
     }
-    console.log('[GameManager] findMatch returning:', { roomId, isRoomFull });
     return { roomId, isRoomFull };
   }
 
@@ -89,22 +79,13 @@ export class GameManager {
   // ===== GESTIONE GIOCO =====
 
   startGame(roomId: string): void {
-    console.log('[GameManager] startGame called for roomId:', roomId);
     const room = this.roomManager.getRoom(roomId);
-    console.log('[GameManager] Got room:', room ? 'found' : 'not found');
     if (!room || room.players.length !== room.maxPlayers) {
-      console.log('[GameManager] Cannot start game:', {
-        roomExists: !!room,
-        playersCount: room?.players.length,
-        maxPlayers: room?.maxPlayers
-      });
       return;
     }
 
     room.isActive = true;
-    console.log('[GameManager] About to call createInitialGameState...');
     room.gameState = this.roomManager.createInitialGameState(room.type);
-    console.log('[GameManager] createInitialGameState completed');
 
     // >>> NEW: Propaga la preferenza power-up della room nello stato iniziale
     room.gameState.powerUpsEnabled = room.powerUpsEnabled !== false;
@@ -207,7 +188,6 @@ export class GameManager {
         this.removePlayerFromRoom(room.id, player.id);
       }
     }
-    console.log(`User ${nickname} disconnected from ${roomsToUpdate.length} rooms due to logout`);
   }
 
   // ===== METODI PRIVATI =====
@@ -341,12 +321,8 @@ export class GameManager {
       finalScores,
       gameId: gid
     }).catch(err => console.error('[GameManager] Error saving disconnection result:', err));
-    console.log(`Game ended in room ${roomId} due to disconnection. Winner: ${winner}`, gameResult);
-
-    // NEW: elimina la room poco dopo il broadcast per evitare riutilizzo al reconnect
     setTimeout(() => {
       this.roomManager.deleteRoom(roomId);
-      console.log(`[GameManager] Room ${roomId} deleted after disconnection end`);
     }, 150);
   }
 
@@ -362,7 +338,6 @@ export class GameManager {
   }
 
   handlePlayerDisconnection(playerId: string): void {
-    console.log(`Player ${playerId} disconnected`);
     const activeRooms = this.roomManager.getAllRooms();
 
     activeRooms.forEach(room => {

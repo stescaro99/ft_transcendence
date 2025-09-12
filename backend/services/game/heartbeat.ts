@@ -14,14 +14,12 @@ export class HeartbeatManager {
       this.checkPlayerConnections(onPlayerTimeout);
     }, GAME_CONSTANTS.HEARTBEAT_INTERVAL);
 
-    console.log('Heartbeat monitoring started');
   }
 
   stopHeartbeatMonitoring(): void {
     if (this.monitoringInterval) {
       clearInterval(this.monitoringInterval);
       this.monitoringInterval = null;
-      console.log('Heartbeat monitoring stopped');
     }
   }
 
@@ -52,7 +50,6 @@ export class HeartbeatManager {
     }
 
     disconnectedPlayers.forEach(playerId => {
-      console.log(`Player ${playerId} timed out, removing from system`);
       this.playerHeartbeats.delete(playerId);
       onPlayerTimeout(playerId);
     });

@@ -127,11 +127,8 @@ const start = async (sequelize: any) => {
 
 
 		await sequelize.authenticate();
-		console.log('Database connection has been established successfully.');
-		console.log('Database synchronized successfully.');
 		const port = parseInt(process.env.PORT || '9443');
 		await server.listen({ port, host: '0.0.0.0' });
-		console.log(`Server is running on https://0.0.0.0:${port}`);
 	} catch (err) {
 		server.log.error(err);
 		process.exit(1);
@@ -151,10 +148,8 @@ const start = async (sequelize: any) => {
 	// Strategia semplice: se il DB non esiste -> force (reset iniziale), altrimenti sync "soft".
 	if (!dbExists) {
 		await sequelize.sync({ force: true });
-		console.log('Database created (force sync).');
 	} else {
 		await sequelize.sync(); // nessun alter automatico su SQLite per evitare duplicati
-		console.log('Database present, skipped destructive/alter sync.');
 	}
 	await start(sequelize);
 })();

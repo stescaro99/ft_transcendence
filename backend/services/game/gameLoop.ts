@@ -32,7 +32,6 @@ export class GameLoop {
           // also attach to gameState for physics to update scores
           // @ts-ignore
           if (room.gameState) (room.gameState as any).gameId = id;
-          console.log('[GameLoop] Created game record id', id, 'for room', roomId);
         }
       } catch (err) {
         console.error('[GameLoop] Error creating game record:', err);
@@ -71,7 +70,6 @@ export class GameLoop {
       // NEW: controlla timeout disconnessione ogni frame
       room.players.forEach(player => {
         if (!player.online && now - player.lastHeartbeat > 30000) { // 30 secondi
-          console.log(`Player ${player.nickname} offline too long, ending game`);
           this.handleGameEnd(roomId, room, broadcastCallback);
           return;
         }
@@ -85,7 +83,6 @@ export class GameLoop {
 
   static stopGameLoop(roomId: string): void {
     this.activeLoops.delete(roomId);
-    console.log(`Game loop stopped for room ${roomId}`);
   }
 
   static isLoopActive(roomId: string): boolean {
@@ -124,9 +121,7 @@ export class GameLoop {
 
     // Save stats and final result
     this.saveGameResultToDatabase(room, winner).catch(err => console.error('Save game error:', err));
-    
-    console.log(`Game ended in room ${roomId}:`, gameResult);
-  }
+    }
 
   private static getPlayerSide(room: GameRoom, player: any): string {
     const playerIndex = room.players.indexOf(player);

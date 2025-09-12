@@ -42,9 +42,6 @@ export async function saveGameAndStats(room: GameRoom, opts: SaveResultOptions):
         date: new Date()
       });
     }
-
-    console.log('[GameResult] gameRecord resolved:', gameRecord ? { id: gameRecord.game_id, players: gameRecord.players } : null);
-
   for (const nickname of allPlayers) {
       // carica/crea stats (entry 0)
       let statsEntries = await (Stats as any).findAll({ where: { nickname } });
@@ -72,11 +69,9 @@ export async function saveGameAndStats(room: GameRoom, opts: SaveResultOptions):
       // Associate the game record with the stat so history (game_stats) is populated
       try {
         if (gameRecord) {
-          console.log('[GameResult] Associating game', gameRecord.game_id, 'with stat for', nickname, 'stat_index=', stat.stat_index);
           // Try high-level association first
           try {
             await stat.addGame(gameRecord);
-            console.log('[GameResult] stat.addGame succeeded for', nickname);
           } catch (err) {
             console.warn('[GameResult] stat.addGame failed for', nickname, err);
           }
@@ -86,7 +81,6 @@ export async function saveGameAndStats(room: GameRoom, opts: SaveResultOptions):
               'INSERT OR IGNORE INTO game_stats (game_id, stat_index) VALUES (?, ?)',
               { replacements: [gameRecord.game_id, stat.stat_index] }
             );
-            console.log('[GameResult] Direct insert into game_stats attempted for', nickname, 'result=', Array.isArray(res) ? res[0] : res);
           } catch (err) {
             console.error('[GameResult] Direct insert into game_stats failed for', nickname, err);
           }
@@ -98,7 +92,6 @@ export async function saveGameAndStats(room: GameRoom, opts: SaveResultOptions):
       await stat.save();
     }
 
-    console.log(`[GameResult] Saved game ${gameRecord.game_id} - reason=${opts.reason} disconnection=${!!opts.isDisconnectionWin}`);
   } catch (error) {
     console.error('[GameResult] Error saving game & stats:', error);
   }

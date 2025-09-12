@@ -68,8 +68,4 @@ const httpsOptions: HttpsOptions = {
 };
 
 https.createServer(httpsOptions, app).listen(port, "0.0.0.0", () => {
-  // eslint-disable-next-line no-console
-  console.log(`Frontend HTTPS server running on port ${port}`);
-  // eslint-disable-next-line no-console
-  console.log(`HOST_ID injected: ${process.env.HOST_ID || "192.168.1.61"}`);
 });
