@@ -38,19 +38,12 @@ const user: User = (() => {
 let gameRoom : Game = new Game();
 const gameService: GameService = new GameService();
 
-function getPlayerNick(index: number, side: "left" | "right") {
-  const userStr = sessionStorage.getItem('user');
-  if (userStr) {
-    try {
-      const user = JSON.parse(userStr);
-      if (side === "left" && index === 0 && user.nickname) {
-        return user.nickname;
-      }
-    } catch (e) {
-      console.error('Error parsing user data:', e);
-    }
+function getPlayerNick(index: number, side: "left" | "right", playerName: string) {
+  let playerStored = sessionStorage.getItem('nickname') || "";
+
+  if (playerStored && playerStored === playerName) {
+    return playerStored;
   }
-  
   return window.sessionStorage.getItem(`${side}Player${index + 1}`) || 
          (side === "left" ? "Giocatore 1" : "Giocatore 2");
 }
@@ -58,7 +51,7 @@ function getPlayerNick(index: number, side: "left" | "right") {
 function createInitialGameState(canvas: HTMLCanvasElement, players: string[]): GameState {
   const paddleHeight = canvas.height / 5;
   const paddleWidth = 10;
-
+  console.log("DEBUGGGGGG: Creating initial game state with players:", players);
   return {
 	ball: {
 	  x: canvas.width / 2,
@@ -75,7 +68,7 @@ function createInitialGameState(canvas: HTMLCanvasElement, players: string[]): G
 		dy: 0,
 		speed: 6,
 		height: paddleHeight,
-		nickname:  getPlayerNick(0, "left")
+		nickname:  getPlayerNick(0, "left", players[0])
 	  }
 	],
 	rightPaddle: [
@@ -85,7 +78,7 @@ function createInitialGameState(canvas: HTMLCanvasElement, players: string[]): G
 		dy: 0,
 		speed: 6,
 		height: paddleHeight,
-		nickname:  getPlayerNick(0, "right")
+		nickname:  getPlayerNick(0, "right", players[1])
 	  }
 	],
 	powerUp: {
