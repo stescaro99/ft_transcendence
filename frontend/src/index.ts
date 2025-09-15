@@ -27,8 +27,8 @@ export let currentLang = (() => {
   } catch (error) {
     console.error('Errore lettura lingua:', error);
   }
-  console.log('🌐 Lingua di default: it');
-  return 'it';
+  console.log('🌐 Lingua di default: en');
+  return 'en';
 })();
 export const LANG_CHANGED_EVENT = 'lang:changed';
 function emitLangChanged() {

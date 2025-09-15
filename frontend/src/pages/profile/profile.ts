@@ -35,9 +35,11 @@ export class ProfilePage {
 				this.user.email = userData.email;
 				this.user.stats.games = userData.stats[0]?.games || [];
 				this.user.image_url = userData.image_url;
-				this.user.language = userData.language || this.user.language || 'en';
+				// prefer backend language, else keep page's incoming lang, else default to 'en'
+				this.user.language = userData.language || this.user.language || this.currentLang || 'en';
 				if (this.user.language && this.currentLang !== this.user.language) {
 					this.currentLang = this.user.language;
+					try { setLang(this.currentLang); } catch(e) { console.warn('setLang failed', e); }
 				}
 				this.user.stats = userData.stats[0];
 				this.user.id = userData.id;
@@ -76,6 +78,7 @@ export class ProfilePage {
 			this.showValueStats("number_of_games")
 			this.showValueStats("number_of_wins")
 			this.showValueStats("number_of_losses")
+			this.showValueStats("number_of_draws")
 			this.showValueStats("number_of_tournaments_won")
 			this.showValueStats("number_of_points")
 			this.showValueStats("average_score")

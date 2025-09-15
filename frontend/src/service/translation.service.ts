@@ -11,13 +11,13 @@ const LANGS: Record<string, any> = {
 export class TranslationService {
      private lang: string;
      private langMap: Record<string, any>;
-     constructor(lang = 'en') {
-         this.lang = lang;
+    constructor(lang = 'en') {
+        this.lang = lang;
          this.langMap = LANGS;
      }
 
      translateTemplate(tpl: string) {
-         const map = this.langMap[this.lang] || this.langMap['en'];
+        const map = this.langMap[this.lang] || this.langMap['en'];
          // supporta spazi interni e chiavi non alfanumeriche
          return tpl.replace(/\{\{\s*([^}]+?)\s*\}\}/g, (match, key) => {
             const value = this.getNestedValue(map, key.trim());
