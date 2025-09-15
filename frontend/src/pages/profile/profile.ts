@@ -76,7 +76,6 @@ export class ProfilePage {
 			this.showValueStats("number_of_games")
 			this.showValueStats("number_of_wins")
 			this.showValueStats("number_of_losses")
-			this.showValueStats("number_of_draws")
 			this.showValueStats("number_of_tournaments_won")
 			this.showValueStats("number_of_points")
 			this.showValueStats("average_score")

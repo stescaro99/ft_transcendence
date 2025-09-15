@@ -55,7 +55,7 @@ function getPlayerNick(index: number, side: "left" | "right") {
          (side === "left" ? "Giocatore 1" : "Giocatore 2");
 }
 
-function createInitialGameState(canvas: HTMLCanvasElement): GameState {
+function createInitialGameState(canvas: HTMLCanvasElement, players: string[]): GameState {
   const paddleHeight = canvas.height / 5;
   const paddleWidth = 10;
 
@@ -75,7 +75,7 @@ function createInitialGameState(canvas: HTMLCanvasElement): GameState {
 		dy: 0,
 		speed: 6,
 		height: paddleHeight,
-		nickname: getPlayerNick(0, "left")
+		nickname:  getPlayerNick(0, "left")
 	  }
 	],
 	rightPaddle: [
@@ -85,7 +85,7 @@ function createInitialGameState(canvas: HTMLCanvasElement): GameState {
 		dy: 0,
 		speed: 6,
 		height: paddleHeight,
-		nickname: getPlayerNick(0, "right")
+		nickname:  getPlayerNick(0, "right")
 	  }
 	],
 	powerUp: {
@@ -221,7 +221,7 @@ export async function TwoGameLoop(
   const { canvas, ctx } = getCanvasAndCtx();
   // Crea stato di gioco solo la prima volta
   if (!(window as any).game || (window as any).game.canvas !== canvas) {
-    (window as any).game = createInitialGameState(canvas);
+    (window as any).game = createInitialGameState(canvas, players);
     setupKeyboard();
     predictedY = predictBallY((window as any).game.ball, (window as any).game.rightPaddle[0].x, canvas);
     gameCreated = false;
@@ -255,14 +255,10 @@ export async function TwoGameLoop(
       : [user.nickname || (sessionStorage.getItem('nickname') || ''), 'guest'];
 
     gameService.addGame(playersToSend).then((response) => {
-		console.log("Game created on backend:", response);
-		console.log("response.game:", response.game);
-		console.log("response.game.game_id:", response.game.game_id);
+
 		
 		gameRoom = response.game;
-		console.log("gameRoom after assignment:", gameRoom);
-		console.log("gameRoom.game_id after assignment:", gameRoom.game_id);
-	
+
 		}).catch((error) => {
 		console.error("DEBUG: Failed to create game:", error);
 		gameRoom.game_id = undefined;
@@ -286,54 +282,58 @@ export async function TwoGameLoop(
 		ctx.fillText(`${winner} ha vinto!`, canvas.width / 2, canvas.height / 2);
 
 		if (gameRoom.game_id) {
-			gameService.updateGame(gameRoom.game_id, "1_scores", game.scoreLeft.toString())
+			await gameService.updateGame(gameRoom.game_id, "1_scores", game.scoreLeft.toString())
 			.then(() => console.log("DEBUG: Successfully updated left score to:", game.scoreLeft))
 			.catch((error) => console.error("DEBUG: Failed to update left score:", error));
-			gameService.updateGame(gameRoom.game_id, "2_scores", game.scoreRight.toString())
+			await gameService.updateGame(gameRoom.game_id, "2_scores", game.scoreRight.toString())
 			.then(() => console.log("DEBUG: Successfully updated right score to:", game.scoreRight))
 			.catch((error) => console.error("DEBUG: Failed to update right score:", error));
-
 
 		const players = [
 		game.leftPaddle[0].nickname,
 		game.rightPaddle[0].nickname   
 		];
-
+    const promises: Promise<unknown>[] = [];
+    console.log("DEBUGGGGGGGGGGGGGGGGGGGGGGGGGG: Updating stats for players:", players);
 		players.forEach((nickname, idx) => {
-		let result = 0;
-		
-		if (game.scoreLeft === game.scoreRight) {
-			result = 1; // pareggio per entrambi
-		} else if (
-			(game.scoreLeft > game.scoreRight && idx === 0) ||  // sinistro vince E sono il giocatore sinistro
-			(game.scoreRight > game.scoreLeft && idx === 1)     // destro vince E sono il giocatore destro
-		) {
-			result = 2; // vittoria per questo giocatore
-		} else {
-			result = 0; // sconfitta per questo giocatore
-		}
+      let result = 0;
+      
+      if (game.scoreLeft === game.scoreRight) {
+        result = 1; // pareggio per entrambi
+      } else if (
+        (game.scoreLeft > game.scoreRight && idx === 0) ||  // sinistro vince E sono il giocatore sinistro
+        (game.scoreRight > game.scoreLeft && idx === 1)     // destro vince E sono il giocatore destro
+      ) {
+        result = 2; 
+      } else {
+        result = 0; 
+      }
 
+    
     const loggedNick = sessionStorage.getItem('nickname');
     if (loggedNick && nickname === loggedNick) {
+      console.log(`DEBUG: Updating stats for logged-in player ${nickname} with result:`,  gameRoom.game_id ,result);
+      promises.push(
       gameService.upDateStat(nickname, gameRoom.game_id!, result)
         .then(() => console.log(`DEBUG: Successfully updated stats for ${nickname} with result:`, result))
-        .catch((error) => console.error(`DEBUG: Failed to update stats for ${nickname}:`, error));
+        .catch((error) => console.error(`DEBUG: Failed to update stats for ${nickname}:`, error)));
     }
-		});
-
+    });
 		// Determina il vincitore e aggiorna una volta sola
 		let winnerNickname = "";
 		if (game.scoreLeft > game.scoreRight) {
-		winnerNickname = game.leftPaddle[0].nickname;
+      winnerNickname = game.leftPaddle[0].nickname;
 		} else if (game.scoreRight > game.scoreLeft) {
-		winnerNickname = game.rightPaddle[0].nickname;
+      winnerNickname = game.rightPaddle[0].nickname;
 		} else {
-		winnerNickname = "Draw";
+      winnerNickname = "Draw";
 		}
-
-		gameService.updateGame(gameRoom.game_id, "winner_nickname", winnerNickname)
-		.then(() => console.log("DEBUG: Successfully updated winner nickname to:", winnerNickname))
-		.catch((error) => console.error("DEBUG: Failed to update winner nickname:", error));
+    
+    promises.push(
+      gameService.updateGame(gameRoom.game_id, "winner_nickname", winnerNickname)
+      .then(() => console.log("DEBUG: Successfully updated winner nickname to:", winnerNickname))
+      .catch((error) => console.error("DEBUG: Failed to update winner nickname:", error))
+    );
 		
 		setTimeout(() => {
             if (isTournamentMode) {
@@ -371,6 +371,7 @@ export async function TwoGameLoop(
                 window.location.hash = fromPage;
             }
         }, 3000);
+      await Promise.all(promises);
     } else {
         // Se non c'è gameRoom.game_id, gestisci comunque il reset
         setTimeout(() => {

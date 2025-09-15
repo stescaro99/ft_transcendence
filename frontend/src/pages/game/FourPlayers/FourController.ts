@@ -338,7 +338,7 @@ export async function FourGameLoop(
         game.rightPaddle[0].nickname,
         game.rightPaddle[1].nickname 
       ];
-      
+	    const promises: Promise<unknown>[] = [];
 			players.forEach((nickname, idx) => {
 				let result = 0;
 
@@ -358,10 +358,10 @@ export async function FourGameLoop(
 				const loggedNick = sessionStorage.getItem('nickname');
 				console.log('DEBUD!!!!!! NICKNAME LOGGATO:', loggedNick, ' - NICKNAME GIOCATORE:', nickname, ' - RISULTATO CALCOLATO:', result);
 				if (loggedNick && nickname === loggedNick) {
-					gameService.upDateStat(nickname, gameRoom.game_id!, result)
+					promises.push(gameService.upDateStat(nickname, gameRoom.game_id!, result)
 						.then(() => console.log(`DEBUG: Successfully updated stats for ${nickname} with result:`, result))
-						.catch((error) => console.error(`DEBUG: Failed to update stats for ${nickname}:`, error));
-				}
+						.catch((error) => console.error(`DEBUG: Failed to update stats for ${nickname}:`, error))
+				)}
 			});
 
       // Determina il vincitore per il database
@@ -374,9 +374,9 @@ export async function FourGameLoop(
         winnerNickname = "Draw";
       }
 
-    	await  gameService.updateGame(gameRoom.game_id, "winner_nickname", winnerNickname)
+    	promises.push(gameService.updateGame(gameRoom.game_id, "winner_nickname", winnerNickname)
 			.then(() => console.log("DEBUG: Successfully updated winner nickname to:", winnerNickname))
-			.catch((error) => console.error("DEBUG: Failed to update winner nickname:", error));
+			.catch((error) => console.error("DEBUG: Failed to update winner nickname:", error)));
 
       setTimeout(() => {
         console.log("DEBUG: Four player game ended - resetting state and navigating back to:", fromPage);
@@ -400,6 +400,7 @@ export async function FourGameLoop(
         
         window.location.hash = fromPage;
       }, 3000);
+	  await Promise.all(promises);
     } else {
       // Se non c'è gameRoom.game_id, gestisci comunque il reset
       setTimeout(() => {
