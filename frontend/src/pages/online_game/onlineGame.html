@@ -4,27 +4,26 @@
     <!-- Header con titolo -->
     <div class="column">
       <!-- abbassa il titolo per allinearlo meglio con layout principale -->
-      <h1 class="title" style="margin-top: 3.2rem;">PONG ONLINE</h1>
+  <h1 class="title" style="margin-top: 3.2rem;">{{game.title}}</h1>
       <div id="nickname" class="text-cyan-400 font-medium text-2xl mb-4"></div>
     </div>
 
     <!-- Status e controlli -->
     <div class="column">
-      <div id="status" class="text-white text-xl mb-6">Premi il pulsante per cercare una partita</div>
+  <div id="status" class="text-white text-xl mb-6">{{game.search_prompt}}</div>
       
       <button id="findMatchBtn" class="btn-large">
-        Cerca Partita
+        {{game.find_match}}
       </button>
       
       <!-- Messaggio di istruzioni (nascosto inizialmente) -->
       <div id="gameInstructions" class="text-cyan-400 text-lg mt-6 text-center hidden">
-        🎮 Usa W/S per muovere la racchetta<br>
-        (clicca sul canvas per dare il focus)
+        {{game.instructions}}
       </div>
       
       <!-- Info partita (nascosto inizialmente) -->
       <div id="matchInfo" class="text-green-400 text-xl mt-4 hidden">
-        Partita trovata!
+        {{game.match_found}}
       </div>
     </div>
 

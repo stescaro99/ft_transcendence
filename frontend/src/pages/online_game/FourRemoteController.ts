@@ -1,6 +1,7 @@
 import { GameState } from "../game/common/types";
 import { drawBall, drawField, drawPowerUp, drawRect, drawScore } from "../game/common/Draw";
 import multiplayerService from "../../services/multiplayerService";
+import { TranslationService } from '../../service/translation.service';
 
 export class FourRemoteController {
     private canvas: HTMLCanvasElement;
@@ -98,14 +99,18 @@ export class FourRemoteController {
         overlay.style.background = "rgba(0,0,0,0.85)";
         overlay.style.zIndex = "10000";
 
-        const title = document.createElement("div");
-        title.textContent = `${winnerLabel} WINS!`;
+    const sess = sessionStorage.getItem('user');
+    let lang = 'en';
+    if (sess) { try { lang = JSON.parse(sess).language || lang; } catch {} }
+    const title = document.createElement("div");
+    const winsTpl = new TranslationService(lang).translateTemplate('{{game.player_wins}}') || '{{player}} WINS!';
+    title.textContent = winsTpl.replace('{{player}}', winnerLabel);
         title.style.color = "#00ffff";
         title.style.font = "bold 54px Arial";
         title.style.textShadow = "0 0 18px #00ffff";
 
         const btn = document.createElement("button");
-        btn.textContent = "Torna Indietro";
+    btn.textContent = new TranslationService(lang).translateTemplate('{{game.back}}') || 'Back';
         btn.style.padding = "14px 32px";
         btn.style.fontSize = "18px";
         btn.style.borderRadius = "8px";
@@ -157,8 +162,11 @@ export class FourRemoteController {
         overlay.style.background = "rgba(0,0,0,0.85)";
         overlay.style.zIndex = "10000";
 
-        const title = document.createElement("div");
-        title.textContent = "Partita Terminata";
+    const sess = sessionStorage.getItem('user');
+    let lang = 'en';
+    if (sess) { try { lang = JSON.parse(sess).language || lang; } catch {} }
+    const title = document.createElement("div");
+    title.textContent = new TranslationService(lang).translateTemplate('{{game.match_ended}}') || 'Match Ended';
         title.style.color = "#ffffff";
         title.style.font = "bold 48px Arial";
         title.style.textAlign = "center";
@@ -175,16 +183,16 @@ export class FourRemoteController {
         const myTeam = (data.players || []).filter((p: any) => p.side === mySide && p.nickname !== myNick);
 
         // Se il disconnesso è nel mio team, è il mio compagno
-        let disconnectReason = '';
+    let disconnectReason = '';
         if (data.reason === 'playerDisconnection') {
             if (disconnectedPlayer) {
                 if (myTeam.some((p: any) => p.nickname === disconnectedPlayer.nickname)) {
-                    disconnectReason = 'Il tuo compagno si è disconnesso';
+                    disconnectReason = new TranslationService(lang).translateTemplate('{{game.teammate_disconnected}}') || 'Your teammate disconnected';
                 } else {
-                    disconnectReason = 'L\'avversario si è disconnesso';
+                    disconnectReason = new TranslationService(lang).translateTemplate('{{game.opponent_disconnected}}') || 'Opponent disconnected';
                 }
             } else {
-                disconnectReason = 'Un giocatore si è disconnesso';
+                disconnectReason = new TranslationService(lang).translateTemplate('{{game.player_disconnected}}') || 'A player disconnected';
             }
         }
 
@@ -196,8 +204,8 @@ export class FourRemoteController {
         reason.style.font = "20px Arial";
         reason.style.textAlign = "center";
 
-        const btn = document.createElement("button");
-        btn.textContent = "Torna Indietro";
+    const btn = document.createElement("button");
+    btn.textContent = new TranslationService(lang).translateTemplate('{{game.back}}') || 'Back';
         btn.style.padding = "14px 32px";
         btn.style.fontSize = "18px";
         btn.style.borderRadius = "8px";

@@ -1,6 +1,7 @@
 import { GameState } from "../game/common/types";
 import { drawBall, drawField, drawPowerUp, drawRect, drawScore } from "../game/common/Draw"
 import multiplayerService from "../../services/multiplayerService";
+import { TranslationService } from '../../service/translation.service';
 
 export class RemoteController {
     private canvas: HTMLCanvasElement;
@@ -111,14 +112,21 @@ export class RemoteController {
         overlay.style.background = 'rgba(0,0,0,0.85)';
         overlay.style.zIndex = '10000';
 
-        const title = document.createElement('div');
-        title.textContent = `${winner} WINS!`;
+    const title = document.createElement('div');
+    const sess = sessionStorage.getItem('user');
+    let lang = 'en';
+    if (sess) { try { lang = JSON.parse(sess).language || lang; } catch {} }
+    const winsTpl = new TranslationService(lang).translateTemplate('{{game.player_wins}}') || '{{player}} WINS!';
+    title.textContent = winsTpl.replace('{{player}}', winner);
         title.style.color = '#00ffff';
         title.style.font = 'bold 54px Arial';
         title.style.textShadow = '0 0 18px #00ffff';
 
-        const btn = document.createElement('button');
-        btn.textContent = 'Torna Indietro';
+    const btn = document.createElement('button');
+    const sessBtn = sessionStorage.getItem('user');
+    let btnLang = 'en';
+    if (sessBtn) { try { btnLang = JSON.parse(sessBtn).language || btnLang; } catch {} }
+    btn.textContent = new TranslationService(btnLang).translateTemplate('{{game.back}}') || 'Back';
         btn.style.padding = '14px 32px';
         btn.style.fontSize = '18px';
         btn.style.borderRadius = '8px';

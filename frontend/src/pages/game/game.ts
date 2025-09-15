@@ -256,12 +256,18 @@ export class GamePage {
         }
         if (btn.dataset.bound === '1') return;
 
-        btn.textContent = this.powerUpsEnabled ? 'POWER UP ON' : 'POWER UP OFF';
+    const sessBtn = sessionStorage.getItem('user');
+    let btnLang = 'en';
+    if (sessBtn) { try { btnLang = JSON.parse(sessBtn).language || btnLang; } catch {} }
+    btn.textContent = new TranslationService(btnLang).translateTemplate(this.powerUpsEnabled ? '{{game.power_on}}' : '{{game.power_off}}') || (this.powerUpsEnabled ? 'POWER UP ON' : 'POWER UP OFF');
         btn.classList.toggle('opacity-70', !this.powerUpsEnabled);
 
         btn.addEventListener('click', () => {
             this.powerUpsEnabled = !this.powerUpsEnabled;
-            btn.textContent = this.powerUpsEnabled ? 'POWER UP ON' : 'POWER UP OFF';
+            const sessBtn2 = sessionStorage.getItem('user');
+            let btnLang2 = 'en';
+            if (sessBtn2) { try { btnLang2 = JSON.parse(sessBtn2).language || btnLang2; } catch {} }
+            btn.textContent = new TranslationService(btnLang2).translateTemplate(this.powerUpsEnabled ? '{{game.power_on}}' : '{{game.power_off}}') || (this.powerUpsEnabled ? 'POWER UP ON' : 'POWER UP OFF');
             btn.classList.toggle('opacity-70', !this.powerUpsEnabled);
             console.log("[GamePage] powerUpsEnabled =", this.powerUpsEnabled);
         });
@@ -297,10 +303,15 @@ export class GamePage {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = "white";
       ctx.textAlign = "center";
-      if (countdown > 0)
-        ctx.fillText(countdown.toString(), canvas.width / 2, canvas.height / 2);
-      if (countdown === 0)
-        ctx.fillText("GO!", canvas.width / 2, canvas.height / 2);
+                if (countdown > 0)
+                    ctx.fillText(countdown.toString(), canvas.width / 2, canvas.height / 2);
+                if (countdown === 0) {
+                    const sess = sessionStorage.getItem('user');
+                    let lang = 'en';
+                    if (sess) { try { lang = JSON.parse(sess).language || lang; } catch {} }
+                    const goText = new TranslationService(lang).translateTemplate('{{game.go_text}}') || 'GO!';
+                    ctx.fillText(goText, canvas.width / 2, canvas.height / 2);
+                }
       if (countdown < 0) {
         clearInterval(interval);
         if (x === 2) {

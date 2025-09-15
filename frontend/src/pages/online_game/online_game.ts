@@ -70,18 +70,25 @@ export class OnlineGamePage {
     // Reset del pulsante principale
     const findMatchBtn = document.getElementById("findMatchBtn");
     if (findMatchBtn) {
-        findMatchBtn.removeAttribute("disabled");
-        findMatchBtn.textContent = "Cerca Partita";
+	findMatchBtn.removeAttribute("disabled");
+	// translate button label
+	const sessBtn = sessionStorage.getItem('user');
+	let btnLang = 'en';
+	if (sessBtn) { try { btnLang = JSON.parse(sessBtn).language || btnLang; } catch {} }
+	findMatchBtn.textContent = new TranslationService(btnLang).translateTemplate('{{game.find_match}}') || 'Find Match';
         findMatchBtn.style.background = "";
         findMatchBtn.style.cursor = "";
     }
     
     // Reset status
     const status = document.getElementById("status");
-    if (status) {
-        status.textContent = "Premi il pulsante per cercare una partita";
-        status.className = "text-white text-xl mb-6";
-    }
+	if (status) {
+		const sessStatus = sessionStorage.getItem('user');
+		let statusLang = 'en';
+		if (sessStatus) { try { statusLang = JSON.parse(sessStatus).language || statusLang; } catch {} }
+		status.textContent = new TranslationService(statusLang).translateTemplate('{{game.search_prompt}}') || 'Press the button to find a match';
+		status.className = "text-white text-xl mb-6";
+	}
     
     // Nascondi canvas e elementi di gioco
     const canvas = document.getElementById("gameCanvas") as HTMLCanvasElement;
@@ -143,16 +150,26 @@ export class OnlineGamePage {
 			powerBtn = document.createElement('button') as HTMLButtonElement;
 			powerBtn.id = "powerUpsBtn";
 			powerBtn.className = "btn-large";
-			powerBtn.textContent = this.powerUpsEnabled ? "POWER UP ON" : "POWER UP OFF";
+			// translate power labels
+			const sessPower = sessionStorage.getItem('user');
+			let powerLang = 'en';
+			if (sessPower) { try { powerLang = JSON.parse(sessPower).language || powerLang; } catch {} }
+			powerBtn.textContent = new TranslationService(powerLang).translateTemplate(this.powerUpsEnabled ? '{{game.power_on}}' : '{{game.power_off}}') || (this.powerUpsEnabled ? 'POWER UP ON' : 'POWER UP OFF');
 			findMatchBtn.parentElement.insertBefore(powerBtn, findMatchBtn.nextSibling);
 		}
 		if (powerBtn) {
 			powerBtn.addEventListener("click", () => {
 				this.powerUpsEnabled = !this.powerUpsEnabled;
-				powerBtn!.textContent = this.powerUpsEnabled ? "POWER UP ON" : "POWER UP OFF";
+				const sessPower2 = sessionStorage.getItem('user');
+				let powerLang2 = 'en';
+				if (sessPower2) { try { powerLang2 = JSON.parse(sessPower2).language || powerLang2; } catch {} }
+				powerBtn!.textContent = new TranslationService(powerLang2).translateTemplate(this.powerUpsEnabled ? '{{game.power_on}}' : '{{game.power_off}}') || (this.powerUpsEnabled ? 'POWER UP ON' : 'POWER UP OFF');
 				powerBtn!.classList.toggle("opacity-70", !this.powerUpsEnabled);
 			});
-			powerBtn.textContent = this.powerUpsEnabled ? "POWER UP ON" : "POWER UP OFF";
+			const sessPower3 = sessionStorage.getItem('user');
+			let powerLang3 = 'en';
+			if (sessPower3) { try { powerLang3 = JSON.parse(sessPower3).language || powerLang3; } catch {} }
+			powerBtn.textContent = new TranslationService(powerLang3).translateTemplate(this.powerUpsEnabled ? '{{game.power_on}}' : '{{game.power_off}}') || (this.powerUpsEnabled ? 'POWER UP ON' : 'POWER UP OFF');
 			powerBtn.classList.toggle("opacity-70", !this.powerUpsEnabled);
 		}
 
@@ -178,11 +195,15 @@ export class OnlineGamePage {
 			const minutes = Math.floor(elapsed / 60);
 			const seconds = elapsed % 60;
 			const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-			status.textContent = `Cercando partita... ${timeString}`;
+			const sess = sessionStorage.getItem('user');
+			let lang = 'en';
+			if (sess) { try { lang = JSON.parse(sess).language || lang; } catch {} }
+			const searchingTpl = new TranslationService(lang).translateTemplate('{{game.searching}}') || 'Searching...';
+			status.textContent = `${searchingTpl} ${timeString}`;
 		};
 
 		// Funzione per fermare la ricerca
-		const stopSearch = () => {
+	const stopSearch = () => {
 			if (searchTimer) {
 				clearInterval(searchTimer);
 				searchTimer = null;
@@ -195,7 +216,10 @@ export class OnlineGamePage {
 			
 			if (findMatchBtn) {
 				findMatchBtn.removeAttribute("disabled");
-				findMatchBtn.textContent = "Cerca Partita";
+				const sessBtn2 = sessionStorage.getItem('user');
+				let btnLang2 = 'en';
+				if (sessBtn2) { try { btnLang2 = JSON.parse(sessBtn2).language || btnLang2; } catch {} }
+				findMatchBtn.textContent = new TranslationService(btnLang2).translateTemplate('{{game.find_match}}') || 'Find Match';
 				findMatchBtn.style.background = ""; // Reset al CSS originale
 			}
 			
@@ -209,7 +233,10 @@ export class OnlineGamePage {
 			}
 			
 			// Reset status
-			status.textContent = "Premi il pulsante per cercare una partita";
+			const sessStatus2 = sessionStorage.getItem('user');
+			let statusLang2 = 'en';
+			if (sessStatus2) { try { statusLang2 = JSON.parse(sessStatus2).language || statusLang2; } catch {} }
+			status.textContent = new TranslationService(statusLang2).translateTemplate('{{game.search_prompt}}') || 'Press the button to find a match';
 			status.className = "text-white text-xl mb-6";
 			
 			const gameInstructions = document.getElementById("gameInstructions");
@@ -234,7 +261,10 @@ export class OnlineGamePage {
 			findMatchBtn.setAttribute("disabled", "true");
 			findMatchBtn.style.background = "#666";
 			findMatchBtn.style.cursor = "not-allowed";
-			findMatchBtn.textContent = "Cercando...";
+			const sess2 = sessionStorage.getItem('user');
+			let lang2 = 'en';
+			if (sess2) { try { lang2 = JSON.parse(sess2).language || lang2; } catch {} }
+			findMatchBtn.textContent = new TranslationService(lang2).translateTemplate('{{game.searching}}') || 'Searching...';
 			
 			// Avvia il timer
 			searchStartTime = Date.now();
@@ -265,12 +295,16 @@ export class OnlineGamePage {
 			multiplayerService.findMatch(gameType as 'two' | 'four', {powerUp: this.powerUpsEnabled ? 'on' : 'off'});
 		});
 
-        const cancelBtn = document.createElement("button");
-        cancelBtn.id = "cancelMatchBtn";
-        cancelBtn.className = "btn-large hidden"; 
-        cancelBtn.textContent = "Annulla Ricerca";
-        cancelBtn.style.background = "#dc2626";
-        cancelBtn.style.marginLeft = "20px";
+	const cancelBtn = document.createElement("button");
+	cancelBtn.id = "cancelMatchBtn";
+	cancelBtn.className = "btn-large hidden"; 
+	// translate cancel label
+	const sessCancel = sessionStorage.getItem('user');
+	let cancelLang = 'en';
+	if (sessCancel) { try { cancelLang = JSON.parse(sessCancel).language || cancelLang; } catch {} }
+	cancelBtn.textContent = new TranslationService(cancelLang).translateTemplate('{{game.cancel_search}}') || 'Cancel Search';
+	cancelBtn.style.background = "#dc2626";
+	cancelBtn.style.marginLeft = "20px";
         cancelBtn.addEventListener("click", () => {
             console.log("[OnlineGame] ❌ Ricerca annullata dall'utente");
             multiplayerService.cancelFindMatch(); // NEW: lascia la stanza lato server
@@ -282,7 +316,11 @@ export class OnlineGamePage {
 
 		multiplayerService.onWaitingForPlayers((data) => {
 			console.log("[OnlineGame] 🕐 In attesa di altri giocatori:", data);
-			status.textContent = `In attesa di giocatori... (${data.currentPlayers}/${data.maxPlayers})`;
+			const sessWait = sessionStorage.getItem('user');
+			let waitLang = 'en';
+			if (sessWait) { try { waitLang = JSON.parse(sessWait).language || waitLang; } catch {} }
+			const waitingTpl = new TranslationService(waitLang).translateTemplate('{{game.waiting_for_players}}') || 'Waiting for players...';
+			status.textContent = `${waitingTpl} (${data.currentPlayers}/${data.maxPlayers})`;
 		});
 
 		// Callback quando la partita inizia
@@ -391,7 +429,11 @@ export class OnlineGamePage {
 
 		multiplayerService.onWaitingForPlayers((data) => {
 			console.log("[OnlineGame] 🕐 In attesa di altri giocatori:", data);
-			status.textContent = `In attesa di giocatori... (${data.currentPlayers}/${data.maxPlayers})`;
+			const sessWait2 = sessionStorage.getItem('user');
+			let waitLang2 = 'en';
+			if (sessWait2) { try { waitLang2 = JSON.parse(sessWait2).language || waitLang2; } catch {} }
+			const waitingTpl2 = new TranslationService(waitLang2).translateTemplate('{{game.waiting_for_players}}') || 'Waiting for players...';
+			status.textContent = `${waitingTpl2} (${data.currentPlayers}/${data.maxPlayers})`;
 		});
 
 		// Callback quando la partita inizia
@@ -537,10 +579,14 @@ export class OnlineGamePage {
         ctx.font = "80px Arial";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        if (countdown > 0) {
-            ctx.fillText(countdown.toString(), canvas.width / 2, canvas.height / 2);
-        } else if (countdown === 0) {
-            ctx.fillText("GO!", canvas.width / 2, canvas.height / 2);
+		if (countdown > 0) {
+			ctx.fillText(countdown.toString(), canvas.width / 2, canvas.height / 2);
+		} else if (countdown === 0) {
+			const sess = sessionStorage.getItem('user');
+			let lang = 'en';
+			if (sess) { try { lang = JSON.parse(sess).language || lang; } catch {} }
+			const goText = new TranslationService(lang).translateTemplate('{{game.go_text}}') || 'GO!';
+			ctx.fillText(goText, canvas.width / 2, canvas.height / 2);
         } else {
             clearInterval(interval);
             multiplayerService.sendInput({ type: "countdownFinished" });
@@ -563,8 +609,11 @@ export class OnlineGamePage {
     const me = (data.players || []).find((p: any) => p.nickname === myNick);
     const iWon = me ? (data.winner === me.side) : false;
 
-    const winnerLabel = iWon ? "Hai Vinto!" : "Hai Perso";
-    let disconnectReason = '';
+	const sessLang = sessionStorage.getItem('user');
+	let overlayLang = 'en';
+	if (sessLang) { try { overlayLang = JSON.parse(sessLang).language || overlayLang; } catch {} }
+	const winnerLabel = iWon ? new TranslationService(overlayLang).translateTemplate('{{game.you_won}}') || 'You won!' : new TranslationService(overlayLang).translateTemplate('{{game.you_lost}}') || 'You lost';
+	let disconnectReason = '';
     // Trova il player disconnesso
     const disconnectedPlayer = (data.players || []).find((p: any) => !p.connected);
 
@@ -577,17 +626,17 @@ export class OnlineGamePage {
     // Se il disconnesso è nel mio team, è il mio compagno
     if (data.reason === 'playerDisconnection') {
         if (disconnectedPlayer) {
-            if (myTeam.some((p: any) => p.nickname === disconnectedPlayer.nickname)) {
-                disconnectReason = 'Il tuo compagno si è disconnesso';
-            } else {
-                disconnectReason = 'L\'avversario si è disconnesso';
-            }
+			if (myTeam.some((p: any) => p.nickname === disconnectedPlayer.nickname)) {
+				disconnectReason = new TranslationService(overlayLang).translateTemplate('{{game.teammate_disconnected}}') || 'Your teammate disconnected';
+			} else {
+				disconnectReason = new TranslationService(overlayLang).translateTemplate('{{game.opponent_disconnected}}') || 'Opponent disconnected';
+			}
         } else {
             disconnectReason = 'Un giocatore si è disconnesso';
         }
     }
 
-    const reason = disconnectReason || (data.reason === 'playerDisconnection' ? 'L\'avversario si è disconnesso' : '');
+	const reason = disconnectReason || (data.reason === 'playerDisconnection' ? new TranslationService(overlayLang).translateTemplate('{{game.player_disconnected}}') || 'A player disconnected' : '');
 
     // Crea overlay
     const existing = document.getElementById('winOverlay');
@@ -605,8 +654,8 @@ export class OnlineGamePage {
     overlay.style.background = 'rgba(0,0,0,0.85)';
     overlay.style.zIndex = '10000';
 
-    const title = document.createElement('div');
-    title.textContent = winnerLabel;
+	const title = document.createElement('div');
+	title.textContent = winnerLabel;
     title.style.color = iWon ? '#00ffff' : '#ff6666';
     title.style.font = 'bold 48px Arial';
     title.style.textShadow = '0 0 18px rgba(0,255,255,0.6)';
@@ -616,8 +665,8 @@ export class OnlineGamePage {
     sub.style.color = '#ccc';
     sub.style.font = '16px Arial';
 
-    const btn = document.createElement('button');
-    btn.textContent = 'Torna Indietro';
+	const btn = document.createElement('button');
+	btn.textContent = new TranslationService(overlayLang).translateTemplate('{{game.back}}') || 'Back';
     btn.style.padding = '12px 28px';
     btn.style.fontSize = '16px';
     btn.style.borderRadius = '8px';
