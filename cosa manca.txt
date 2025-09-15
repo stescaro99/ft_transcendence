@@ -1,9 +1,7 @@
 COSE DA RISOLVERE:
 
 -TRADUZIONI:
-    -pagina gioco online:
-        -bottone per cercare partita;
-        -bottone per annullare ricerca;
+    -da fare controllo generale.
 
 -SALVATAGGIO PARTITE:
     -problemi nel salvataggio delle partite dei tornei (a volte)
