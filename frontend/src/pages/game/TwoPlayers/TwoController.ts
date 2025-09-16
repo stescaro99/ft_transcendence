@@ -44,6 +44,9 @@ function getPlayerNick(index: number, side: "left" | "right", playerName: string
   if (playerStored && playerStored === playerName) {
     return playerStored;
   }
+  if (playerName && playerName !== "guest" && playerName !== "Player1" && playerName !== "Player2") {
+    return playerName;
+  }
   return window.sessionStorage.getItem(`${side}Player${index + 1}`) || 
          (side === "left" ? "Giocatore 1" : "Giocatore 2");
 }
@@ -276,8 +279,9 @@ export async function TwoGameLoop(
 
 		const players = [
 		game.leftPaddle[0].nickname,
-		game.rightPaddle[0].nickname   
+		game.rightPaddle[0].nickname
 		];
+    console.log("DEBUG: Updating stats for player!!!!!!!!!!s:", players);
     const promises: Promise<unknown>[] = [];
 		players.forEach((nickname, idx) => {
       let result = 0;

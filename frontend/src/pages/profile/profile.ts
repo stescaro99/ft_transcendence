@@ -189,7 +189,7 @@ export class ProfilePage {
 	private datConverted(dateStr: string): string {
 		const date = new Date(dateStr);
 		if (isNaN(date.getTime())) {
-			return dateStr; // Ritorna la stringa originale se la data non è valida
+			return dateStr; 
 		}
 		const options: Intl.DateTimeFormatOptions = {
 			year: 'numeric',
@@ -223,7 +223,7 @@ export class ProfilePage {
 					const tempDiv = document.createElement('div');
 					tempDiv.innerHTML = '{{profilepage.guest}}';
 					this.translateDynamicContent(tempDiv);
-					return { nickname: tempDiv.textContent || 'guest', image_url: 'https://transcendence.fe:8443/user.jpg' };
+					return { nickname: p || tempDiv.textContent || 'guest', image_url: 'https://transcendence.fe:8443/user.jpg' };
 				}
 			});
 			const us = await Promise.all(playerPromises);
