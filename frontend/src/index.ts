@@ -149,13 +149,13 @@ const routes: Record<string, () => string> = {
     const urlParams = hash.split('?')[1]; // Ottieni la parte dopo il '?'
     
     let player1 = sessionStorage.getItem('nickname') || 'Player 1';
-    let player2 = 'Player 2';
+    let player2 = 'guest';
     
     // Se ci sono parametri nell'URL, estraili
     if (urlParams) {
         // Controlla se è il nuovo formato con parametri query
         if (urlParams.includes('player1=') || urlParams.includes('player2=')) {
-            // Nuovo formato: /game?players=2&player1=Mario&player2=Luigi&tournament=true
+       
             const params = new URLSearchParams(urlParams);
             player1 = decodeURIComponent(params.get('player1') || player1);
             player2 = decodeURIComponent(params.get('player2') || player2);
