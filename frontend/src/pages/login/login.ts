@@ -29,7 +29,6 @@ export class LogInPage{
 		const token = urlParams.get('token');
 		if (token) {
 			this.authenticationService.saveGoogleToken(token);
-			console.log('Google token salvato in sessionStorage.token:', token);
 			// Puoi anche fare redirect o altre azioni qui
 		}
 	}
@@ -42,7 +41,8 @@ export class LogInPage{
 		}
 	}
 
-	handleSubmit() {
+	async handleSubmit(e?: Event) {
+		e?.preventDefault();
 		// Cattura i valori direttamente dal form al momento del submit
 		const takeName = document.getElementById('username') as HTMLInputElement;
 		const takePassword = document.getElementById('password') as HTMLInputElement;
@@ -57,74 +57,89 @@ export class LogInPage{
 			return;
 		}
 		
-		this.authenticationService.loginUserToApi(this.nickname, this.password)
-		.then((response) => {
-			console.log('Login successful:', response);
-			this.authenticationService.takeQrCodeFromApi(this.nickname, this.password)
-			.then((qrResponse) => {
-				console.log('QR Code received:', qrResponse);
-				this.qrCode = qrResponse.qrCode;
-				const qrDiv = document.getElementById('qrCode');
-				if (qrDiv) {
-				qrDiv.innerHTML = `
-					<div style="display: flex; flex-direction: column; align-items: center; gap: 16px;">
-					<img src="${this.qrCode}" alt="QR Code" style="width: 200px; height: 200px;" />
-					<div id="token2FA" style="display: flex; gap: 8px; justify-content: center;">
-						<input maxlength="1" type="text" class="bg-gray-200 rounded text-center text-black" style="width: 32px; height: 40px; font-size: 2rem;" />
-						<input maxlength="1" type="text" class="bg-gray-200 rounded text-center text-black" style="width: 32px; height: 40px; font-size: 2rem;" />
-						<input maxlength="1" type="text" class="bg-gray-200 rounded text-center text-black" style="width: 32px; height: 40px; font-size: 2rem;" />
-						-
-						<input maxlength="1" type="text" class="bg-gray-200 rounded text-center text-black" style="width: 32px; height: 40px; font-size: 2rem;" />
-						<input maxlength="1" type="text" class="bg-gray-200 rounded text-center text-black" style="width: 32px; height: 40px; font-size: 2rem;" />
-						<input maxlength="1" type="text" class="bg-gray-200 rounded text-center text-black" style="width: 32px; height: 40px; font-size: 2rem;" />
-					</div>
-					<button id="verify2FA" class="button">Verify</button>
-					</div>
-				`;
-				}
-				const inputs = document.querySelectorAll('#token2FA input');
-				inputs.forEach((input, idx) => {
-					input.addEventListener('input', () => {
-						if ((input as HTMLInputElement).value.length === 1 && idx < inputs.length - 1) {
-							(inputs[idx + 1] as HTMLInputElement).focus();
-						}	
-					});
-					input.addEventListener('keydown', (e) => {
-					const keyboardEvent = e as KeyboardEvent;
-						if (keyboardEvent.key === 'Backspace' && (input as HTMLInputElement).value === '' && idx > 0) {
-							(inputs[idx - 1] as HTMLInputElement).focus();
-						}
-					});
-				});
-				const verifyBtn = document.getElementById('verify2FA');
-				if (verifyBtn) {
-					verifyBtn.addEventListener('click', () => {
-						const inputs = document.querySelectorAll('#token2FA input');
-						let code = '';
-						inputs.forEach(input => {
-							code += (input as HTMLInputElement).value;
-						});
-						this.authenticationService.verifyQrCodeFromApi(this.nickname, code)
-						.then((verifyResponse) => {
-						console.log('2FA verified successfully:', verifyResponse);
-						sessionStorage.setItem('user', JSON.stringify(verifyResponse.user));
-						sessionStorage.setItem('token', verifyResponse.token);
-						sessionStorage.setItem('nickname', this.nickname);
-						window.location.hash = '/';
-				})
-					.catch((verifyError) => {
-						console.error('Error verifying 2FA:', verifyError);
-						alert('Verification failed. Please try again.');
-					});
-				});
-			}
-		})
-	})
-		.catch((error) => {
+		  try {
+			await this.authenticationService.loginUserToApi(this.nickname, this.password);
+		} catch (error) {
 			console.error('Login failed:', error);
 			alert('Login failed. Please check your credentials and try again.');
+			return;
+		}
+
+		// 2) Tenta di ottenere il QR (non far fallire l’intero flow se manca)
+		let qrCode: string | undefined;
+		try {
+			const qrRes: any = await this.authenticationService.takeQrCodeFromApi(this.nickname, this.password);
+			qrCode = qrRes?.qrCode ?? qrRes?.data?.qrCode;
+			if (!qrCode) {
+			console.warn('QR code not found in response:', qrRes);
+			}
+		} catch (err) {
+			console.warn('Failed to fetch QR code:', err);
+		}
+
+	  // 3) Se ho il QR, renderizzo la UI 2FA; altrimenti non vado in errore
+		if (qrCode) {
+		this.qrCode = qrCode;
+		const qrDiv = document.getElementById('qrCode');
+		if (qrDiv) {
+		qrDiv.innerHTML = `
+			<div style="display: flex; flex-direction: column; align-items: center; gap: 16px;">
+			<img src="${this.qrCode}" alt="QR Code" style="width: 200px; height: 200px;" />
+			<div id="token2FA" style="display: flex; gap: 8px; justify-content: center;">
+				<input maxlength="1" type="text" class="bg-gray-200 rounded text-center text-black" style="width: 32px; height: 40px; font-size: 2rem;" />
+				<input maxlength="1" type="text" class="bg-gray-200 rounded text-center text-black" style="width: 32px; height: 40px; font-size: 2rem;" />
+				<input maxlength="1" type="text" class="bg-gray-200 rounded text-center text-black" style="width: 32px; height: 40px; font-size: 2rem;" />
+				-
+				<input maxlength="1" type="text" class="bg-gray-200 rounded text-center text-black" style="width: 32px; height: 40px; font-size: 2rem;" />
+				<input maxlength="1" type="text" class="bg-gray-200 rounded text-center text-black" style="width: 32px; height: 40px; font-size: 2rem;" />
+				<input maxlength="1" type="text" class="bg-gray-200 rounded text-center text-black" style="width: 32px; height: 40px; font-size: 2rem;" />
+			</div>
+			<button id="verify2FA" type="button" class="button">Verify</button>
+			</div>
+		`;
+
+		const inputs = document.querySelectorAll('#token2FA input');
+		inputs.forEach((input, idx) => {
+			input.addEventListener('input', () => {
+			if ((input as HTMLInputElement).value.length === 1 && idx < inputs.length - 1) {
+				(inputs[idx + 1] as HTMLInputElement).focus();
+			}
+			});
+			input.addEventListener('keydown', (e) => {
+			const keyboardEvent = e as KeyboardEvent;
+			if (keyboardEvent.key === 'Backspace' && (input as HTMLInputElement).value === '' && idx > 0) {
+				(inputs[idx - 1] as HTMLInputElement).focus();
+			}
+			});
 		});
+
+      const verifyBtn = document.getElementById('verify2FA');
+      if (verifyBtn) {
+        verifyBtn.addEventListener('click', async () => {
+          let code = '';
+          document.querySelectorAll('#token2FA input').forEach(i => { code += (i as HTMLInputElement).value; });
+          try {
+            const verifyResponse: any = await this.authenticationService.verifyQrCodeFromApi(this.nickname, code);
+            const token = verifyResponse?.token ?? verifyResponse?.data?.token;
+            const user  = verifyResponse?.user  ?? verifyResponse?.data?.user;
+            sessionStorage.setItem('user', JSON.stringify(user));
+            if (token) sessionStorage.setItem('token', token);
+            sessionStorage.setItem('nickname', this.nickname);
+            window.location.hash = '/';
+          } catch (verifyError) {
+            console.error('Error verifying 2FA:', verifyError);
+            alert('Verification failed. Please try again.');
+          }
+        });
+      }
+		}
+		} else {
+
+			console.info('2FA not required or QR unavailable; login completed.');
+		}
 	}
+		
+	
 
 	private addEventListeners() {
 		const takeName = document.getElementById('username') as HTMLInputElement;
@@ -138,12 +153,11 @@ export class LogInPage{
 		if (takePassword) {
 			takePassword.addEventListener('blur', () => {
 				this.password = takePassword.value;
-				console.log('Password', this.password);
 			});
 		}
 		const loginForm = document.getElementById('loginForm');
 		if (loginForm) {
-			loginForm.addEventListener('submit', () => this.handleSubmit());
+			loginForm.addEventListener('submit', (e) => this.handleSubmit(e));
 		}
 		const googleid = document.getElementById('googleid');
 		if (googleid) {

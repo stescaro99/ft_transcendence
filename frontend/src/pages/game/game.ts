@@ -22,6 +22,7 @@ export class GamePage {
     Team1Color = "#ffffff";
     Team2Color = "#ffffff";
     colors = ["#ff0000", "#00ff00", "#ffff00", "#800080", "#007bff", "#ffffff"];
+    private cleanups: Array<() => void> = [];
     private powerUpsEnabled: boolean = true;
 
     constructor(lang: string, fromPage: string, player1 : string, player2 : string) {
@@ -46,7 +47,15 @@ export class GamePage {
 
         this.render();
         this.setTheme('game');
-      }
+        (window as any).__cleanupGame = () => this.destroy();
+    }
+
+    public destroy() {
+        try {this.cleanups.forEach(fn => fn()); } catch {}
+        this.cleanups = [];
+        this.removeCanvas();
+        (window as any).__cleanupGame = null;
+    }
 
     private parsePlayersFromHash() {
         try {

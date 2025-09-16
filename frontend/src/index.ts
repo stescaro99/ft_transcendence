@@ -56,9 +56,6 @@ const nickname = params.get('nickname');
 const error = params.get('error');
 let navigationStack: string[] = [];
 
-// Normalizza l'autenticazione nel sessionStorage per compatibilità
-// - Se esiste solo user.token, copia in token
-// - Se manca nickname ma è presente in URL o in user, salvalo
 try {
   const existingToken = sessionStorage.getItem('token');
   if (!existingToken) {
@@ -80,6 +77,18 @@ try {
     sessionStorage.setItem('nickname', nickname);
   }
 } catch {}
+
+function clearTournamentSession() {
+  const KEYS = [
+    'tournamentMode',
+    'activeTournament',
+    'currentGameIndex',
+    'currentRound',
+    'tournamentP1',
+    'tournamentP2',
+  ];
+  try { KEYS.forEach(k => sessionStorage.removeItem(k)); } catch {}
+}
 
 export function navigateWithHistory(route: string) {
   const currentRoute = location.hash.slice(1) || '/';
@@ -292,7 +301,7 @@ else if (token && nickname)
   const userToStore = {
     token: token,
     nickname: nickname,
-    // Non conosciamo ancora la lingua reale -> lasciamo vuoto per forzare hydration
+ 
     language: '',
     image_url: '',
     online: false,
@@ -357,7 +366,27 @@ window.addEventListener('popstate', () => {
   console.log('Pagina cambiata!');
 });
 
-window.addEventListener('hashchange', router);
+window.addEventListener('hashchange', (e: HashChangeEvent) => {
+  const oldHash = (e as any).oldURL ? new URL((e as any).oldURL).hash : '';
+  const newHash = (e as any).newURL ? new URL((e as any).newURL).hash : location.hash;
+
+  const wasTournament = oldHash.startsWith('#/tournament');
+  const wasGame = oldHash.startsWith('#/game');
+  const goingToGame = newHash.startsWith('#/game');
+  const goingToTournament = newHash.startsWith('#/tournament');
+
+  if (wasTournament && !goingToGame) {
+    clearTournamentSession();
+  }
+  if (wasGame) {
+    // spegni controller/loop del game se registrato
+    (window as any).__cleanupGame?.();
+     if (!goingToTournament) {
+      clearTournamentSession();
+    } 
+  }
+  router();
+});
 
 // Bootstrap: attende DOM, poi assicura lingua e poi prima render
 if (document.readyState === 'loading') {
@@ -370,6 +399,7 @@ if (document.readyState === 'loading') {
 }
 
 window.onbeforeunload = async () => {
+  try { clearTournamentSession(); } catch {}
   const nickname = sessionStorage.getItem('nickname');
     if (nickname) {
       try {
