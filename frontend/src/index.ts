@@ -115,15 +115,13 @@ export function goBack() {
 // Definisci le rotte una volta sola
 const routes: Record<string, () => string> = {
   '/': () => {
-    /* if (sessionStorage.getItem('user')) {
+    if (sessionStorage.getItem('user')) {
       new HomePage(currentLang);
       return "";
     } else {
       window.location.hash = '/login';
       return "";
-    } */
-   new HomePage(currentLang);
-      return "";
+    }
   },
   '/identification': () => {
     new IdentificationPage(currentLang);
