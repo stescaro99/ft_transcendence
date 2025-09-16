@@ -90,7 +90,7 @@ export class GamePage {
         const players = params.get('players');
         const container = document.getElementById('app');
 
-        console.log("[GamePage] render(), players param =", players, "this.players =", this.players);
+     
         if (!container) return;
 
         const translation = new TranslationService(this.currentLang);
@@ -247,7 +247,7 @@ export class GamePage {
                 if (!el) return;
                 if (el.getAttribute('data-bound') === '1') return;
                 el.addEventListener("click", () => {
-                    console.log("[GamePage] START click mode:", mode, "players:", this.players);
+
                     this.hideScreens(); // ora esiste
                     if (canvas) canvas.style.display = "block";
                     if (gameWrapper) {
@@ -306,7 +306,6 @@ export class GamePage {
     const playerNameContainer = document.getElementById("playerNames");
     if (playerNameContainer) {
       playerNameContainer.style.display = "flex";
-      console.log("Showing player names for game type:", x);
       if (x === 2) {
         const player1Name = document.getElementById("player1Name");
         const player2Name = document.getElementById("player2Name");

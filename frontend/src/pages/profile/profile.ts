@@ -21,10 +21,6 @@ export class ProfilePage {
 		this.currentLang = lang;
 		this.setTheme('blue');
 		
-		console.log('🔍 ProfilePage Debug:');
-		console.log('sessionStorage user:', sessionStorage.getItem('user'));
-		console.log('sessionStorage token:', sessionStorage.getItem('token'));
-		console.log('sessionStorage nickname:', sessionStorage.getItem('nickname'));
 
 		this.userService.takeUserFromApi(decodeURIComponent(nickname) || '') 
 			.then((userData) => {
@@ -65,7 +61,6 @@ export class ProfilePage {
 		if (appDiv) {
 			const translation = new TranslationService(this.currentLang);
 			const translatedHtml = translation.translateTemplate(profileHtml);
-			console.log("user", this.user);
 			appDiv.innerHTML = translatedHtml;
 			
 			this.setNewLang()
@@ -152,7 +147,6 @@ export class ProfilePage {
 		const modalContent = document.getElementById('modalContent');
 		if (historyBtn && customModal && closeMOdalBtn && modalContent) {
 			historyBtn.addEventListener('click', () => {
-				console.log('games', this.user.stats.games);
 				this.showgameHistory(this.user.stats.games || [], modalContent);
 				customModal.classList.remove("hidden");
 			});
@@ -307,7 +301,6 @@ export class ProfilePage {
         update.push(
             this.userService.UpdateImageUrl(this.tempImageFile)
                 .then((response) => {
-                    console.log('✅ Image uploaded successfully:', response);
                     
                     // Aggiorna l'URL dell'immagine nel user
                     if (response.image_url || response.imageUrl) {
@@ -392,7 +385,6 @@ export class ProfilePage {
 				})
 			);
 		}
-		console.log('change3', change);
 		try{
 			await Promise.all(update);
 			if (change) {
@@ -462,7 +454,6 @@ export class ProfilePage {
 											const userObj = JSON.parse(userStr);
 											userObj.language = lang;
 											sessionStorage.setItem('user', JSON.stringify(userObj));
-											console.log('✅ Lingua salvata nel sessionStorage:', lang);
 										}
 									} catch (error) {
 										console.error('❌ Errore aggiornamento sessionStorage:', error);

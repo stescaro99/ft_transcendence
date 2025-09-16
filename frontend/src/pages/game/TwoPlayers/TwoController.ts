@@ -51,7 +51,7 @@ function getPlayerNick(index: number, side: "left" | "right", playerName: string
 function createInitialGameState(canvas: HTMLCanvasElement, players: string[]): GameState {
   const paddleHeight = canvas.height / 5;
   const paddleWidth = 10;
-  console.log("DEBUGGGGGG: Creating initial game state with players:", players);
+
   return {
 	ball: {
 	  x: canvas.width / 2,
@@ -228,16 +228,6 @@ export async function TwoGameLoop(
   }
   const game: GameState = (window as any).game;
   const now = Date.now();
-  if (now - lastLogTime > LOG_INTERVAL) {
-    console.log("DEBUG Auto-log:", {
-      scoreLeft: game.scoreLeft,
-      scoreRight: game.scoreRight,
-      gameId: gameRoom.game_id,
-      gameCreated: gameCreated,
-      timestamp: new Date().toLocaleTimeString()
-    });
-    lastLogTime = now;
-  }
   
   // Crea partita su backend solo la prima volta
   if (!gameCreated) {
@@ -289,7 +279,6 @@ export async function TwoGameLoop(
 		game.rightPaddle[0].nickname   
 		];
     const promises: Promise<unknown>[] = [];
-    console.log("DEBUGGGGGGGGGGGGGGGGGGGGGGGGGG: Updating stats for players:", players);
 		players.forEach((nickname, idx) => {
       let result = 0;
       
@@ -307,7 +296,6 @@ export async function TwoGameLoop(
     
     const loggedNick = sessionStorage.getItem('nickname');
     if (loggedNick && nickname === loggedNick) {
-      console.log(`DEBUG: Updating stats for logged-in player ${nickname} with result:`,  gameRoom.game_id ,result);
       promises.push(
       gameService.upDateStat(nickname, gameRoom.game_id!, result)
         .then(() => console.log(`DEBUG: Successfully updated stats for ${nickname} with result:`, result))
@@ -332,7 +320,6 @@ export async function TwoGameLoop(
 		
 		setTimeout(() => {
             if (isTournamentMode) {
-                console.log("DEBUG: Tournament mode - handling tournament game end");
                 
                 // RESET COMPLETO DELLO STATO DEL GIOCO
                 (window as any).game = null; // Reset del game object
@@ -350,7 +337,6 @@ export async function TwoGameLoop(
                 
                 handleTournamentGameEnd(winner);
             } else {
-                console.log("DEBUG: Normal game - navigating back to:", fromPage);
                 
                 // Reset per partite normali
                 (window as any).game = null;
@@ -371,7 +357,6 @@ export async function TwoGameLoop(
         // Se non c'è gameRoom.game_id, gestisci comunque il reset
         setTimeout(() => {
             if (isTournamentMode) {
-                console.log("DEBUG: Tournament mode (no backend) - handling tournament game end");
                 
                 // RESET COMPLETO
                 (window as any).game = null;
@@ -386,9 +371,8 @@ export async function TwoGameLoop(
                 
                 handleTournamentGameEnd(winner);
             } else {
-                console.log("DEBUG: Normal game (no backend) - navigating back to:", fromPage);
                 
-                // Reset per partite normali
+
                 (window as any).game = null;
                 gameCreated = false;
                 gameRoom.game_id = undefined;
@@ -412,7 +396,6 @@ function handleTournamentGameEnd(winner: string) {
         const currentIndex = parseInt(sessionStorage.getItem('currentGameIndex') || '0');
         const currentRoundNumber = parseInt(sessionStorage.getItem('currentRound') || '0');
         
-        console.log(`Tournament game end: Winner=${winner}, Round=${currentRoundNumber}, Game=${currentIndex}`);
         
         // Salva il risultato nel round corrente usando la nuova struttura
         if (!tournament.rounds || !tournament.rounds[currentRoundNumber]) {
@@ -439,8 +422,6 @@ function handleTournamentGameEnd(winner: string) {
         // Salva lo stato aggiornato del torneo
         sessionStorage.setItem('activeTournament', JSON.stringify(tournament));
         
-        console.log(`Tournament: Round ${currentRoundNumber} Game ${currentIndex + 1} completed. Winner: ${winner}`);
-        console.log(`Tournament: Round has ${tournament.rounds[currentRoundNumber].results.length}/${tournament.rounds[currentRoundNumber].games.length} games completed`);
         
         // Torna alla pagina del torneo che gestirà la prossima partita o i risultati finali
         window.location.hash = '#/tournament?continue=true';

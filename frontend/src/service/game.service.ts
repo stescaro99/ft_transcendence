@@ -132,7 +132,6 @@ export class GameService {
 			nickname: nickname,
 			index: 0,
 		};
-		console.log('chiamataaaaaaaaaaa', body);
 		const res = await fetch(`${apitornament}`, {
 			method: "PUT",
 			headers:{

@@ -50,7 +50,6 @@ export class LogInPage{
 		this.nickname = takeName?.value || '';
 		this.password = takePassword?.value || '';
 		
-		console.log('Submit - Nickname:', this.nickname, 'Password:', this.password);
 		
 		if (!this.nickname || !this.password) {
 			alert('Please enter both nickname and password');
@@ -146,7 +145,6 @@ export class LogInPage{
 		if (takeName) {
 			takeName.addEventListener('blur', () => {
 				this.nickname = takeName.value;
-				console.log('Nickname:', this.nickname);
 			});
 		}
 		const takePassword = document.getElementById('password') as HTMLInputElement;

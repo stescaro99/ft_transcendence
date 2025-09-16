@@ -29,7 +29,6 @@ export class IdentificationPage {
   }
 
 private handleSubmit(event: Event) {
-	console.log('button');
 	event.preventDefault();
 	// Read values directly from form inputs at submit time to avoid relying on blur events
 	const nicknameInput = document.getElementById('nicknameInput') as HTMLInputElement;
@@ -43,7 +42,6 @@ private handleSubmit(event: Event) {
 
 	this.userService.postUserToApi(this.user)
 	.then((response) => {
-		console.log('User saved successfully:', response);
 		this.authenticationService.takeQrCodeFromApi(this.user.nickname, this.user.password) 
 		.then((qrResponse) => {
 			this.qrCode = qrResponse.qrCode;
@@ -87,9 +85,6 @@ private handleSubmit(event: Event) {
 					});
 					this.authenticationService.verifyQrCodeFromApi(this.user.nickname, code)
 					.then((verifyResponse) => {
-						console.log('2FA verified successfully:', verifyResponse);
-						console.log('User:', verifyResponse.user);
-						console.log('Token:', verifyResponse.token);
 						sessionStorage.setItem('user', JSON.stringify(verifyResponse.user));
 						sessionStorage.setItem('token', verifyResponse.token);
 						sessionStorage.setItem('nickname', this.user.nickname);
@@ -129,14 +124,12 @@ private handleSubmit(event: Event) {
 	if (nameInput) {
 	nameInput.addEventListener('blur', () => {
 			this.user.name = nameInput.value;
-			console.log('name', this.user.name);
 		});
 	}
 	const surnameInput = document.getElementById('surnameInput') as HTMLInputElement;
 	if (surnameInput) {
 	surnameInput.addEventListener('blur', () => {
 			this.user.surname = surnameInput.value;
-			console.log('surname', this.user.surname);
 		});
 	}
 	const nicknameInput = document.getElementById('nicknameInput') as HTMLInputElement;
@@ -189,7 +182,6 @@ private handleSubmit(event: Event) {
 	if (passwordInput) {
 	passwordInput.addEventListener('blur', () => {
 			this.user.password = passwordInput.value;
-			console.log('surname', this.user.surname);
 		});
 	}
 	 const imageInput = document.getElementById('imageInput') as HTMLInputElement;
@@ -199,7 +191,6 @@ private handleSubmit(event: Event) {
 			if (file) {
 					this.userService.UpdateImageUrl(file)
 						.then((response) => {
-							console.log('Image URL updated successfully:', response);
 							this.user.image_url = response.imageUrl;
 						})
 						.catch((error) => {

@@ -158,13 +158,9 @@ export class friendPage {
     }
 
     private addEventListeners() {
-        console.log('🔍 Adding event listeners...');
         
         const searchbar = document.getElementById('searchInput') as HTMLInputElement;
         const searchButton = document.getElementById('searchButton');
-        
-        console.log('🔍 Searchbar found:', searchbar);
-        console.log('🔍 Search button found:', searchButton);
         
         if (!searchbar || !searchButton) {
             return;
@@ -172,7 +168,7 @@ export class friendPage {
         
 
         searchbar.addEventListener('keypress', (event) => {
-            console.log('🔍 Key pressed:', event.key);
+            
             if (event.key === 'Enter') {
                 console.log('🔍 Enter pressed, searching...');
                 this.searchUser();
@@ -180,16 +176,13 @@ export class friendPage {
         });
         
         searchButton.addEventListener('click', (event) => {
-            console.log('🔍 Button clicked, searching...');
             event.preventDefault();
             this.searchUser();
         });
 
-        console.log('✅ Event listeners added successfully');
     }
 
     private searchUser() {
-        console.log('🔍 searchUser called');
         
         const searchbar = document.getElementById('searchInput') as HTMLInputElement;
         if (!searchbar) {
@@ -211,7 +204,6 @@ export class friendPage {
         
     this.userService.takeUserFromApi(searchValue)
         .then((userData) => {
-                console.log('✅ User found:', userData);
                 this.profile = {
                     nickname: userData.nickname,
                     image_url: userData.image_url || './src/utils/default.png',
@@ -292,7 +284,6 @@ export class friendPage {
     private addFriend(nickname: string) {
         this.userService.addFriend(this.user.nickname, nickname)
             .then(async (response) => {
-                console.log('✅ Friend added:', response);
                 await this.refreshUserAndLists();
             })
             .catch((error) => {

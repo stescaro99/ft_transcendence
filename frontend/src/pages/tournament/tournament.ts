@@ -25,7 +25,6 @@ export class TournamentPage {
         const clearAll = () => {
             try {
                 TOURNAMENT_KEYS.forEach(k => sessionStorage.removeItem(k));
-                console.log('[Tournament] State cleared');
             } catch {}
         };
 
@@ -103,7 +102,6 @@ export class TournamentPage {
 		if (tournamentList) {
 			tournamentList.addEventListener('change', (event) => {
 				 const selectedPlayers = parseInt((event.target as HTMLSelectElement).value);
-				console.log('Selected players:', selectedPlayers);
 				
 				     
                 this.generatePlayerInputs(selectedPlayers);
@@ -219,9 +217,7 @@ export class TournamentPage {
             }
         }   
         
-        console.log('Tournament players:', playerNames);
         playerNames = this.ramdomizeArray(playerNames);
-        console.log('Shuffled players:', playerNames);
 
         // Reset del torneo
         this.tournament.players = playerNames;
@@ -264,7 +260,6 @@ export class TournamentPage {
         };
 
         this.tournament.rounds.push(round);
-        console.log(`Created ${roundName} with ${games.length} games:`, games);
     }
 
     private getRoundName(roundNumber: number, totalPlayers: number): string {
@@ -295,7 +290,6 @@ export class TournamentPage {
         
         if (currentIndex < currentRound.games.length) {
             const currentGame = currentRound.games[currentIndex];
-            console.log(`Starting ${currentRound.roundName} - Game ${currentIndex + 1}: ${currentGame[0]} vs ${currentGame[1]}`);
             
             // Ensure bots are disabled by default when launching a tournament game
             try {
@@ -425,7 +419,6 @@ export class TournamentPage {
         // Salva lo stato aggiornato
         sessionStorage.setItem('activeTournament', JSON.stringify(tournament));
         
-        console.log(`Round ${currentRoundNumber + 1}: Game ${currentIndex + 1} completed. Winner: ${winner}`);
         
         // Torna alla pagina del torneo per la prossima partita
         window.location.hash = '#/tournament?continue=true';
@@ -435,7 +428,6 @@ export class TournamentPage {
         const currentRound = this.tournament.rounds[this.tournament.currentRound];
         currentRound.completed = true;
         
-        console.log(`${currentRound.roundName} completed!`);
         
         // Ottieni i vincitori di questo round
         const winners = currentRound.results.map(result => result.winner);
@@ -576,16 +568,12 @@ export class TournamentPage {
                 const currentRound = this.tournament.rounds[this.tournament.currentRound];
                 const currentIndex = this.tournament.currentGameIndex || 0;
                 
-                console.log(`Checking tournament continuation: Round ${this.tournament.currentRound}, Game ${currentIndex}`);
-                console.log(`Current round has ${currentRound?.games.length} games, results: ${currentRound?.results.length}`);
                 
                 if (currentRound && currentIndex >= currentRound.games.length) {
                     // Round completato, mostra recap
-                    console.log('Round completed, showing recap');
                     this.completeCurrentRound();
                 } else {
                     // Continua con la prossima partita del round
-                    console.log('Continuing to next game');
                     this.startNextGame();
                 }
             }
@@ -595,7 +583,6 @@ export class TournamentPage {
     // Metodo da chiamare nel costruttore per gestire la continuazione del torneo
 
     constructor(lang: string) {
-        console.log('🔍 TournamentPage Debug:');
         this.currentLang = lang;
         this.render();
         this.addEventListeners();
@@ -643,7 +630,6 @@ export class TournamentPage {
                 if (shouldAutoLoad) {
                     const defaultPlayers = parseInt(tournamentList.value) || 4;
                     this.generatePlayerInputs(defaultPlayers);
-                    console.log(`Auto-loaded input fields for ${defaultPlayers} players`);
                 }
             }
         }, 100); 

@@ -1,6 +1,5 @@
 import homeHtml from './home.html?raw';
 import '../../style.css';
-import { User } from '../../model/user.model';
 import { UserService } from '../../service/user.service';
 import { TranslationService } from '../../service/translation.service';
 import { HomeScreen } from '../../service/homeScreen.service';
@@ -67,7 +66,6 @@ export class HomePage {
 
     private addGlow(button: HTMLElement) {
         button.classList.add('glow');
-        console.log("Button clicked");
         setTimeout(() => {
             button.classList.remove('glow');
         }, 300);
@@ -76,11 +74,8 @@ export class HomePage {
     private addlisteners() {
         console.log('Adding event listeners...');
         const playButton = document.getElementById('playButton');
-        console.log('playButton found:', playButton);
         if (playButton) {
             playButton.addEventListener('click', () => {
-                console.log('playButton clicked, onlineStatus:', this.onlineStatus);
-                // Ensure tournament mode is disabled when starting a normal game
                 sessionStorage.removeItem('tournamentMode');
                 sessionStorage.removeItem('currentGameIndex');
                 sessionStorage.removeItem('currentRound');
@@ -92,11 +87,8 @@ export class HomePage {
         }
         
         const playButton4 = document.getElementById('playButton4');
-        console.log('playButton4 found:', playButton4);
         if (playButton4) {
             playButton4.addEventListener('click', () => {
-                console.log('playButton4 clicked, onlineStatus:', this.onlineStatus);
-                // Ensure tournament mode is disabled when starting a normal game
                 sessionStorage.removeItem('tournamentMode');
                 sessionStorage.removeItem('currentGameIndex');
                 sessionStorage.removeItem('currentRound');
@@ -165,19 +157,14 @@ export class HomePage {
             
             if (playButton && playButton4) {
             if (this.onlineStatus) {
-                // Modalità Online - Bottoni verdi
-                console.log('🔍 Setting GREEN gradient');
                 playButton.style.setProperty('background', 'linear-gradient(145deg, #22c55e, #16a34a)', 'important');
                 playButton.style.setProperty('box-shadow', '0 8px 0 #15803d, 0 12px 20px rgba(0,0,0,0.4), inset 0 4px 0 rgba(255,255,255,0.3), inset 0 -4px 0 rgba(0,0,0,0.2), 0 0 20px rgba(34, 197, 94, 0.5)', 'important');
                 
                 playButton4.style.setProperty('background', 'linear-gradient(145deg, #22c55e, #16a34a)', 'important');
                 playButton4.style.setProperty('box-shadow', '0 8px 0 #15803d, 0 12px 20px rgba(0,0,0,0.4), inset 0 4px 0 rgba(255,255,255,0.3), inset 0 -4px 0 rgba(0,0,0,0.2), 0 0 20px rgba(34, 197, 94, 0.5)', 'important');
 
-                // Setto tema navbar per match con bottoni
                 this.setTheme('light-green');
             } else {
-                console.log('🔍 Setting RED gradient');
-                // Modalità Offline - Bottoni rossi (colori originali)
                 playButton.style.setProperty('background', 'linear-gradient(145deg, #ff4757, #c44569)', 'important');
                 playButton.style.setProperty('box-shadow', '0 8px 0 #a5334a, 0 12px 20px rgba(0,0,0,0.4), inset 0 4px 0 rgba(255,255,255,0.3), inset 0 -4px 0 rgba(0,0,0,0.2), 0 0 20px rgba(255, 71, 87, 0.5)', 'important');
                 

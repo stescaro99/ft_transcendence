@@ -30,7 +30,6 @@ export class UserService {
 	async getUser(): Promise<User | null >{
 		const nickname = sessionStorage.getItem('nickname');
 		if (!nickname) return null;
-		console.log('getUser called with nickname:', nickname);
 		
 		if (nickname) {
 			try {
@@ -79,25 +78,20 @@ export class UserService {
 	async takeUserFromApi(nick: string): Promise<any> {
 		const url = `${environment.apiUrl}/get_user?nickname=${encodeURIComponent(nick || '')}`;
 
-		console.log('[UserService] 🌐 URL chiamato:', url);
 
 		let token: string | null = null;
 
 		// 1) prova chiave diretta
 		const directToken = sessionStorage.getItem('token');
-		console.log('[UserService] Token diretto da sessionStorage:', directToken);
 		if (directToken) {
 			token = directToken;
 		} else {
 			// 2) fallback: estrai da sessionStorage.user
 			const userDataString = sessionStorage.getItem('user');
-			console.log('[UserService] userDataString:', userDataString);
 			if (userDataString) {
 				try {
 					const userData = JSON.parse(userDataString);
 					token = userData.token || null;
-					console.log('[UserService] Token trovato in userData:', token);
-					// Salva anche la chiave diretta per altri servizi (es. MultiplayerService)
 					if (token) {
 						sessionStorage.setItem('token', token);
 						console.log('[UserService] Token salvato come chiave diretta in sessionStorage.token');
@@ -108,7 +102,6 @@ export class UserService {
 			}
 		}
 
-		console.log('[UserService] Token finale usato per la chiamata:', token);
 		if (!token) {
 			throw new Error('No valid token found');
 		}
@@ -121,9 +114,7 @@ export class UserService {
 			},
 		});
 
-		console.log('[UserService] Response status:', response.status);
 		const text = await response.text();
-		console.log('[UserService] Response body:', text);
 		if (!response.ok) {
 			throw new Error(`Network response was not ok: ${response.status} - ${text}`);
 		}
@@ -132,7 +123,6 @@ export class UserService {
 
 	async postUserToApi(user: User): Promise<any> {
 		const url = `${this.apiUrl}/add_user`;
-		console.log('url', url);
 		const body = JSON.stringify({
 			name: user.name,
 			surname: user.surname,
@@ -141,7 +131,6 @@ export class UserService {
 			password: user.password,
 			image_url: user.image_url,
 		});
-		console.log('Request body:', body);
 		const response = await fetch(url, {
 			method: 'POST',
 			headers: {

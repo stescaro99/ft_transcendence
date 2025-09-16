@@ -5,7 +5,6 @@ export class AuthenticationService {
 	private apiUrl = `${environment.apiUrl}`;
 
 	async takeQrCodeFromApi(nickname: string, password: string): Promise<any> {
-		console.log('nickname', nickname);
 		const response = await fetch(`${this.apiUrl}/generate_2FA`, {
 		method: 'POST',
 		headers: {
@@ -59,7 +58,6 @@ export class AuthenticationService {
 		if (result.token) {
 			sessionStorage.setItem('token', result.token);
 		}
-		console.log('Response from loginUserToApi:', result);
 		return result;
 	}
 

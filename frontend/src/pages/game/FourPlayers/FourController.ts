@@ -296,14 +296,10 @@ export async function FourGameLoop(
 				];
 
 		gameService.addGame(playersToSend).then((response) => {
-		console.log("Game created on backend:", response);
-		console.log("response.game:", response.game);
-		console.log("response.game.game_id:", response.game.game_id);
+		
 		
 		gameRoom = response.game;
-		console.log("gameRoom after assignment:", gameRoom);
-		console.log("gameRoom.game_id after assignment:", gameRoom.game_id);
-	
+		
 		}).catch((error) => {
 		console.error("DEBUG: Failed to create game:", error);
 		gameRoom.game_id = undefined;
@@ -356,7 +352,7 @@ export async function FourGameLoop(
 				}
 
 				const loggedNick = sessionStorage.getItem('nickname');
-				console.log('DEBUD!!!!!! NICKNAME LOGGATO:', loggedNick, ' - NICKNAME GIOCATORE:', nickname, ' - RISULTATO CALCOLATO:', result);
+			
 				if (loggedNick && nickname === loggedNick) {
 					promises.push(gameService.upDateStat(nickname, gameRoom.game_id!, result)
 						.then(() => console.log(`DEBUG: Successfully updated stats for ${nickname} with result:`, result))
@@ -379,7 +375,7 @@ export async function FourGameLoop(
 			.catch((error) => console.error("DEBUG: Failed to update winner nickname:", error)));
 
       setTimeout(() => {
-        console.log("DEBUG: Four player game ended - resetting state and navigating back to:", fromPage);
+      
         
         // RESET COMPLETO DELLO STATO DEL GIOCO
         (window as any).game4 = null; // Reset del game object
@@ -404,7 +400,7 @@ export async function FourGameLoop(
     } else {
       // Se non c'è gameRoom.game_id, gestisci comunque il reset
       setTimeout(() => {
-        console.log("DEBUG: Four player game ended (no backend) - resetting state and navigating back to:", fromPage);
+       
         
         // RESET COMPLETO
         (window as any).game4 = null;

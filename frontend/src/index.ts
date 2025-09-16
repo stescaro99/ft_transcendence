@@ -142,7 +142,7 @@ const routes: Record<string, () => string> = {
     return "";
   },
   '/game': () => {
-     console.log('LLLLL navigation stack', navigationStack);
+    
     const fromPage = navigationStack[navigationStack.length - 2] || '/';
 
     const hash = location.hash.slice(1) || '/';
@@ -280,7 +280,6 @@ if (error) {
 }
 else if (token && nickname)
 {
-  console.log('Google auth success detected with token and nickname');
   
   // Controlla se eravamo in attesa di un'autenticazione Google
   const wasGoogleAuthPending = sessionStorage.getItem('googleAuthPending') === 'true';
@@ -325,8 +324,6 @@ else if (token && nickname)
   window.history.replaceState({}, document.title, window.location.pathname);
   window.location.hash = '/';
   
-  console.log('Authentication completed, navigating to home');
-  
   // Forza il routing dopo un breve delay per assicurarsi che tutto sia impostato
   setTimeout(async () => {
     await hydrateUserLanguageOnce();
@@ -358,13 +355,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-window.addEventListener('popstate', () => {
-  function clearPage() {
-    const appDiv = document.getElementById('app');
-    if (appDiv) appDiv.innerHTML = '';
-  }
-  console.log('Pagina cambiata!');
-});
 
 window.addEventListener('hashchange', (e: HashChangeEvent) => {
   const oldHash = (e as any).oldURL ? new URL((e as any).oldURL).hash : '';
