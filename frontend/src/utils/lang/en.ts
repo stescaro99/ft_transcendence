@@ -38,6 +38,10 @@ export default {
         "percentage_losses": "Percentage of Losses",
         "percentage_draws": "Percentage of Draws",
         "history": "History",
+    "no_game_history": "No game history available.",
+    "vs": "VS",
+    "winner_label": "Winner:",
+    "guest": "guest",
         "change_profile": "Change Profile",
         "tournament_victories": "Number of tournaments won"
     },
