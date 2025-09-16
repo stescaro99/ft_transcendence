@@ -3,6 +3,7 @@ import { Tournament, TournamentRound, TournamentResult } from '../../model/toura
 import { TranslationService } from '../../service/translation.service';
 import './tournament.css';
 import { GameService } from '../../service/game.service';
+import { setBotActive } from '../game/common/BotState';
 
 export class TournamentPage {
     private gameService = new GameService();
@@ -296,6 +297,10 @@ export class TournamentPage {
             const currentGame = currentRound.games[currentIndex];
             console.log(`Starting ${currentRound.roundName} - Game ${currentIndex + 1}: ${currentGame[0]} vs ${currentGame[1]}`);
             
+            // Ensure bots are disabled by default when launching a tournament game
+            try {
+                for (let i = 0; i < 4; i++) setBotActive(i, false);
+            } catch (e) {}
             sessionStorage.setItem('tournamentMode', 'true');
             sessionStorage.setItem('currentGameIndex', currentIndex.toString());
             sessionStorage.setItem('currentRound', this.tournament.currentRound.toString());

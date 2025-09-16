@@ -170,6 +170,8 @@ function render(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, game: 
 let botInterval: ReturnType<typeof setInterval> | undefined = undefined;
 let predictedY: number | null = null;
 let gameCreated = false;
+let botIntervalLeft: ReturnType<typeof setInterval> | undefined = undefined;
+let predictedYLeft: number | null = null;
 
 
 // Sovrascrivi la funzione resetAfterPoint (o chiamala dove aggiorni i punteggi)
@@ -462,8 +464,25 @@ function handleTournamentGameEnd(winner: string) {
 	moveBot(game.rightPaddle[0], predictedY);
   }
 
+  // Right bot (index 0) interval
   if (!botInterval && getBotActive(0)) {
-	botInterval = setInterval(moveBotPaddle, 1000);
+    botInterval = setInterval(moveBotPaddle, 1000);
+  }
+
+  // Left bot logic: index 1 maps to left paddle in 2-player layout
+  function moveBotPaddleLeft() {
+    if (!getBotActive(1)) return;
+    const bot = game.leftPaddle[0];
+    const randomOffset = (Math.random() - 0.5) * 200;
+    predictedYLeft = predictBallY(game.ball, bot.x, canvas) + randomOffset;
+  }
+
+  if (getBotActive(1) && predictedYLeft !== null) {
+    moveBot(game.leftPaddle[0], predictedYLeft);
+  }
+
+  if (!botIntervalLeft && getBotActive(1)) {
+    botIntervalLeft = setInterval(moveBotPaddleLeft, 1000);
   }
 
   // +++ NEW: forza OFF ogni frame se disabilitati (impedisce effetti/spawn)

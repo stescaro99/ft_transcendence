@@ -185,17 +185,35 @@ export class GamePage {
             const play_two = document.getElementById("play2");
             if (play_two) {
                 play_two.textContent = this.players[1];
-                if (this.players[1] && this.players[1].split(" ")[0] !== "Player") {
-                    const botBtn = document.getElementById("addBotBtn0");
-                    if (botBtn) botBtn.classList.add('pointer-events-none', 'opacity-60');
-                }
             }
 
+            // Show/disable add-bot buttons per player depending on whether the name is default
+            // For 2-player mode mapping used here: addBotBtn0 -> right player, addBotBtn1 -> left player
+            try {
+                const leftNameDefault = !this.players[0] || this.players[0].split(' ')[0] === 'Player';
+                const rightNameDefault = !this.players[1] || this.players[1].split(' ')[0] === 'Player';
+
+                // addBotBtn0 -> right player, addBotBtn1 -> left player (consistent with controllers)
+                const rightBtn = document.getElementById('addBotBtn0');
+                if (rightBtn) {
+                    if (!rightNameDefault) rightBtn.classList.add('pointer-events-none', 'opacity-60');
+                    else rightBtn.classList.remove('pointer-events-none', 'opacity-60');
+                }
+
+                const leftBtn = document.getElementById('addBotBtn1');
+                if (leftBtn) {
+                    if (!leftNameDefault) leftBtn.classList.add('pointer-events-none', 'opacity-60');
+                    else leftBtn.classList.remove('pointer-events-none', 'opacity-60');
+                }
+            } catch (e) {}
+
             // Bot buttons
+            // Bind addBot button handlers only for buttons present in the DOM
             for (let i = 0; i < 4; i++) {
                 const btn = document.getElementById(`addBotBtn${i}`);
                 if (btn && !btn.getAttribute('data-bound')) {
                     btn.addEventListener("click", () => {
+                        console.debug(`[GamePage] addBotBtn click index=${i}`);
                         const newState = !getBotActive(i);
                         setBotActive(i, newState);
                         if (newState) {
@@ -392,10 +410,17 @@ export class GamePage {
       const player3Name = document.getElementById("player3Name");
       const player4Name = document.getElementById("player4Name");
 
-      if (player1Name) player1Name.textContent = getBotActive(0) ? "Team 1 - BOT" : ("Team 1 - " + (this.players[0] || "Player 1"));
-      if (player2Name) player2Name.textContent = getBotActive(1) ? "Team 1 - BOT" : ("Team 1 - " + (this.players[1] || "Player 2"));
-      if (player3Name) player3Name.textContent = getBotActive(2) ? "Team 2 - BOT" : ("Team 2 - " + (this.players[2] || "Player 1"));
-      if (player4Name) player4Name.textContent = getBotActive(3) ? "Team 2 - BOT" : ("Team 2 - " + (this.players[3] || "Player 2"));
+      // If this is a 4-player layout (player3 exists) use existing mapping:
+      if (player3Name) {
+          if (player1Name) player1Name.textContent = getBotActive(0) ? "Team 1 - BOT" : ("Team 1 - " + (this.players[0] || "Player 1"));
+          if (player2Name) player2Name.textContent = getBotActive(1) ? "Team 1 - BOT" : ("Team 1 - " + (this.players[1] || "Player 2"));
+          if (player3Name) player3Name.textContent = getBotActive(2) ? "Team 2 - BOT" : ("Team 2 - " + (this.players[2] || "Player 1"));
+          if (player4Name) player4Name.textContent = getBotActive(3) ? "Team 2 - BOT" : ("Team 2 - " + (this.players[3] || "Player 2"));
+      } else {
+          // 2-player layout: mapping used in controllers is index1 -> left player, index0 -> right player
+          if (player1Name) player1Name.textContent = getBotActive(1) ? "Team 1 - BOT" : ("Team 1 - " + (this.players[0] || "Player 1"));
+          if (player2Name) player2Name.textContent = getBotActive(0) ? "Team 1 - BOT" : ("Team 1 - " + (this.players[1] || "Player 2"));
+      }
     }
 
     private setTheme(theme: string) {
