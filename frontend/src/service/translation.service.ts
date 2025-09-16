@@ -27,18 +27,16 @@ export class TranslationService {
             if (value && typeof value === 'object') return JSON.stringify(value);
             // log per debug: chiave mancante
             console.warn(`[TranslationService] Missing translation for key="${key.trim()}" lang="${this.lang}"`);
-            return ''; // fallback: rimuove placeholder invece di lasciarlo visibile
+            return '';
         });
      }
 
      private getNestedValue(obj: any, path: string): any {
         if (!obj || !path) return undefined;
-        // supporta sia dot (a.b.c) sia slash-separated (a/b/c) se necessario
         const parts = path.replace(/\//g, '.').split('.');
         let cur = obj;
         for (const p of parts) {
             if (cur == null) return undefined;
-            // prova accesso diretto, poi lowercase (nel caso le chiavi in file lingua siano minuscole)
             if (Object.prototype.hasOwnProperty.call(cur, p)) {
                 cur = cur[p];
             } else if (Object.prototype.hasOwnProperty.call(cur, p.toLowerCase())) {

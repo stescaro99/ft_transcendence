@@ -43,6 +43,7 @@ export default {
         "winner_label": "Vincitore:",
         "guest": "ospite",
         "change_profile": "Modifica profilo",
+        "new_password": "Nuova password",
         "tournament_victories": "Numero di Tornei Vinti"
     },
     game: {

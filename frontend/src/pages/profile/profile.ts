@@ -16,6 +16,7 @@ export class ProfilePage {
 	private editMode : boolean = false;
 	private tempImageFile: File | null = null;
 	private authService: AuthenticationService = new AuthenticationService();
+	private translationService: TranslationService;
 
 	constructor(lang: string, nickname: string) {
 		this.currentLang = lang;
@@ -59,8 +60,8 @@ export class ProfilePage {
 		const appDiv = document.getElementById('app');
 
 		if (appDiv) {
-			const translation = new TranslationService(this.currentLang);
-			const translatedHtml = translation.translateTemplate(profileHtml);
+			this.translationService = new TranslationService(this.currentLang);
+			const translatedHtml = this.translationService.translateTemplate(profileHtml);
 			appDiv.innerHTML = translatedHtml;
 			
 			this.setNewLang()
@@ -95,6 +96,22 @@ export class ProfilePage {
 		}
 		this.addlisteners();
 	}
+
+	private translateDynamicContent(element: HTMLElement) {
+		const html = element.innerHTML;
+		const translatedHtml = this.translationService.translateTemplate(html);
+		element.innerHTML = translatedHtml;
+
+		const inputs = element.querySelectorAll('input[placeholder-template]') as NodeListOf<HTMLInputElement>;
+		inputs.forEach((input) => {
+			const placeholderTemplate = input.getAttribute('placeholder-template');
+			if (placeholderTemplate) {
+				const translatedPlaceholder = this.translationService.translateTemplate(placeholderTemplate);
+				input.placeholder = translatedPlaceholder;
+				input.removeAttribute('placeholder-template');
+			}
+		});
+	}
 	private addlisteners() {
 		const changeProfileBtn = document.getElementById('change_profile');
 		if (changeProfileBtn) {
@@ -124,12 +141,16 @@ export class ProfilePage {
 						}
 						const passworddiv = document.getElementById('password_div');
 						if (passworddiv) {
-							passworddiv.innerHTML = `<input type="password" class="bg-c-400 rounded-2xl text-center" id="profile_password_input" placeholder="{{new_password}}">`;
+							passworddiv.innerHTML = `<input type="password" class="bg-c-400 rounded-2xl text-center" id="profile_password_input" placeholder-template="{{profilepage.new_password}}">`;
+							this.translateDynamicContent(passworddiv);
 						}
 					}
 				} else {
 					this.editMode = false;
-					changeProfileBtn.textContent = '{{change_profile}}';
+					const tempDiv = document.createElement('div');
+					tempDiv.innerHTML = '{{profilepage.change_profile}}';
+					this.translateDynamicContent(tempDiv);
+					changeProfileBtn.textContent = tempDiv.textContent || 'Change Profile';
 
 					const editImageBtn = document.getElementById('edit_image_btn');
 					if (editImageBtn) {
@@ -182,9 +203,9 @@ export class ProfilePage {
 	}
 
 	private async showgameHistory(games: Game[], modalContent: HTMLElement) {
- 		const translation = new TranslationService(this.currentLang);
  		if (games.length === 0 ) {
- 			modalContent.innerHTML = `<p>${translation.translateTemplate('{{profilepage.no_game_history}}')}</p>`;
+ 			modalContent.innerHTML = `<p>{{profilepage.no_game_history}}</p>`;
+ 			this.translateDynamicContent(modalContent);
  			return;
  		}
 		modalContent.innerHTML = "";
@@ -199,7 +220,10 @@ export class ProfilePage {
 					const userData = await this.userService.takeUserFromApi(p);
 					return { nickname: userData.nickname, image_url: userData.image_url };
 				} catch {
-					return { nickname: translation.translateTemplate('{{profilepage.guest}}'), image_url: 'https://transcendence.fe:8443/user.jpg' };
+					const tempDiv = document.createElement('div');
+					tempDiv.innerHTML = '{{profilepage.guest}}';
+					this.translateDynamicContent(tempDiv);
+					return { nickname: tempDiv.textContent || 'guest', image_url: 'https://transcendence.fe:8443/user.jpg' };
 				}
 			});
 			const us = await Promise.all(playerPromises);
@@ -224,7 +248,7 @@ export class ProfilePage {
 				</div>
 
 				<!-- VS -->
-				<div class="mx-4 font-bold text-red-600">${translation.translateTemplate('{{profilepage.vs}}')}</div>
+				<div class="mx-4 font-bold text-red-600">{{profilepage.vs}}</div>
 
 				<!-- Team 2 -->
 				<div class="flex flex-col items-center space-x-2">
@@ -237,13 +261,14 @@ export class ProfilePage {
 		
 				</div>
 				<div class="text-xs text-gray-500 flex item-center mb-1">
-					<strong>${translation.translateTemplate('{{profilepage.winner_label}}')}</strong> ${game.winner_nickname || translation.translateTemplate('{{profilepage.guest}}')}
+					<strong>{{profilepage.winner_label}}</strong> ${game.winner_nickname || '{{profilepage.guest}}'}
 				</div>
 			
 			`;
 			ul.appendChild(li);
 		};
 		modalContent.appendChild(ul);
+		this.translateDynamicContent(modalContent);
 	}
 
 	private handleImageEdit() {
@@ -430,7 +455,10 @@ export class ProfilePage {
 
 		const changeProfileBtn = document.getElementById('change_profile');
 		if (changeProfileBtn) {
-			changeProfileBtn.textContent = '{{change_profile}}';
+			const tempDiv = document.createElement('div');
+			tempDiv.innerHTML = '{{profilepage.change_profile}}';
+			this.translateDynamicContent(tempDiv);
+			changeProfileBtn.textContent = tempDiv.textContent || 'Change Profile';
 
 			changeProfileBtn.onclick = null;
 		}
