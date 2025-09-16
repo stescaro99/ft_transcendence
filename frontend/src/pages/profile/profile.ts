@@ -188,10 +188,11 @@ export class ProfilePage {
 	}
 
 	private async showgameHistory(games: Game[], modalContent: HTMLElement) {
-		if (games.length === 0 ) {
-			modalContent.innerHTML = '<p>No game history available.</p>';
-			return;
-		}
+ 		const translation = new TranslationService(this.currentLang);
+ 		if (games.length === 0 ) {
+ 			modalContent.innerHTML = `<p>${translation.translateTemplate('{{profilepage.no_game_history}}')}</p>`;
+ 			return;
+ 		}
 		modalContent.innerHTML = "";
 		const ul = document.createElement("ul");
 		ul.className = "list-none list-inside text-left space-y-1";
@@ -204,7 +205,7 @@ export class ProfilePage {
 					const userData = await this.userService.takeUserFromApi(p);
 					return { nickname: userData.nickname, image_url: userData.image_url };
 				} catch {
-					return { nickname: 'guest', image_url: 'https://transcendence.fe:8443/user.jpg' };
+					return { nickname: translation.translateTemplate('{{profilepage.guest}}'), image_url: 'https://transcendence.fe:8443/user.jpg' };
 				}
 			});
 			const us = await Promise.all(playerPromises);
@@ -229,7 +230,7 @@ export class ProfilePage {
 				</div>
 
 				<!-- VS -->
-				<div class="mx-4 font-bold text-red-600">VS</div>
+				<div class="mx-4 font-bold text-red-600">${translation.translateTemplate('{{profilepage.vs}}')}</div>
 
 				<!-- Team 2 -->
 				<div class="flex flex-col items-center space-x-2">
@@ -239,10 +240,10 @@ export class ProfilePage {
 					`).join('')}
 					<strong class="text-lg mt-1">${game.scores ? game.scores[1] : '0'}</strong>
 					</div>
-	
+		
 				</div>
 				<div class="text-xs text-gray-500 flex item-center mb-1">
-					<strong>Winner:</strong> ${game.winner_nickname || 'N/A'}
+					<strong>${translation.translateTemplate('{{profilepage.winner_label}}')}</strong> ${game.winner_nickname || translation.translateTemplate('{{profilepage.guest}}')}
 				</div>
 			
 			`;

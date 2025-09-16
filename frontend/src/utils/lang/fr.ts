@@ -38,6 +38,10 @@ export default {
         "percentage_losses": "Pourcentage de defaites",
         "percentage_draws": "Pourcentage de matchs nuls",
         "history": "Historique",
+        "no_game_history": "Aucun historique de partie disponible.",
+        "vs": "VS",
+        "winner_label": "Gagnant:",
+        "guest": "invité",
         "change_profile": "Modifier le profil",
         "tournament_victories": "Nombre de tournois remportés"
     },
