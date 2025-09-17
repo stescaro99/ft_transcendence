@@ -196,23 +196,44 @@ export class GamePage {
                 play_two.textContent = this.players[1];
             }
 
-            // Show/disable add-bot buttons per player depending on whether the name is default
-            // For 2-player mode mapping used here: addBotBtn0 -> right player, addBotBtn1 -> left player
+            // Enable add-bot buttons for all players in non-tournament games.
+            // Previously these buttons were disabled when a player had a custom nickname.
             try {
-                const leftNameDefault = !this.players[0] || this.players[0].split(' ')[0] === 'Player';
-                const rightNameDefault = !this.players[1] || this.players[1].split(' ')[0] === 'Player';
-
-                // addBotBtn0 -> right player, addBotBtn1 -> left player (consistent with controllers)
                 const rightBtn = document.getElementById('addBotBtn0');
                 if (rightBtn) {
-                    if (!rightNameDefault) rightBtn.classList.add('pointer-events-none', 'opacity-60');
-                    else rightBtn.classList.remove('pointer-events-none', 'opacity-60');
+                    rightBtn.classList.remove('pointer-events-none', 'opacity-60');
                 }
 
                 const leftBtn = document.getElementById('addBotBtn1');
                 if (leftBtn) {
-                    if (!leftNameDefault) leftBtn.classList.add('pointer-events-none', 'opacity-60');
-                    else leftBtn.classList.remove('pointer-events-none', 'opacity-60');
+                    leftBtn.classList.remove('pointer-events-none', 'opacity-60');
+                }
+            } catch (e) {}
+
+            // Hide add-bot button on the side where the local physical player sits (1v1 only).
+            // Use session user/nickname as the local player identifier. This also applies when
+            // we're in tournament mode because `this.players` is already overridden above.
+            try {
+                const rawUser = sessionStorage.getItem('user');
+                let localNick = '';
+                if (rawUser) {
+                    try { localNick = JSON.parse(rawUser).nickname || ''; } catch {}
+                }
+                if (!localNick) localNick = sessionStorage.getItem('nickname') || '';
+
+                // Only for 2-player layout - detect via absence of player3Name element
+                const isTwoPlayerLayout = !document.getElementById('player3Name');
+                if (isTwoPlayerLayout && localNick) {
+                    // left player is this.players[0] and uses addBotBtn1
+                    if (this.players[0] && this.players[0] === localNick) {
+                        const btnLeft = document.getElementById('addBotBtn1');
+                        if (btnLeft) btnLeft.style.display = 'none';
+                    }
+                    // right player is this.players[1] and uses addBotBtn0
+                    if (this.players[1] && this.players[1] === localNick) {
+                        const btnRight = document.getElementById('addBotBtn0');
+                        if (btnRight) btnRight.style.display = 'none';
+                    }
                 }
             } catch (e) {}
 
