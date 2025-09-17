@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { addUser, deleteUser, getUser, updateUser, uploadImage, addFriend, getOnlineUsers, getUserWithOnlineStatus, forceOffline } from "../controllers/userController";
+import { addUser, deleteUser, getUser, updateUser, uploadImage, addFriend, getOnlineUsers, getUserWithOnlineStatus, forceOffline, forceOnline } from "../controllers/userController";
 import { userSchema } from "../schemas/userSchema";
 import { verifyJWT } from "../utils/jwt";
 
@@ -31,6 +31,34 @@ export default async function (server: FastifyInstance) {
 			tags: ['User']
 		}
 	}, forceOffline);
+
+	server.post('/force_online', {
+		schema: {
+			body: {
+				type: 'object',
+				required: ['nickname'],
+				properties: {
+					nickname: { type: 'string' }
+				}
+			},
+			response: {
+				200: {
+					type: 'object',
+					properties: {
+						message: { type: 'string' },
+						user: { type: 'object' }
+					}
+				},
+				404: {
+					type: 'object',
+					properties: {
+						error: { type: 'string' }
+					}
+				}
+			},
+			tags: ['User']
+		}
+	}, forceOnline);
 
 	server.post('/add_user', {
 		schema: {

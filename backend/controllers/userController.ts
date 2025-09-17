@@ -26,6 +26,23 @@ export async function forceOffline(request: FastifyRequest, reply: FastifyReply)
 	}
 }
 
+export async function forceOnline(request: FastifyRequest, reply: FastifyReply) {
+	const { nickname } = request.body as { nickname: string };
+	try {
+		const user = await User.findOne({ where: { nickname } });
+		if (user) {
+			user.online = true;
+			await user.save();
+			reply.code(200).send({ message: 'User set online', user });
+		}
+		else {
+			reply.code(404).send({ error: 'User not found' });
+		}
+	} catch (error) {
+		reply.code(500).send({ error: 'Failed to set user online', details: error });
+	}
+}
+
 export async function addUser(request: FastifyRequest, reply: FastifyReply) {
 	const { name, surname, nickname, email, password, image_url } = request.body as {
 		name: string;
