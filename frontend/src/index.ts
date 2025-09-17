@@ -376,6 +376,20 @@ window.addEventListener('hashchange', (e: HashChangeEvent) => {
     } 
   }
   router();
+  // Mark user online on navigation
+  (async () => {
+    try {
+      const nickname = sessionStorage.getItem('nickname');
+      const token = sessionStorage.getItem('token');
+      if (nickname) {
+        await fetch(environment.apiUrl + '/force_online', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: token ? `Bearer ${token}` : '' },
+          body: JSON.stringify({ nickname })
+        });
+      }
+    } catch (err) { console.warn('force_online failed:', err); }
+  })();
 });
 
 // Bootstrap: attende DOM, poi assicura lingua e poi prima render
