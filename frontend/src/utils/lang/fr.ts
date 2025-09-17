@@ -41,7 +41,7 @@ export default {
         "no_game_history": "Aucun historique de partie disponible.",
         "vs": "VS",
         "winner_label": "Gagnant:",
-        "guest": "invité",
+        "guest": "Joueur",
         "change_profile": "Modifier le profil",
         "new_password": "Nouveau mot de passe",
         "tournament_victories": "Nombre de tournois remportés"

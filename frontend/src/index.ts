@@ -149,7 +149,7 @@ const routes: Record<string, () => string> = {
     const urlParams = hash.split('?')[1]; // Ottieni la parte dopo il '?'
     
     let player1 = sessionStorage.getItem('nickname') || 'Player 1';
-    let player2 = 'guest';
+    let player2 = 'player 2';
     
     // Se ci sono parametri nell'URL, estraili
     if (urlParams) {

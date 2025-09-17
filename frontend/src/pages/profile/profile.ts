@@ -223,7 +223,12 @@ export class ProfilePage {
 					const tempDiv = document.createElement('div');
 					tempDiv.innerHTML = '{{profilepage.guest}}';
 					this.translateDynamicContent(tempDiv);
-					return { nickname: p || tempDiv.textContent || 'guest', image_url: 'https://transcendence.fe:8443/user.jpg' };
+					if (p.split(' ')[0]==='player')
+						if (game.winner_nickname?.split(' ')[0] === 'player'){
+							game.winner_nickname = tempDiv.textContent + ' ' + p.split(' ')[1];
+						return { nickname: tempDiv.textContent || 'guest', image_url: 'https://transcendence.fe:8443/user.jpg' };}
+					
+					return { nickname: p  || 'guest', image_url: 'https://transcendence.fe:8443/user.jpg' };
 				}
 			});
 			const us = await Promise.all(playerPromises);
