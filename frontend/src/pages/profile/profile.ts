@@ -246,7 +246,9 @@ export class ProfilePage {
 				<!-- Team 1 -->
 				   <div class="flex flex-col items-center space-x-2 text-center">
 					   ${team1.map(p => `
-						   <img src="${p.image_url}" alt="${p.nickname}" class="w-8 h-8 rounded-full border mx-auto">
+						   <a href="/profile?nickname=${encodeURIComponent(p.nickname)}" class="profile-link" data-nickname="${encodeURIComponent(p.nickname)}">
+							   <img src="${p.image_url}" alt="${p.nickname}" class="w-8 h-8 rounded-full border mx-auto">
+						   </a>
 						   <span class="text-sm font-medium block w-full text-center">${p.nickname}</span>
 					   `).join('')}
 					   <strong class="text-lg mt-1 block w-full text-center">${game.scores ? game.scores[0] : '0'}</strong>
@@ -258,7 +260,9 @@ export class ProfilePage {
 				<!-- Team 2 -->
 				   <div class="flex flex-col items-center space-x-2 text-center">
 					   ${team2.map(p => `
-						   <img src="${p.image_url}" alt="${p.nickname}" class="w-8 h-8 rounded-full border mx-auto">
+						   <a href="/profile?nickname=${encodeURIComponent(p.nickname)}" class="profile-link" data-nickname="${encodeURIComponent(p.nickname)}">
+							   <img src="${p.image_url}" alt="${p.nickname}" class="w-8 h-8 rounded-full border mx-auto">
+						   </a>
 						   <span class="text-sm font-medium block w-full text-center">${p.nickname}</span>
 					   `).join('')}
 					   <strong class="text-lg mt-1 block w-full text-center">${game.scores ? game.scores[1] : '0'}</strong>
@@ -274,6 +278,17 @@ export class ProfilePage {
 		};
 		modalContent.appendChild(ul);
 		this.translateDynamicContent(modalContent);
+		// SPA navigation for profile links in history
+		const links = modalContent.querySelectorAll('.profile-link');
+		links.forEach(link => {
+			link.addEventListener('click', (e) => {
+				e.preventDefault();
+				const nickname = decodeURIComponent(link.getAttribute('data-nickname') || '');
+				new ProfilePage(this.currentLang, nickname);
+				const customModal = document.getElementById('customModal');
+				if (customModal) customModal.classList.add('hidden');
+			});
+		});
 	}
 
 	private handleImageEdit() {
