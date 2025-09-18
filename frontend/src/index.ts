@@ -223,6 +223,16 @@ function router() {
   const hash = location.hash.slice(1) || '/';
   const path = hash.split('?')[0]; 
   console.log("Navigazione verso:", path);
+  const publicPaths = ['/login', '/identification'];
+  if ( !publicPaths.includes(path)) {
+    const userStr = sessionStorage.getItem('user');
+    const tokenstr = sessionStorage.getItem('token');
+    if (!userStr || !tokenstr) {
+      console.log('Accesso non autorizzato a', path, '- reindirizzamento a /login');
+      window.location.hash = '/login';
+      return;
+    }
+  }
   
   const currentRoute = hash;
     if (navigationStack[navigationStack.length - 1] !== currentRoute) {
@@ -258,38 +268,34 @@ function router() {
 if (error) {
   console.log('Google auth error detected:', error);
   
-  // Controlla se eravamo in attesa di un'autenticazione Google
   const wasGoogleAuthPending = sessionStorage.getItem('googleAuthPending') === 'true';
   
   if (wasGoogleAuthPending) {
-    // Pulisci lo stato di attesa
+
     sessionStorage.removeItem('googleAuthPending');
     sessionStorage.removeItem('googleAuthResolve');
     
     console.log('Processing Google auth error');
     alert('Google login failed: ' + error);
   }
-  
-  // Reindirizza alla pagina di login
+
   window.location.hash = '/login';
 }
 else if (token && nickname)
 {
-  
-  // Controlla se eravamo in attesa di un'autenticazione Google
+
   const wasGoogleAuthPending = sessionStorage.getItem('googleAuthPending') === 'true';
   
   if (wasGoogleAuthPending)
   {
-    // Pulisci lo stato di attesa
+
     sessionStorage.removeItem('googleAuthPending');
     sessionStorage.removeItem('googleAuthResolve');
     
     console.log('Processing Google auth success');
   }
   
-  // Salva i dati nel sessionStorage
-  // Manteniamo compatibilità salvando sia il token diretto sia l'oggetto user completo
+
   sessionStorage.setItem('token', token);
   sessionStorage.setItem('user', JSON.stringify({ token, nickname }));
   const userToStore = {
@@ -306,20 +312,19 @@ else if (token && nickname)
   };
 
   sessionStorage.setItem('user', JSON.stringify(userToStore));
-  sessionStorage.setItem('token', token); // opzionale ma comodo
+  sessionStorage.setItem('token', token); 
   sessionStorage.setItem('nickname', nickname);
   
-  // Mostra la navbar ora che l'utente è autenticato
+
   const navbar = document.getElementById('navbar');
   if (navbar) {
     navbar.style.display = 'block';
   }
   
-  // Pulisci l'URL dai parametri e naviga alla home
+
   window.history.replaceState({}, document.title, window.location.pathname);
   window.location.hash = '/';
-  
-  // Forza il routing dopo un breve delay per assicurarsi che tutto sia impostato
+
   setTimeout(async () => {
     await hydrateUserLanguageOnce();
     router();
