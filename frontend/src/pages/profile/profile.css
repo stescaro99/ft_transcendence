@@ -40,6 +40,69 @@
     @apply flex justify-center w-full;
 }
 
+.pie-chart-canvas {
+    width: 90px;
+    height: 90px;
+    display: block;
+    @apply w-[90px] h-[90px] block mx-auto p-1 box-border;
+}
+
+.pie-chart-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    @apply flex flex-row items-center justify-start gap-6 min-h-[120px];
+}
+.pie-chart-box {
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    @apply w-[120px] h-[120px] flex items-center justify-center p-2.5;
+}
+.pie-chart-legend {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    @apply flex flex-col justify-center items-start min-w-[120px];
+}
+.legend-title {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    @apply font-bold mb-2 text-white;
+}
+.legend-list {
+    list-style: none;
+    padding: 0;
+    @apply list-none p-0 m-0;
+}
+.legend-list li {
+    display: flex;
+    align-items: center;
+    @apply flex items-center mb-1 text-base text-white;
+}
+.legend-color {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    @apply inline-block w-4 h-4 rounded mr-2;
+}
+.legend-color.win {
+    background: rgba(54, 162, 235, 0.7);
+    border: 2px solid rgba(54, 162, 235, 1);
+    @apply bg-blue-400 border-2 border-blue-600;
+}
+.legend-color.loss {
+    background: rgba(255, 99, 132, 0.7);
+    border: 2px solid rgba(255, 99, 132, 1);
+    @apply bg-red-300 border-2 border-red-500;
+}
+
+
 .lang-btn {
     @apply w-40 p-5 mx-3 rounded-2xl bg-[var(--primary)] text-white cursor-pointer
             hover:bg-[var(--secondary)] transition-all duration-200 ease-linear

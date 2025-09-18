@@ -64,19 +64,24 @@
             <h2 class="text-white kodemono-font font-[500] text-5xl text-center pb-5">{{profilepage.statistics}}</h1>
            
             <div class="stats-container container-shadow">
+
                 <div class="stats-element">
                     <p>{{profilepage.number_of_games}}</p>
                     <p id="number_of_games"></p>
                 </div>
-    
-                <div class="stats-element">
-                    <p>{{profilepage.number_of_wins}}</p>
-                    <p id="number_of_wins"></p>
-                </div>
-    
-                <div class="stats-element">
-                    <p>{{profilepage.number_of_losses}}</p>
-                    <p id="number_of_losses"></p>
+
+                <!-- Pie chart vittorie/sconfitte -->
+                <div class="stats-element pie-chart-row">
+                    <div class="pie-chart-box">
+                        <canvas id="winLossPieChart" width="90" height="90" class="pie-chart-canvas"></canvas>
+                    </div>
+                    <div class="pie-chart-legend">
+                        <p class="legend-title">Vittorie / Sconfitte</p>
+                        <ul class="legend-list">
+                            <li><span class="legend-color win"></span> Vittorie</li>
+                            <li><span class="legend-color loss"></span> Sconfitte</li>
+                        </ul>
+                    </div>
                 </div>
     
                 <div class="stats-element">

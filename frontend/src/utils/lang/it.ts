@@ -29,8 +29,8 @@ export default {
         "choose_lang": "Lingua",
         
         "number_of_games": "Numero di partite",
-        "number_of_wins": "Numero di vittorie",
-        "number_of_losses": "Numero di sconfitte",
+        "number_of_wins": "Vittorie",
+        "number_of_losses": "Sconfitte",
         "number_of_draws": "Numero di pareggi",
         "number_of_points": "Numero di punti",
         "average_score": "Punteggio medio",

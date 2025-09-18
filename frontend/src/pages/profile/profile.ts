@@ -93,6 +93,54 @@ export class ProfilePage {
 				imgElement.src = this.user.image_url;
 			}, 0);
 			this.setProfileImage();
+
+			// Pie chart vittorie/sconfitte
+			setTimeout(() => {
+					const wins = this.stats.number_of_wins || 0;
+					const losses = this.stats.number_of_losses || 0;
+					const ctx = document.getElementById('winLossPieChart') as HTMLCanvasElement;
+					// Traduzioni legenda
+					const legendTitle = this.translationService.translateTemplate("{{profilepage.number_of_wins}}") + ' / ' + this.translationService.translateTemplate("{{profilepage.number_of_losses}}")
+					const winLabel = this.translationService.translateTemplate("{{profilepage.number_of_wins}}")
+					const lossLabel = this.translationService.translateTemplate("{{profilepage.number_of_losses}}")
+					// Aggiorna legenda
+					const legendTitleElem = document.querySelector('.legend-title');
+					if (legendTitleElem) legendTitleElem.textContent = legendTitle;
+					const legendListItems = document.querySelectorAll('.legend-list li');
+					if (legendListItems.length > 0) legendListItems[0].innerHTML = '<span class="legend-color win"></span> ' + winLabel;
+					if (legendListItems.length > 1) legendListItems[1].innerHTML = '<span class="legend-color loss"></span> ' + lossLabel;
+					if (ctx) {
+						import('chart.js/auto').then((Chart) => {
+							new Chart.default(ctx, {
+								type: 'pie',
+								data: {
+									labels: [winLabel, lossLabel],
+									datasets: [{
+										data: [wins, losses],
+										backgroundColor: [
+											'rgba(54, 162, 235, 0.7)',
+											'rgba(255, 99, 132, 0.7)'
+										],
+										borderColor: [
+											'rgba(54, 162, 235, 1)',
+											'rgba(255, 99, 132, 1)'
+										],
+										borderWidth: 2
+									}]
+								},
+								options: {
+									responsive: false,
+									maintainAspectRatio: false,
+									plugins: {
+										legend: {
+											display: false
+										}
+									}
+								}
+							});
+						});
+					}
+			}, 100);
 		}
 		this.addlisteners();
 	}
