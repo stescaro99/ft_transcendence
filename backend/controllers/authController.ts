@@ -145,16 +145,32 @@ export async function GoogleOAuthCallback(request: FastifyRequest, reply: Fastif
 			include: [{ model: Stats, as: 'stats' }]
 		});
 		if (!user) {
+			let nickname = userInfo.name || userInfo.email.split('@')[0] || `user_${Date.now()}`;
+			if (await User.findOne({ where: { nickname } }))
+			{
+				nickname = userInfo.email.split('@')[0];
+				if (await User.findOne({ where: { nickname } }))
+					nickname = `${userInfo.name}_${Date.now()}`;
+			}
+			let language = 'en';
+			if (userInfo.locale)
+			{
+				const lang = userInfo.locale.split('-')[0];
+				const supportedLanguages = ['en', 'fr', 'it'];
+				if (supportedLanguages.includes(lang))
+					language = lang;
+			}
 			user = await User.create({
-				name: userInfo.name,
+				name: userInfo.given_name,
 				surname: userInfo.family_name,
 				password: '',
-				nickname: userInfo.name || userInfo.email.split('@')[0] || `${userInfo.name}_${Date.now()}`,
+				nickname: nickname,
 				email: userInfo.email,
 				image_url: userInfo.picture,
 				tfa_code: null,
 				online: true,
 				last_seen: new Date(),
+				language: language,
 			});
 			const stats1 = await Stats.create({ nickname: user.nickname });
 			const stats2 = await Stats.create({ nickname: user.nickname });
