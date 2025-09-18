@@ -130,13 +130,16 @@ const routes: Record<string, () => string> = {
     new LogInPage(currentLang);
     return "";
   },
-  '/stats': () => {
-    new StatsPage();
-    return "";
-  },
   '/profile': () => {
 
     const nickname = location.hash.split('?')[1]?.split('=')[1] || sessionStorage.getItem('nickname') || '';
+    const fullHash = location.hash;
+    console.log('🔍 Profile route called:', {
+      fullHash,
+      extractedNickname: nickname,
+      sessionNickname: sessionStorage.getItem('nickname'),
+      timestamp: new Date().toISOString()
+    });
     new ProfilePage(currentLang, nickname);
     return "";
   },

@@ -326,13 +326,13 @@ export class ProfilePage {
 		};
 		modalContent.appendChild(ul);
 		this.translateDynamicContent(modalContent);
-		// SPA navigation for profile links in history
+		
 		const links = modalContent.querySelectorAll('.profile-link');
 		links.forEach(link => {
 			link.addEventListener('click', (e) => {
 				e.preventDefault();
 				const nickname = decodeURIComponent(link.getAttribute('data-nickname') || '');
-				new ProfilePage(this.currentLang, nickname);
+				window.location.hash = `/profile?nickname=${encodeURIComponent(nickname)}`;
 				const customModal = document.getElementById('customModal');
 				if (customModal) customModal.classList.add('hidden');
 			});
