@@ -5,6 +5,7 @@ import { verifyJWT } from "../utils/jwt";
 
 export default async function (server: FastifyInstance) {
 	server.post('/force_offline', {
+		preHandler: verifyJWT,
 		schema: {
 			body: {
 				type: 'object',
@@ -33,6 +34,7 @@ export default async function (server: FastifyInstance) {
 	}, forceOffline);
 
 	server.post('/force_online', {
+		preHandler: verifyJWT,
 		schema: {
 			body: {
 				type: 'object',

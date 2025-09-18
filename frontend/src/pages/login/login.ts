@@ -174,7 +174,10 @@ export class LogInPage{
 					try {
 						await fetch(environment.apiUrl + '/force_offline', {
 							method: 'POST',
-							headers: { 'Content-Type': 'application/json' },
+							headers: {
+								'Authorization': `Bearer ${sessionStorage.getItem('token')}`,
+								'Content-Type': 'application/json'
+							},
 							body: JSON.stringify({ nickname })
 						});
 					} catch (e) { console.error('force_offline error:', e); }
