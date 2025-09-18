@@ -40,7 +40,7 @@ export default {
         "history": "Cronologia",
         "no_game_history": "Nessuna cronologia partite disponibile.",
         "vs": "VS",
-        "winner_label": "Vincitore:",
+        "winner_label": "Vincitore: ",
         "guest": "giocatore",
         "change_profile": "Modifica profilo",
         "new_password": "Nuova password",

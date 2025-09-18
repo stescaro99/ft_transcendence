@@ -244,25 +244,25 @@ export class ProfilePage {
 			<div class="flex items-center space-x-2 mb-1">${datestr}</div>
 			<div class="flex items-center justify-between mb-1">
 				<!-- Team 1 -->
-				<div class="flex flex-col items-center space-x-2">
-					${team1.map(p => `
-						<img src="${p.image_url}" alt="${p.nickname}" class="w-8 h-8 rounded-full border">
-						<span class="text-sm font-medium">${p.nickname}</span>
-					`).join('')}
-					<strong class="text-lg mt-1">${game.scores ? game.scores[0] : '0'}</strong>
-				</div>
+				   <div class="flex flex-col items-center space-x-2 text-center">
+					   ${team1.map(p => `
+						   <img src="${p.image_url}" alt="${p.nickname}" class="w-8 h-8 rounded-full border mx-auto">
+						   <span class="text-sm font-medium block w-full text-center">${p.nickname}</span>
+					   `).join('')}
+					   <strong class="text-lg mt-1 block w-full text-center">${game.scores ? game.scores[0] : '0'}</strong>
+				   </div>
 
 				<!-- VS -->
 				<div class="mx-4 font-bold text-red-600">{{profilepage.vs}}</div>
 
 				<!-- Team 2 -->
-				<div class="flex flex-col items-center space-x-2">
-					${team2.map(p => `
-						<img src="${p.image_url}" alt="${p.nickname}" class="w-8 h-8 rounded-full border">
-						<span class="text-sm font-medium">${p.nickname}</span>
-					`).join('')}
-					<strong class="text-lg mt-1">${game.scores ? game.scores[1] : '0'}</strong>
-					</div>
+				   <div class="flex flex-col items-center space-x-2 text-center">
+					   ${team2.map(p => `
+						   <img src="${p.image_url}" alt="${p.nickname}" class="w-8 h-8 rounded-full border mx-auto">
+						   <span class="text-sm font-medium block w-full text-center">${p.nickname}</span>
+					   `).join('')}
+					   <strong class="text-lg mt-1 block w-full text-center">${game.scores ? game.scores[1] : '0'}</strong>
+					   </div>
 		
 				</div>
 				<div class="text-xs text-gray-500 flex item-center mb-1">

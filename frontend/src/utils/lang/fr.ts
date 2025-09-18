@@ -40,7 +40,7 @@ export default {
         "history": "Historique",
         "no_game_history": "Aucun historique de partie disponible.",
         "vs": "VS",
-        "winner_label": "Gagnant:",
+        "winner_label": "Gagnant: ",
         "guest": "Joueur",
         "change_profile": "Modifier le profil",
         "new_password": "Nouveau mot de passe",
