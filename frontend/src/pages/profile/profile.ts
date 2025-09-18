@@ -382,119 +382,169 @@ export class ProfilePage {
 	}
 
 	private async saveProfile(){
-		let change : boolean = false;
-		const nameInput = document.getElementById('profile_name_input') as HTMLInputElement;
-		const surnameInput = document.getElementById('profile_surname_input') as HTMLInputElement;
-		const emailInput = document.getElementById('profile_email_input') as HTMLInputElement;
-		const passwordInput = document.getElementById('profile_password_input') as HTMLInputElement;
+    const nameInput = document.getElementById('profile_name_input') as HTMLInputElement;
+    const surnameInput = document.getElementById('profile_surname_input') as HTMLInputElement;
+    const emailInput = document.getElementById('profile_email_input') as HTMLInputElement;
+    const passwordInput = document.getElementById('profile_password_input') as HTMLInputElement;
 
-		const update: Promise<any>[] = [];
+    const results: { success: boolean; field: string; error?: any; message?: string }[] = [];
+    let hasChanges = false;
 
-		if (this.tempImageFile) {
-        update.push(
-            this.userService.UpdateImageUrl(this.tempImageFile)
-                .then((response) => {
-                    
-                    // Aggiorna l'URL dell'immagine nel user
-                    if (response.image_url || response.imageUrl) {
-                        this.user.image_url = response.image_url || response.imageUrl;
-                        
-						this.userService.UpdateUserToApi(this.user.nickname, 'image_url', this.user.image_url)
-							.then(() => {
-								change = true;
-								console.log('Image URL updated successfully');
-							})
-							.catch((error) => {
-								console.error('Error updating image URL:', error);	
-							});
-                        
-                        // Aggiorna anche l'immagine visualizzata
-                        const imgElement = document.getElementById('profile_image') as HTMLImageElement;
-                        if (imgElement) {
-                            imgElement.src = this.user.image_url;
-                        }
-                    }
-                })
-                .catch((error) => {
-                    console.error('❌ Error uploading image:', error);
-                    alert('Errore nel caricamento dell\'immagine');
-                })
-        );
-    }
-
-		if (nameInput && nameInput.value.trim() !== '' && nameInput.value.trim() !== this.user.name) {
-			update.push(
-			this.userService.UpdateUserToApi(this.user.nickname, 'name', nameInput.value.trim())
-				.then(() => {
-					console.log('Name updated successfully');
-					change = true;
-				})
-				.catch((error) => {
-					console.error('Error updating name:', error);
-				})
-			);
-		}
-		if (surnameInput && surnameInput.value.trim() !== '' && surnameInput.value.trim() !== this.user.surname) {
-			update.push(
-			this.userService.UpdateUserToApi(this.user.nickname, 'surname', surnameInput.value.trim())
-				.then(() => {
-					console.log('Surname updated successfully');
-					change = true;
-				})
-				.catch((error) => {
-					console.error('Error updating surname:', error);
-				})
-			);
-		}
-		if (emailInput && emailInput.value.trim() !== '' && emailInput.value.trim() !== this.user.email) {
-			update.push(
-			this.authService.aviabilityCheck('email', emailInput.value.trim())
-				.then((available) => {
-					this.userService.UpdateUserToApi(this.user.nickname, 'email', emailInput.value.trim())
-						.then(() => {
-							console.log('Email updated successfully');
-							change = true;
-						})
-						.catch((error) => {
-							console.error('Error updating email:', error);
-						})
-					})
-				.catch((error) => {
-					console.error('Error checking email availability:', error);
-					alert('Email already in use. Please choose another one.');
-					emailInput.value = this.user.email;
-				})
-				);
-		}
-		if (passwordInput && passwordInput.value.trim() !== '') {
-			update.push(
-			this.userService.UpdateUserToApi(this.user.nickname, 'password', passwordInput.value.trim())
-				.then(() => {
-					console.log('Password updated successfully');
-					change = true;
-				})
-				.catch((error) => {
-					console.error('Error updating password:', error);
-				})
-			);
-		}
-		try{
-			await Promise.all(update);
-			if (change) {
-				console.log('dentro change');
-				this.user.name = nameInput.value.trim();
-				this.user.surname = surnameInput.value.trim();
-				this.user.email = emailInput.value.trim();
+    if (this.tempImageFile) {
+        try {
+				console.log('🖼️ Updating image...');
+				const response = await this.userService.UpdateImageUrl(this.tempImageFile);
 				
-				sessionStorage.setItem('user', JSON.stringify(this.user));
+				if (response.image_url || response.imageUrl) {
+					this.user.image_url = response.image_url || response.imageUrl;
+					
+					// Aggiorna URL immagine nel backend
+					await this.userService.UpdateUserToApi(this.user.nickname, 'image_url', this.user.image_url);
+					
+					// Aggiorna immagine nel DOM
+					const imgElement = document.getElementById('profile_image') as HTMLImageElement;
+					if (imgElement) {
+						imgElement.src = this.user.image_url;
+					}
+					
+					results.push({ success: true, field: 'image', message: 'Image updated successfully' });
+					hasChanges = true;
+				}
+			} catch (error) {
+				console.error('❌ Error updating image:', error);
+				results.push({ success: false, field: 'image', error, message: 'Failed to update image' });
 			}
 		}
-		catch (error) {
-			console.error('Error saving profile:', error);
-			alert('Error saving profile. Please try again later.');
+
+		if (nameInput && nameInput.value.trim() !== '' && nameInput.value.trim() !== this.user.name) {
+			try {
+				console.log('👤 Updating name...');
+				await this.userService.UpdateUserToApi(this.user.nickname, 'name', nameInput.value.trim());
+				this.user.name = nameInput.value.trim();
+				results.push({ success: true, field: 'name', message: 'Name updated successfully' });
+				hasChanges = true;
+			} catch (error) {
+				console.error('❌ Error updating name:', error);
+				results.push({ success: false, field: 'name', error, message: 'Failed to update name' });
+			}
 		}
+
+		if (surnameInput && surnameInput.value.trim() !== '' && surnameInput.value.trim() !== this.user.surname) {
+			try {
+				console.log('👤 Updating surname...');
+				await this.userService.UpdateUserToApi(this.user.nickname, 'surname', surnameInput.value.trim());
+				this.user.surname = surnameInput.value.trim();
+				results.push({ success: true, field: 'surname', message: 'Surname updated successfully' });
+				hasChanges = true;
+			} catch (error) {
+				console.error('❌ Error updating surname:', error);
+				results.push({ success: false, field: 'surname', error, message: 'Failed to update surname' });
+			}
+		}
+
+		if (emailInput && emailInput.value.trim() !== '' && emailInput.value.trim() !== this.user.email) {
+			try {
+				console.log('📧 Checking email availability...');
+				await this.authService.aviabilityCheck('email', emailInput.value.trim());
+				
+				console.log('📧 Updating email...');
+				await this.userService.UpdateUserToApi(this.user.nickname, 'email', emailInput.value.trim());
+				this.user.email = emailInput.value.trim();
+				results.push({ success: true, field: 'email', message: 'Email updated successfully' });
+				hasChanges = true;
+			} catch (error) {
+				console.error('❌ Error updating email:', error);
+				results.push({ success: false, field: 'email', error, message: 'Email already in use or update failed' });
+				
+				// Ripristina il valore precedente nell'input
+				if (emailInput) {
+					emailInput.value = this.user.email;
+				}
+			}
+		}
+
+		if (passwordInput && passwordInput.value.trim() !== '') {
+			try {
+				console.log('🔐 Updating password...');
+				await this.userService.UpdateUserToApi(this.user.nickname, 'password', passwordInput.value.trim());
+				results.push({ success: true, field: 'password', message: 'Password updated successfully' });
+				hasChanges = true;
+			} catch (error) {
+				console.error('❌ Error updating password:', error);
+				results.push({ success: false, field: 'password', error, message: 'Failed to update password' });
+			}
+		}
+
+		if (hasChanges) {
+			try {
+				sessionStorage.setItem('user', JSON.stringify(this.user));
+				console.log('✅ SessionStorage updated');
+			} catch (error) {
+				console.error('❌ Error updating sessionStorage:', error);
+			}
+		}
+
+		this.showUpdateResults(results);
+
 		this.updateDisplayAfterSave();
+	}
+
+	private showUpdateResults(results: { success: boolean; field: string; error?: any; message?: string }[]) {
+		const successes = results.filter(r => r.success);
+		const failures = results.filter(r => !r.success);
+
+		// Log dettagliato per debug
+		console.log('📊 Update Results:', {
+			total: results.length,
+			successes: successes.length,
+			failures: failures.length,
+			details: results
+		});
+
+		// Mostra notifiche all'utente
+		if (successes.length > 0) {
+			const successFields = successes.map(r => r.field).join(', ');
+			this.showNotification(`✅ Updated successfully: ${successFields}`, 'success');
+		}
+
+		if (failures.length > 0) {
+			const failureFields = failures.map(r => r.field).join(', ');
+			this.showNotification(`❌ Failed to update: ${failureFields}`, 'error');
+			
+			// Log errori specifici
+			failures.forEach(failure => {
+				console.error(`❌ ${failure.field} update failed:`, failure.error);
+			});
+		}
+
+		if (results.length === 0) {
+			this.showNotification('No changes to save', 'info');
+		}
+	}
+
+	private showNotification(message: string, type: 'success' | 'error' | 'info' = 'info') {
+		const notification = document.createElement('div');
+		const bgColor = {
+			success: 'bg-green-500',
+			error: 'bg-red-500', 
+			info: 'bg-blue-500'
+		}[type];
 		
+		notification.className = `fixed top-4 right-4 p-4 rounded shadow-lg z-50 ${bgColor} text-white max-w-sm`;
+		notification.textContent = message;
+		document.body.appendChild(notification);
+		
+		// Rimuovi automaticamente dopo 4 secondi
+		setTimeout(() => {
+			if (notification.parentNode) {
+				notification.remove();
+			}
+		}, 4000);
+		
+		// Permetti chiusura al click
+		notification.addEventListener('click', () => {
+			notification.remove();
+		});
 	}
 
 	private updateDisplayAfterSave() {

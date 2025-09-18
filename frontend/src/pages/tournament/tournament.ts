@@ -117,24 +117,23 @@ export class TournamentPage {
         tournamentName.innerHTML = '';
 
         if (totalPlayers > 0) {
-            // Aggiungi un titolo
+
             const title = document.createElement('h3');
             title.className = 'text-cyan-400 text-2xl font-black mb-6 text-center drop-shadow-lg';
             title.innerHTML = '{{tournament.tournament_participants}}';
             title.style.textShadow = '0 0 10px rgba(34, 211, 238, 0.8)';
             tournamentName.appendChild(title);
 
-            // Container per gli input con scroll
             const inputsContainer = document.createElement('div');
             inputsContainer.className = 'max-h-96 overflow-y-auto w-full space-y-4 mb-6';
 
-            // PRIMO GIOCATORE: Utente loggato (readonly)
+
             const firstPlayerWrapper = document.createElement('div');
             firstPlayerWrapper.className = 'mb-4';
 
             const firstLabel = document.createElement('label');
             firstLabel.className = 'block text-cyan-400 text-lg font-bold mb-2';
-            firstLabel.innerHTML = '👑 {{tournament.player_you}}';
+            firstLabel.innerHTML = '🎮 {{tournament.player_you}}';
             firstLabel.setAttribute('for', 'player1');
             firstLabel.style.textShadow = '0 0 5px rgba(34, 211, 238, 0.6)';
 
@@ -231,10 +230,10 @@ export class TournamentPage {
         this.createRound(playerNames, 0);
 
         sessionStorage.setItem('activeTournament', JSON.stringify(this.tournament));
-    // Nascondi il selettore dei giocatori durante il torneo
+
     this.setPlayerCountVisible(false);
         
-    // Mostra intro del primo round (non avvia subito la partita)
+
     this.showRoundIntro(this.tournament.rounds[this.tournament.currentRound]);
     }
 
@@ -314,7 +313,6 @@ export class TournamentPage {
         const container = document.getElementById('tournamentName');
         if (!container) return;
 
-        // Evita doppia intro se il round è già iniziato
         if ((this.tournament.currentGameIndex || 0) > 0) return;
 
         const isFirstRound = this.tournament.currentRound === 0;
@@ -331,7 +329,7 @@ export class TournamentPage {
     const totalPlayers = this.tournament.number_of_players || this.tournament.players.length;
     const sizeClasses = totalPlayers >= 16 ? 'max-w-7xl w-[95vw] p-10' : 'max-w-4xl w-full p-8';
 
-            // Bracket a larghezza piena: sovrascrive completamente l'area (niente residui input)
+        
             container.innerHTML = `
                 <div class="relative w-full flex justify-center">
                     <div class="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-purple-500/10 to-pink-500/10 rounded-2xl blur-xl"></div>
@@ -413,14 +411,14 @@ export class TournamentPage {
         
         tournament.rounds[currentRoundNumber].results.push(result);
         
-        // Aggiorna l'indice per la prossima partita del round corrente
+
         tournament.currentGameIndex = currentIndex + 1;
         
-        // Salva lo stato aggiornato
+
         sessionStorage.setItem('activeTournament', JSON.stringify(tournament));
         
         
-        // Torna alla pagina del torneo per la prossima partita
+  
         window.location.hash = '#/tournament?continue=true';
     }
 
@@ -433,7 +431,7 @@ export class TournamentPage {
         const winners = currentRound.results.map(result => result.winner);
         
         if (winners.length === 1) {
-            // Torneo finito! Abbiamo un campione
+
             this.tournament.winner_nickname = winners[0];
             if (this.tournament.winner_nickname === sessionStorage.getItem('nickname')) {
             this.gameService.winTournament(this.tournament.winner_nickname)
@@ -446,7 +444,7 @@ export class TournamentPage {
             }
             this.showTournamentResults();
         } else if (winners.length >= 2) {
-            // Salta il recap a colonna e vai direttamente all'intro del prossimo round (piramide)
+
             this.startNextRound(winners);
         } else {
             console.error('No winners found for completed round');

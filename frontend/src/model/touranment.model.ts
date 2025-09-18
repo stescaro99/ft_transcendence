@@ -19,8 +19,8 @@ export class Tournament {
 	tournament_key: string = '';
 	players: string[] = [];
 	results?: TournamentResult[];
-	games: string[][] = []; // Manteniamo per compatibilità
-	rounds: TournamentRound[] = []; // Nuovo sistema a round
+	games: string[][] = []; 
+	rounds: TournamentRound[] = [];
 	number_of_players: number | undefined = undefined;
 	date: Date = new Date();
 	winner_nickname: string = '';
