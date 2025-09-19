@@ -19,14 +19,12 @@ export let currentLang = (() => {
     if (userStr) {
       const userObj = JSON.parse(userStr);
       if (userObj.language) {
-        console.log('🌐 Lingua caricata dal profilo:', userObj.language);
         return userObj.language;
       }
     }
   } catch (error) {
     console.error('Errore lettura lingua:', error);
   }
-  console.log('🌐 Lingua di default: en');
   return 'en';
 })();
 export const LANG_CHANGED_EVENT = 'lang:changed';
@@ -148,14 +146,12 @@ const routes: Record<string, () => string> = {
     
     // Se ci sono parametri nell'URL, estraili
     if (urlParams) {
-        // Controlla se è il nuovo formato con parametri query
         if (urlParams.includes('player1=') || urlParams.includes('player2=')) {
        
             const params = new URLSearchParams(urlParams);
             player1 = decodeURIComponent(params.get('player1') || player1);
-            player2 = decodeURIComponent(params.get('player2') || player2);
-            
-            console.log('Using query parameters format:', { player1, player2 });
+            player2 = decodeURIComponent(params.get('player2') || player2); 
+
         } else {
             // Formato precedente: /game?Mario_Luigi
             const players = urlParams.split('_');
@@ -163,11 +159,8 @@ const routes: Record<string, () => string> = {
                 player1 = decodeURIComponent(players[0]);
                 player2 = decodeURIComponent(players[1]);
             }
-            
-            console.log('Using underscore format:', { player1, player2 });
         }
     }
-
 
     new GamePage(currentLang, fromPage, player1, player2);
     return "";

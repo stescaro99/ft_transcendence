@@ -159,8 +159,7 @@ export class RemoteController {
             
             // MODIFICA: Migliora controllo disconnessione con flag esplicito
             const isOnline = multiplayerService.isConnected();
-            if (!isOnline || this.isDisconnected) {  // NEW: Aggiungi flag isDisconnected
-                console.log('[RemoteController] Player disconnesso, non mostrare schermata vittoria');
+            if (!isOnline || this.isDisconnected) {
                 return;
             }
             

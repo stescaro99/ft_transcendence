@@ -55,7 +55,6 @@ export async function handleWebSocketConnection(connection: any, req: FastifyReq
     await handlePlayerDisconnection(player, authenticatedUser);
   });
   connection.on('error', (error: any) => {
-    console.error(`WebSocket error for player ${player.id}:`, error);
   });
 }
 

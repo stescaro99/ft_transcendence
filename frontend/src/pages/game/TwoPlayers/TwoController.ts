@@ -281,7 +281,6 @@ export async function TwoGameLoop(
 		game.leftPaddle[0].nickname,
 		game.rightPaddle[0].nickname
 		];
-    console.log("DEBUG: Updating stats for player!!!!!!!!!!s:", players);
     const promises: Promise<unknown>[] = [];
 		players.forEach((nickname, idx) => {
       let result = 0;

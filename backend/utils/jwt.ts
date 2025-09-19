@@ -12,7 +12,6 @@ export async function verifyJWT(request: FastifyRequest, reply: FastifyReply) {
 		const decoded = jwt.verify(token, key) as JwtPayload;
 		(request as any).user = decoded;
 	} catch (err) {
-		console.error('JWT verification failed:', err);
 		return reply.code(401).send({ error: 'Invalid or expired token' });
 	}
 }

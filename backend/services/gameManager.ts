@@ -132,7 +132,6 @@ export class GameManager {
       return;
     }
     if (!GameValidator.validateAdvancedInput(input, player)) {
-      console.warn(`Suspicious input detected from player ${player.nickname}:`, input);
       return;
     }
     this.updatePaddleMovement(room, player, input);

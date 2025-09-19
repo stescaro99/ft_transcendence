@@ -75,7 +75,6 @@ export class HomePage {
     }
 
     private addlisteners() {
-        console.log('Adding event listeners...');
         const playButton = document.getElementById('playButton');
         if (playButton) {
             playButton.addEventListener('click', () => {
@@ -325,7 +324,6 @@ export class HomePage {
                 if (!this.isRunning) {
                     this.isRunning = true;
                     this.animate();
-                    console.log('Ball animation started');
                 }
             }
             

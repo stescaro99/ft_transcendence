@@ -94,7 +94,6 @@ export class UserService {
 					token = userData.token || null;
 					if (token) {
 						sessionStorage.setItem('token', token);
-						console.log('[UserService] Token salvato come chiave diretta in sessionStorage.token');
 					}
 				} catch (error) {
 					console.error('[UserService] Errore parsing userData:', error);
@@ -171,7 +170,6 @@ export class UserService {
 			field: field,
 			new_value: new_value,
 		});
-		console.log('Request body:', body);
 		
 		const response = await fetch(url, {
 			method: 'PUT',

@@ -307,7 +307,7 @@ export class OnlineGamePage {
 	cancelBtn.style.marginLeft = "20px";
         cancelBtn.addEventListener("click", () => {
             console.log("[OnlineGame] ❌ Ricerca annullata dall'utente");
-            multiplayerService.cancelFindMatch(); // NEW: lascia la stanza lato server
+            multiplayerService.cancelFindMatch();
             stopSearch();
             cancelBtn.classList.add("hidden");
         });

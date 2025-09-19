@@ -242,7 +242,6 @@ export class FourRemoteController {
             
             const isOnline = multiplayerService.isConnected();
             if (!isOnline || this.isDisconnected) {
-                console.log('[FourRemoteController] Player disconnesso, non mostrare schermata vittoria');
                 return;
             }
             

@@ -26,7 +26,7 @@ export class TranslationService {
             if (Array.isArray(value)) return value.join(', ');
             if (value && typeof value === 'object') return JSON.stringify(value);
             // log per debug: chiave mancante
-            console.warn(`[TranslationService] Missing translation for key="${key.trim()}" lang="${this.lang}"`);
+            /* log rimosso */
             return '';
         });
      }

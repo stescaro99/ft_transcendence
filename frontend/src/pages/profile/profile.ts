@@ -280,7 +280,6 @@ export class ProfilePage {
 				}
 			});
 			const us = await Promise.all(playerPromises);
-			console.log('game', game);
 			const half = Math.ceil(us.length / 2);
 			const team1:  Pick <User, 'nickname'|'image_url'>[] = us.slice(0, half);
 			const team2:  Pick <User, 'nickname'|'image_url'>[] = us.slice(half);
@@ -348,7 +347,6 @@ export class ProfilePage {
 		fileImput.addEventListener('change', (event) => {
 			const file = (event.target as HTMLInputElement).files?.[0];
 			if (file) {
-				console.log('uploadingImg', file);
 				this.previewImage(file);
 			}
 		});
@@ -493,15 +491,6 @@ export class ProfilePage {
 		const successes = results.filter(r => r.success);
 		const failures = results.filter(r => !r.success);
 
-		// Log dettagliato per debug
-		console.log('📊 Update Results:', {
-			total: results.length,
-			successes: successes.length,
-			failures: failures.length,
-			details: results
-		});
-
-		// Mostra notifiche all'utente
 		if (successes.length > 0) {
 			const successFields = successes.map(r => r.field).join(', ');
 			this.showNotification(`✅ Updated successfully: ${successFields}`, 'success');
@@ -511,7 +500,6 @@ export class ProfilePage {
 			const failureFields = failures.map(r => r.field).join(', ');
 			this.showNotification(`❌ Failed to update: ${failureFields}`, 'error');
 			
-			// Log errori specifici
 			failures.forEach(failure => {
 				console.error(`❌ ${failure.field} update failed:`, failure.error);
 			});
@@ -564,8 +552,7 @@ export class ProfilePage {
 		if (editImageBtn) {
 			editImageBtn.classList.add('hidden');
 		}
-		
-		console.log('user update,', this.user);
+	
 		this.showValueProfile("name");
 		this.showValueProfile("surname");
 		this.showValueProfile("email");
